@@ -1,0 +1,34 @@
+import {test,expect} from '@playwright/test';
+
+test('native events keep selection, halo, and progress separate; keyboard exposes pause',async({page})=>{
+  await page.addInitScript(()=>{
+    const w=window as any;w.isTauri=true;
+    const callbacks=new Map<number,Function>();const listeners=new Map<string,number>();let n=0;
+    const config={instances:[{id:'running',name:'Running world',version:'1.21.4',artwork:'grass',memory_mb:4096,java_path:'',installed:true},{id:'installing',name:'Installing world',version:'1.21.4',artwork:'stone',memory_mb:4096,java_path:'',installed:false}],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
+    const activities=[{id:'running',status:'running',progress:null,phase:'Minecraft is running'},{id:'installing',status:'installing',progress:.45,phase:'Downloading assets'}];
+    w.__testEmit=(event:string,payload:any)=>callbacks.get(listeners.get(event)!)?.({event,payload});
+    w.__TAURI_INTERNALS__={transformCallback:(fn:Function)=>{callbacks.set(++n,fn);return n;},invoke:async(name:string,args:any)=>{
+      if(name==='plugin:event|listen'){listeners.set(args.event,args.handler);return n;}
+      if(name==='get_config')return config;if(name==='get_activities')return activities;if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
+      if(name==='pause_install'){w.__testEmit('activity',{id:args.id,status:args.paused?'paused':'installing',progress:.45,phase:args.paused?'Paused':'Downloading assets'});return;}
+      if(name==='get_logs'||name==='get_content')return [];
+      return null;
+    }};
+  });
+  await page.goto('/');await expect(page.locator('.rail-item.running')).toHaveCount(1);
+  await page.getByRole('button',{name:'Installing world: Downloading assets'}).click();
+  await expect(page.locator('.rail-item.running [data-selected]')).toHaveCount(0);
+  await expect(page.locator('.rail-item [data-selected]')).toHaveCount(1);
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow','45');
+  const progress=await page.getByRole('progressbar').boundingBox();
+  const tab=await page.getByRole('button',{name:'Installing world: Downloading assets'}).boundingBox();
+  const art=await page.locator('.rail-item .instance-icon').last().locator('.artwork').boundingBox();
+  expect(progress!.x).toBeGreaterThan(tab!.x);
+  expect(progress!.x+progress!.width).toBeLessThan(tab!.x+tab!.width);
+  expect(progress!.y).toBeGreaterThan(art!.y);
+  expect(progress!.y+progress!.height).toBeLessThan(art!.y+art!.height);
+  const action=page.locator('.install-button');await action.focus();await expect(action).toContainText('Pause');await action.press('Enter');
+  await expect(page.locator('.mini-progress')).toHaveClass(/paused/);await expect(action).toContainText('Resume');
+  await page.evaluate(()=>{(window as any).__testEmit('activity',{id:'running',status:'crashed',progress:null,phase:'Unexpected exit'});});
+  await expect(page.locator('.rail-item.crashed')).toHaveCount(1);await expect(page.locator('.rail-item.running')).toHaveCount(0);
+});

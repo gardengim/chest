@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'tests',testMatch:'*.spec.ts',use:{baseURL:'http://127.0.0.1:1420',headless:true,viewport:{width:1150,height:800},launchOptions:process.env.CHEST_BROWSER_EXECUTABLE?{executablePath:process.env.CHEST_BROWSER_EXECUTABLE,args:['--no-sandbox','--disable-dev-shm-usage']}:{}},webServer:{command:'npm run dev',url:'http://127.0.0.1:1420',reuseExistingServer:true},reporter:'list'});

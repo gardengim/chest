@@ -1,0 +1,4 @@
+Minecraft: Java Edition game icon. Copyright Mojang AB / Microsoft.
+Source: official asset index 32, icons/icon_256x256.png
+SHA-1: 8030dd9dc315c0381d52c4782ea36c6baf6e8135
+https://resources.download.minecraft.net/80/8030dd9dc315c0381d52c4782ea36c6baf6e8135

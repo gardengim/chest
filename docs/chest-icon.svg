@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Chest</title>
+  <!-- Three body faces, an overhanging lid, and one brass latch. -->
+  <polygon points="8,25 34,35 34,57 8,47" fill="#ad7546"/>
+  <polygon points="34,35 56,23 56,45 34,57" fill="#704b35"/>
+  <polygon points="6,17 28,5 58,17 34,30" fill="#e5b777"/>
+  <polygon points="6,17 34,28 34,36 6,25" fill="#c58c52"/>
+  <polygon points="34,28 58,15 58,23 34,36" fill="#8b603c"/>
+  <polygon points="8,25 34,35 56,23 56,26 34,38 8,28" fill="#493b2e"/>
+  <polygon points="18,27 24,29 24,40 18,38" fill="#f0cf85"/>
+  <polygon points="24,29 26,28 26,39 24,40" fill="#b28a49"/>
+</svg>

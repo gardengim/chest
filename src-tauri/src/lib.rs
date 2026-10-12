@@ -1,0 +1,471 @@
+mod updater;
+use chest_core::{
+    metadata::Version,
+    store::{Account, Config, Instance, SidebarGroup},
+    Activity, Content, Core,
+};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+use tauri::{Emitter, Manager, State};
+use tauri_plugin_dialog::DialogExt;
+type App<'a> = State<'a, Arc<Core>>;
+fn err(e: impl std::fmt::Display) -> String {
+    format!("{e}")
+}
+
+#[tauri::command]
+fn get_config(core: App<'_>) -> Config {
+    core.store.config()
+}
+#[tauri::command]
+fn get_launcher_info(core: App<'_>, app: tauri::AppHandle) -> serde_json::Value {
+    serde_json::json!({"version":app.package_info().version.to_string(),"platform":std::env::consts::OS,"architecture":std::env::consts::ARCH,"data_path":core.store.root.to_string_lossy(),"test_profile":core.store.is_test_profile()})
+}
+#[tauri::command]
+fn open_data_folder(core: App<'_>) -> Result<(), String> {
+    core.open_data_folder().map_err(err)
+}
+#[tauri::command]
+async fn choose_java(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    app.dialog().file().blocking_pick_file().map(|p|p.into_path().map(|p|p.to_string_lossy().into_owned()).map_err(err)).transpose()
+}
+#[tauri::command]
+async fn inspect_java(path: String) -> Result<String, String> {
+    let path=path.trim();
+    if path.is_empty() { return Err("Choose a Java executable first.".into()); }
+    let mut command=tokio::process::Command::new(path);
+    command.arg("-version").kill_on_drop(true);
+    #[cfg(target_os = "windows")]
+    command.creation_flags(0x08000000);
+    let output=tokio::time::timeout(std::time::Duration::from_secs(10),command.output()).await
+        .map_err(|_|"Java check timed out".to_string())?.map_err(err)?;
+    let text=format!("{}{}",String::from_utf8_lossy(&output.stderr),String::from_utf8_lossy(&output.stdout));
+    if !output.status.success() || !text.to_lowercase().contains("version") { return Err("Could not determine Java version".into()); }
+    Ok(text.chars().take(4096).collect())
+}
+#[tauri::command]
+fn get_debug_launch(core: App<'_>) -> chest_core::DebugLaunch {
+    core.debug_launch()
+}
+#[tauri::command]
+fn set_debug_offline(core: App<'_>, enabled: bool) -> Result<chest_core::DebugLaunch, String> {
+    core.set_debug_offline(enabled).map_err(err)
+}
+#[tauri::command]
+fn get_instance_icons(core: App<'_>) -> std::collections::HashMap<String, String> {
+    core.instance_icons()
+}
+#[tauri::command]
+async fn get_instance_screenshots(core: App<'_>, id: String) -> Result<Vec<String>, String> {
+    core.instance_screenshots(&id).await.map_err(err)
+}
+#[tauri::command]
+fn get_activities(core: App<'_>) -> Vec<Activity> {
+    core.activities()
+}
+#[tauri::command]
+async fn get_news(core: App<'_>) -> Result<Vec<chest_core::news::Article>, String> {
+    chest_core::news::latest(&core.client).await.map_err(err)
+}
+#[tauri::command]
+async fn get_instance_news(core: App<'_>, id: String) -> Result<chest_core::news::InstanceNews, String> {
+    chest_core::news::instance_updates(&core, &id).await.map_err(err)
+}
+#[tauri::command]
+fn open_news(url: String) -> Result<(), String> {
+    chest_core::news::open(&url).map_err(err)
+}
+#[tauri::command]
+async fn get_versions(core: App<'_>) -> Result<Vec<Version>, String> {
+    core.versions().await.map_err(err)
+}
+#[tauri::command]
+async fn get_fabric_versions(core: App<'_>, version: String) -> Result<Vec<String>, String> {
+    chest_core::fabric::versions(&core.client, &version)
+        .await
+        .map_err(err)
+}
+#[tauri::command]
+async fn get_quilt_versions(core: App<'_>, version: String) -> Result<Vec<String>, String> {
+    chest_core::fabric::quilt_versions(&core.client, &version)
+        .await
+        .map_err(err)
+}
+#[tauri::command]
+fn get_catalog_sources() -> chest_core::catalog::Sources {
+    chest_core::catalog::sources()
+}
+#[tauri::command]
+async fn search_catalog(
+    core: App<'_>,
+    query: chest_core::catalog::Query,
+) -> Result<chest_core::catalog::Page, String> {
+    chest_core::catalog::search(&core.client, query)
+        .await
+        .map_err(err)
+}
+#[tauri::command]
+async fn get_creation_releases(
+    core: App<'_>, source: chest_core::catalog::Source, project: String,
+    game: String, loader: chest_core::store::Loader, kind: chest_core::catalog::Kind,
+) -> Result<Vec<chest_core::catalog::Release>, String> {
+    let config = core.store.config();
+    let instance = Instance { id:String::new(), name:String::new(), version:game, loader,
+        loader_version:String::new(), memory_mb:config.memory_mb, java_path:config.java_path,
+        artwork:"grass".into(), installed:false, playtime_seconds:0, storage_parent:String::new() };
+    chest_core::catalog::releases(&core.client, source, &project, &instance, kind).await.map_err(err)
+}
+#[tauri::command]
+async fn get_catalog_releases(
+    core: App<'_>,
+    source: chest_core::catalog::Source,
+    project: String,
+    id: String,
+    kind: chest_core::catalog::Kind,
+) -> Result<Vec<chest_core::catalog::Release>, String> {
+    let instance = core.store.instance(&id).map_err(err)?;
+    chest_core::catalog::releases(&core.client, source, &project, &instance, kind)
+        .await
+        .map_err(err)
+}
+#[tauri::command]
+async fn add_catalog_content(
+    core: App<'_>,
+    source: chest_core::catalog::Source,
+    project: String,
+    id: String,
+    version: String,
+    kind: chest_core::catalog::Kind,
+) -> Result<Vec<String>, String> {
+    core.inner()
+        .install_content(id, source, project, version, kind)
+        .await
+        .map_err(err)
+}
+#[tauri::command]
+async fn get_modpack_releases(
+    core: App<'_>,
+    source: chest_core::catalog::Source,
+    project: String,
+    game: String,
+    loader: String,
+) -> Result<Vec<chest_core::catalog::Release>, String> {
+    chest_core::modpack::releases(&core.client, source, &project, &game, &loader)
+        .await
+        .map_err(err)
+}
+#[tauri::command]
+async fn install_modpack(
+    core: App<'_>,
+    source: chest_core::catalog::Source,
+    project: String,
+    version: String,
+    name: String,
+) -> Result<Instance, String> {
+    core.inner()
+        .queue_modpack(source, project, version, name)
+        .map_err(err)
+}
+#[tauri::command]
+fn open_project(source: chest_core::catalog::Source, url: String) -> Result<(), String> {
+    chest_core::catalog::open_project(source, &url).map_err(err)
+}
+#[tauri::command]
+async fn create_wizard(core: App<'_>, request: chest_core::creation::CreationRequest) -> Result<Instance, String> {
+    let core = core.inner().clone();
+    tokio::task::spawn_blocking(move || core.create_wizard(request)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn choose_instance_location(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    app.dialog().file().blocking_pick_folder().map(|p| p.into_path().map(|p| p.to_string_lossy().into_owned()).map_err(err)).transpose()
+}
+#[tauri::command]
+async fn choose_creation_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    app.dialog().file().add_filter("Content", &["jar", "zip"]).blocking_pick_files().unwrap_or_default().into_iter().map(|p| p.into_path().map(|p| p.to_string_lossy().into_owned()).map_err(err)).collect()
+}
+#[tauri::command]
+async fn choose_creation_archive(app: tauri::AppHandle) -> Result<Option<chest_core::creation::ArchivePreview>, String> {
+    let Some(path) = app.dialog().file().add_filter("Chest archive", &["zip"]).blocking_pick_file() else { return Ok(None) };
+    let path = path.into_path().map_err(err)?;
+    tokio::task::spawn_blocking(move || chest_core::creation::inspect_archive(path)).await.map_err(err)?.map(Some).map_err(err)
+}
+#[tauri::command]
+fn create_instance(
+    core: App<'_>,
+    name: String,
+    version: String,
+    loader: Option<chest_core::store::Loader>,
+    loader_version: Option<String>,
+) -> Result<Instance, String> {
+    core.store
+        .create_with_loader(
+            name,
+            version,
+            "grass".into(),
+            loader.unwrap_or_default(),
+            loader_version.unwrap_or_default(),
+        )
+        .map_err(err)
+}
+#[tauri::command]
+fn set_sidebar_groups(core: App<'_>, groups: Vec<SidebarGroup>) -> Result<Config, String> {
+    core.store.set_sidebar_groups(groups).map_err(err)
+}
+#[tauri::command]
+fn reorder_instances(core: App<'_>, ids: Vec<String>) -> Result<Config, String> {
+    core.store.reorder(&ids).map_err(err)
+}
+#[tauri::command]
+fn save_instance(core: App<'_>, instance: Instance) -> Result<Config, String> {
+    core.save_instance(instance).map_err(err)
+}
+#[tauri::command]
+async fn install_instance(core: App<'_>, id: String) -> Result<(), String> {
+    core.start_install(id).map_err(err)
+}
+#[tauri::command]
+fn pause_install(core: App<'_>, id: String, paused: bool) -> Result<(), String> {
+    core.pause(&id, paused).map_err(err)
+}
+#[tauri::command]
+async fn launch_instance(core: App<'_>, id: String) -> Result<(), String> {
+    core.launch(id).map_err(err)
+}
+#[tauri::command]
+fn stop_instance(core: App<'_>, id: String) -> Result<(), String> {
+    core.stop(&id).map_err(err)
+}
+#[tauri::command]
+fn get_logs(core: App<'_>, id: String) -> Vec<String> {
+    core.logs(&id)
+}
+#[tauri::command]
+fn get_content(core: App<'_>, id: String) -> Result<Vec<Content>, String> {
+    core.content(&id).map_err(err)
+}
+#[tauri::command]
+fn toggle_content(core: App<'_>, id: String, kind: String, name: String) -> Result<(), String> {
+    core.toggle_content(&id, &kind, &name).map_err(err)
+}
+#[tauri::command]
+fn get_instance_folder(core: App<'_>, id: String) -> Result<String, String> {
+    core.instance_folder(&id).map(|path| path.to_string_lossy().into_owned()).map_err(err)
+}
+#[tauri::command]
+fn open_instance_folder(core: App<'_>, id: String) -> Result<(), String> {
+    core.open_folder(&id).map_err(err)
+}
+#[tauri::command]
+fn duplicate_instance(core: App<'_>, id: String) -> Result<Instance, String> {
+    core.duplicate(&id).map_err(err)
+}
+#[tauri::command]
+fn remove_instance(core: App<'_>, id: String) -> Result<Config, String> {
+    core.remove(&id).map_err(err)
+}
+#[tauri::command]
+fn acknowledge(core: App<'_>, id: String) -> Result<(), String> {
+    core.acknowledge(&id).map_err(err)
+}
+#[tauri::command]
+fn save_settings(
+    core: App<'_>,
+    client_id: String,
+    java_path: String,
+    memory_mb: u32,
+) -> Result<Config, String> {
+    if !(512..=65536).contains(&memory_mb) {
+        return Err("Memory must be between 512 and 65536 MB".into());
+    }
+    if !client_id.trim().is_empty() {
+        uuid::Uuid::parse_str(client_id.trim())
+            .map_err(|_| "Invalid Microsoft application ID".to_string())?;
+    }
+    core.store
+        .change(|c| {
+            c.client_id = client_id.trim().into();
+            c.java_path = java_path.trim().into();
+            c.memory_mb = memory_mb;
+            Ok(())
+        })
+        .map_err(err)
+}
+#[tauri::command]
+fn select_account(core: App<'_>, id: String) -> Result<Config, String> {
+    if !core.store.config().accounts.iter().any(|a| a.id == id) {
+        return Err("Account not found".into());
+    }
+    core.store
+        .change(|c| {
+            c.active_account = Some(id);
+            Ok(())
+        })
+        .map_err(err)
+}
+#[tauri::command]
+async fn sign_in(core: App<'_>) -> Result<Account, String> {
+    let _permit = core
+        .auth_lock
+        .try_acquire()
+        .map_err(|_| "Another account operation is in progress".to_string())?;
+    let cancel = Arc::new(AtomicBool::new(false));
+    *core.auth_cancel.lock().unwrap() = Some(cancel.clone());
+    let result = chest_core::auth::sign_in(&core.store, &core.client, cancel)
+        .await
+        .map_err(err);
+    *core.auth_cancel.lock().unwrap() = None;
+    result
+}
+#[tauri::command]
+fn cancel_sign_in(core: App<'_>) {
+    if let Some(cancel) = core.auth_cancel.lock().unwrap().as_ref() {
+        cancel.store(true, Ordering::Relaxed);
+    }
+}
+#[tauri::command]
+async fn sign_out(core: App<'_>, id: String) -> Result<(), String> {
+    let _permit = core
+        .auth_lock
+        .try_acquire()
+        .map_err(|_| "Account operation is in progress".to_string())?;
+    chest_core::auth::sign_out(&core.store, &id).map_err(err)
+}
+#[tauri::command]
+async fn export_instance(app: tauri::AppHandle, core: App<'_>, id: String) -> Result<bool, String> {
+    let path = app
+        .dialog()
+        .file()
+        .set_file_name("instance.chest.zip")
+        .add_filter("Chest archive", &["zip"])
+        .blocking_save_file();
+    let Some(path) = path else { return Ok(false) };
+    let path = path.into_path().map_err(err)?;
+    let core = core.inner().clone();
+    tokio::task::spawn_blocking(move || core.export(&id, &path))
+        .await
+        .map_err(err)?
+        .map_err(err)?;
+    Ok(true)
+}
+#[tauri::command]
+async fn import_instance(app: tauri::AppHandle, core: App<'_>) -> Result<Option<Instance>, String> {
+    let path = app
+        .dialog()
+        .file()
+        .add_filter("Chest archive", &["zip"])
+        .blocking_pick_file();
+    let Some(path) = path else { return Ok(None) };
+    let path = path.into_path().map_err(err)?;
+    let core = core.inner().clone();
+    Ok(Some(
+        tokio::task::spawn_blocking(move || core.import(&path))
+            .await
+            .map_err(err)?
+            .map_err(err)?,
+    ))
+}
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(updater::UpdaterState::default())
+        .setup(|app| {
+            let activity = app.handle().clone();
+            let logs = app.handle().clone();
+            let normal = app.path().app_data_dir()?;
+            let profile = std::env::var_os("CHEST_TEST_PROFILE")
+                .map(|root| chest_core::profile::TestProfile::open(std::path::Path::new(&root), &normal))
+                .transpose()?;
+            #[cfg(target_os = "macos")]
+            if profile.is_some() {
+                let version = std::process::Command::new("/usr/bin/sw_vers").arg("-productVersion").output()?;
+                let major = String::from_utf8_lossy(&version.stdout).split('.').next().and_then(|v|v.trim().parse::<u32>().ok()).unwrap_or(0);
+                if major < 14 {return Err("Test profiles require macOS 14 or newer for isolated WebView storage".into());}
+            }
+            let root = profile.as_ref().map(|p|p.root.clone()).unwrap_or(normal);
+            let core = Core::new_scoped(
+                root,
+                profile.as_ref().map(|p|p.credential_scope()),
+                move |a| {
+                    let _ = activity.emit("activity", a);
+                },
+                move |l| {
+                    let _ = logs.emit("log", l);
+                },
+            )?;
+            app.manage(Arc::new(core));
+            let config = app.config().app.windows[0].clone();
+            let mut window = tauri::WebviewWindowBuilder::from_config(app, &config)?;
+            if let Some(profile) = profile {
+                window = window.title("Chest — Test profile");
+                #[cfg(target_os = "macos")]
+                { window = window.data_store_identifier(*profile.id.as_bytes()); }
+                #[cfg(not(target_os = "macos"))]
+                { window = window.data_directory(profile.root.join("webview")); }
+            }
+            window.build()?;
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            updater::get_app_update_info,
+            updater::check_app_update,
+            updater::install_app_update,
+            updater::restart_updated_app,
+            get_config,
+            get_launcher_info,
+            open_data_folder,
+            choose_java,
+            inspect_java,
+            get_activities,
+            get_instance_icons,
+            get_debug_launch,
+            set_debug_offline,
+            get_instance_screenshots,
+            get_versions,
+            get_news,
+            get_instance_news,
+            open_news,
+            get_fabric_versions,
+            get_quilt_versions,
+            get_catalog_sources,
+            search_catalog,
+            get_catalog_releases,
+            get_creation_releases,
+            add_catalog_content,
+            get_modpack_releases,
+            install_modpack,
+            open_project,
+            create_instance,
+            create_wizard,
+            choose_instance_location,
+            choose_creation_files,
+            choose_creation_archive,
+            save_instance,
+            reorder_instances,
+            set_sidebar_groups,
+            install_instance,
+            pause_install,
+            launch_instance,
+            stop_instance,
+            get_logs,
+            get_content,
+            toggle_content,
+            open_instance_folder,
+            get_instance_folder,
+            duplicate_instance,
+            remove_instance,
+            acknowledge,
+            save_settings,
+            select_account,
+            sign_in,
+            cancel_sign_in,
+            sign_out,
+            export_instance,
+            import_instance
+        ])
+        .run(tauri::generate_context!())
+        .expect("Chest could not start");
+}

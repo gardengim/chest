@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a reproducible Chest problem.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Chest version and installation source
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS version and architecture
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps, expected result, and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized error or log excerpt
+      description: Remove tokens, personal paths, server addresses, and account details. Never upload credentials or signing keys.
+  - type: textarea
+    id: recovery
+    attributes:
+      label: Recovery attempts and disposable-instance reproduction

@@ -1,0 +1,64 @@
+# Releasing Chest
+
+The app checks `https://github.com/gardengim/chest/releases/latest/download/latest.json`.
+Only signed updater artifacts are accepted. The verification public key is committed in
+`src-tauri/updater.pub` and `src-tauri/tauri.conf.json`.
+
+The private signing key is stored locally at `~/.config/chest/updater.key`, outside this
+repository. Back it up securely: installed apps trust its matching public key. Never
+commit the private key. This key was generated without a password; its file permissions
+restrict access to your user account.
+
+## GitHub setup
+
+In `gardengim/chest`, add the contents of the local private key as the Actions secret
+`TAURI_SIGNING_PRIVATE_KEY`. Leave `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` empty for this key.
+For notarized macOS releases, also configure `APPLE_CERTIFICATE` (base64 P12),
+`APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`
+(app-specific password), and `APPLE_TEAM_ID`.
+
+## Release
+
+1. Bump the version in `package.json`, `package-lock.json`, `core/Cargo.toml`,
+   `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` together; update Cargo lockfiles.
+2. Run `npm run verify`, commit, and push a matching tag, for example `v0.1.1`.
+   The release workflow waits for the reusable three-platform check workflow.
+3. The release workflow builds macOS Apple Silicon/Intel, Windows, and Linux installers,
+   their updater signatures, and `latest.json`. Jobs upload serially to avoid manifest races.
+4. Inspect the draft GitHub release and publish it when ready. Draft releases are not
+   advertised to existing installations.
+
+For local signed bundles:
+
+```sh
+export TAURI_SIGNING_PRIVATE_KEY="$HOME/.config/chest/updater.key"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
+npm run tauri -- build
+```
+
+Updater signing and Apple code signing are separate. The repository configuration and
+workflow are ready; GitHub secrets and a published signed release are required before
+real updates can be delivered. Release builds check automatically at startup; Settings
+also offers Check, Update, progress, and Restart. Development builds can check releases
+but do not replace themselves. Updates never install automatically. Running Minecraft
+instances and instance installations must finish before installation or restart.
+
+For a local macOS bundle without an Apple distribution certificate, use explicit ad-hoc
+signing (local verification only; this does not provide notarization or distributor identity):
+
+```sh
+TAURI_SIGNING_PRIVATE_KEY="$HOME/.config/chest/updater.key" TAURI_SIGNING_PRIVATE_KEY_PASSWORD='' npm run tauri -- build --bundles app --config '{"bundle":{"macOS":{"signingIdentity":"-"}}}'
+codesign --verify --deep --strict src-tauri/target/release/bundle/macos/Chest.app
+```
+
+Release preflight checks all manifest/lockfile versions, tag, public-key agreement,
+HTTPS GitHub endpoint, and updater artifact generation. Five script tests exercise rejected
+release inputs. Actual GitHub runs, distribution signing, published manifest/artifact URLs,
+and the [packaged update record](ACCEPTANCE.md) remain required.
+
+Verify a generated updater artifact against the committed public key (also checks that a
+modified copy is rejected; the original file is never changed):
+
+```sh
+cargo run --locked --manifest-path core/Cargo.toml --example verify_updater -- src-tauri/updater.pub src-tauri/target/release/bundle/macos/Chest.app.tar.gz
+```

@@ -1,0 +1,19 @@
+node_modules/
+dist/
+target/
+src-tauri/target/
+core/target/
+*.log
+test-results/
+playwright-report/
+
+# Never commit private updater signing keys.
+*.key
+
+# Platform metadata and generated Tauri schemas.
+.DS_Store
+Thumbs.db
+src-tauri/gen/
+.env
+.env.*
+!.env.example

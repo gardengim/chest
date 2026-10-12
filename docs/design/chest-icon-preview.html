@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Chest icon geometry</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #171c17; color: #eceee6; font: 14px system-ui, sans-serif; }
+  main { padding: 48px; }
+  h1 { font-size: 20px; font-weight: 550; margin: 0 0 8px; }
+  p { color: #a9b19f; margin: 0 0 32px; }
+  .hero { height: 330px; display: grid; place-items: center; background: #222920; }
+  .proof { position: relative; width: 300px; height: 300px; }
+  .proof > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .sizes { display: flex; align-items: end; gap: 42px; padding: 32px 0; }
+  figure { margin: 0; display: grid; justify-items: center; gap: 14px; }
+  figcaption { color: #a9b19f; font-size: 12px; }
+  .light { background: #eceee6; padding: 18px; }
+</style>
+<main>
+  <h1>Chest / geometric icon</h1>
+  <p>Regular hexagon · 60° symmetry · uniform 7-unit borders</p>
+  <div class="hero"><div class="proof">
+    <svg viewBox="0 0 128 128" aria-hidden="true">
+      <defs><pattern id="grid" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M8 0H0V8" fill="none" stroke="#B2C2AD" stroke-opacity=".16" stroke-width=".3"/></pattern></defs>
+      <path fill="url(#grid)" d="M0 0h128v128H0Z"/>
+      <circle cx="64" cy="64" r="56.041452" fill="#394336" stroke="#B5C5AA" stroke-width=".45"/>
+    </svg>
+    <img src="../../public/chest.svg" width="300" height="300" alt="Chest icon with circular geometry guide">
+    <svg viewBox="0 0 128 128" fill="none" aria-hidden="true">
+      <g stroke="#C5D8BA" stroke-opacity=".45" stroke-width=".35" stroke-dasharray="1.5 2">
+        <path d="M64 3v122M3 64h122M11.172451 33.5 116.827549 94.5M11.172451 94.5 116.827549 33.5"/>
+        <circle cx="64" cy="64" r="56.041452"/>
+      </g>
+      <circle cx="64" cy="64" r="1" fill="#D8E9CB"/>
+    </svg>
+  </div></div>
+  <div class="sizes">
+    <figure><img src="../../public/chest.svg" width="16" height="16" alt=""><figcaption>16</figcaption></figure>
+    <figure><img src="../../public/chest.svg" width="24" height="24" alt=""><figcaption>24</figcaption></figure>
+    <figure><img src="../../public/chest.svg" width="32" height="32" alt=""><figcaption>32</figcaption></figure>
+    <figure><img src="../../public/chest.svg" width="48" height="48" alt=""><figcaption>48</figcaption></figure>
+    <figure><img src="../../public/chest.svg" width="64" height="64" alt=""><figcaption>64</figcaption></figure>
+    <figure><div class="light"><img src="../../public/chest.svg" width="64" height="64" alt=""></div><figcaption>Light background</figcaption></figure>
+  </div>
+</main>
+</html>
