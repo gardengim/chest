@@ -1,7 +1,7 @@
 # 0.1.0 completion and human-verification handoff
 
 Started 2026-10-14; automated completion 2026-10-15 (America/Los_Angeles).
-**Automated work completed; local foreground and device acceptance are paused for human verification.**
+**Automated work completed. Owner verified unlocked Mac startup and both reported crash paths; remaining device acceptance is paused for human verification.**
 Application source candidate:
 `8c69ee459d1ac944c88d6d653b3aab7fb2ea0a50`. Measurement records below identify their own source revisions;
 the sustained idle sample predates the final focus and pending-operation fixes.
@@ -204,11 +204,29 @@ samples remain separately identified. The idle record is not a controlled
 unlocked/foreground baseline. No password was requested or lock protection bypassed.
 All owned probe processes and disposable data were stopped/cleaned.
 
-**Human gate:** unlock the Mac and repeat normal foreground launch before accepting
-local native startup, visual presentation or interaction. If it still fails on an
-unlocked desktop, treat it as a product failure and investigate before consolidation.
+**Foreground gate resolved (owner report, 2026-10-15):** normal launch on the
+unlocked Mac worked. The earlier locked-desktop probes remain rejected measurements;
+this confirmation does not turn them into valid startup timings.
 
 ## Human verification — stop here after automated completion
+
+### Owner-confirmed results — 2026-10-15
+
+The owner confirmed normal unlocked foreground launch, then confirmed that both
+previously reported crash paths work. The locally launched `.app` executable hash
+was rechecked as `88d904efdd5a64d134ecd45f616f3e7c58af799a1d2386703663c2e4e9882857`
+(the `13316b4` local build identified above). These are owner-reported functional
+results on this Mac, not installer acceptance on all targets or measured startup times.
+
+| Scenario | Result | Evidence |
+| --- | --- | --- |
+| Unlocked Mac, normal foreground launch | Pass | Owner: “unlock and launch normally, worked.” |
+| Home → Worlds → instance → Play | Pass | Owner confirmed both requested launch paths work. |
+| Home → Servers → instance → Join | Pass | Same confirmation; no reported recurrence of the abort. |
+
+Failed-launch recovery and the remaining authentication, accessibility, visual,
+platform, gameplay/recovery and distribution checks below remain unverified.
+
 
 Use the exact installer hash in the attached inventory and the
 [packaged acceptance record](../ACCEPTANCE.md). Record device/OS, tester, hash,
