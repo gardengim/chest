@@ -67,7 +67,7 @@
           {#each versions as version}<option value={version.id}>{version.id}</option>{/each}
         </Select></label>
         <LoaderPicker gameVersion={draft.version} bind:loader={draft.loader} bind:loaderVersion={draft.loaderVersion} bind:ready={loaderReady}/>
-        {#if versionError}<div class="inline-error">{versionError}<Button shape="plain" onclick={onretry}>{$t("Retry")}</Button></div>{/if}
+        {#if versionError}<div class="inline-error">{versionError}<Button onclick={onretry}>{$t("Retry")}</Button></div>{/if}
       </div>
     </div>
     {#if draft.method==='Modpacks'}

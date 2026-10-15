@@ -32,6 +32,9 @@ async function fixture(page:Page,small=false){
 }
 test('shelf, news, catalog and screenshot navigation use the same arrows and button geometry',async({page},testInfo)=>{
   await fixture(page);
+  const viewAll=page.locator('.home-library').getByRole('button',{name:'View all',exact:true});
+  await expect(viewAll).toHaveAttribute('data-shape','button');
+  await expect(viewAll).toHaveCSS('border-style','solid');
   const shelf=page.getByRole('navigation',{name:'Instances navigation',exact:true});
   await expect(shelf.getByRole('button',{name:'Previous Instances',exact:true})).toBeDisabled();
   const dimensions=await shelf.getByRole('button').last().evaluate(node=>({width:node.getBoundingClientRect().width,height:node.getBoundingClientRect().height,border:getComputedStyle(node).borderWidth}));
@@ -68,8 +71,11 @@ test('shelf, news, catalog and screenshot navigation use the same arrows and but
   await expect.poll(()=>body.evaluate(node=>node.scrollLeft)).toBeGreaterThan(0);
 
   const news=page.getByRole('navigation',{name:'News pages',exact:true});
-  await news.getByRole('button',{name:'Next',exact:true}).click();await expect(news.getByRole('status')).toHaveText('2 / 3');
-  await news.getByRole('button',{name:'Next',exact:true}).click();await expect(news.getByRole('status')).toHaveText('3 / 3');
+  // Safari does not focus buttons on pointer clicks; test focus retention through
+  // explicit keyboard activation consistently across engines.
+  const nextNews=news.getByRole('button',{name:'Next',exact:true});await nextNews.focus();
+  await nextNews.press('Enter');await expect(news.getByRole('status')).toHaveText('2 / 3');
+  await nextNews.press('Enter');await expect(news.getByRole('status')).toHaveText('3 / 3');
   await expect(news.getByRole('button',{name:'Next',exact:true})).toBeDisabled();await expect(news.getByRole('button',{name:'Next',exact:true})).toBeFocused();
   await news.screenshot({path:testInfo.outputPath('news-navigation.png')});
   await openHomeTool(page,'Screenshots');

@@ -1,5 +1,6 @@
 import {test,expect,type Page} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import {expectMessageButtons} from './message-helpers';
 async function settings(page:Page){
   await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
@@ -49,6 +50,10 @@ test('Save persists all settings, restore stages defaults, and Discard restores 
   await page.getByRole('radio',{name:'Light',exact:true}).check();
   await page.getByLabel('Double-click to launch',{exact:true}).uncheck();
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
+  const notice=page.locator('.notification[role="status"]');
+  await expectMessageButtons(page,notice);
+  await notice.getByRole('button',{name:'Dismiss notification',exact:true}).click();
+  await expect(notice).toHaveCount(0);
   await expect(page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true})).toBeDisabled();
   await page.getByRole('tab',{name:'About',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('tab',{name:'Settings',exact:true}).click();

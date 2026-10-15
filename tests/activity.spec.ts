@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {expectMessageButtons} from './message-helpers';
 
 test('native events keep selection, halo, and progress separate; keyboard exposes pause',async({page})=>{
   await page.addInitScript(()=>{
@@ -47,10 +48,22 @@ test('native events keep selection, halo, and progress separate; keyboard expose
   await page.evaluate(()=>{(window as any).__testEmit('activity',{id:'running',status:'crashed',progress:null,phase:'Unexpected exit'});});
   await expect(page.locator('.rail-item.crashed')).toHaveCount(1);await expect(page.locator('.rail-item.running')).toHaveCount(0);
   await page.getByRole('button',{name:'Running world: Unexpected exit',exact:true}).click();
+  const crash=page.locator('.crash-notice');
+  await expectMessageButtons(page,crash);
+  await crash.evaluate(node=>(node as HTMLElement).style.setProperty('--message-fill','#244466'));
+  await expectMessageButtons(page,crash);
+  await crash.evaluate(node=>(node as HTMLElement).style.removeProperty('--message-fill'));
+  const viewport=page.viewportSize()!;await page.setViewportSize({width:320,height:640});
+  await expect.poll(()=>crash.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
+  const contained=await crash.evaluate(node=>{
+    const frame=node.getBoundingClientRect();
+    return [...node.querySelectorAll('button')].every(button=>{const box=button.getBoundingClientRect();return box.left>=frame.left && box.right<=frame.right;});
+  });
+  expect(contained).toBe(true);await page.setViewportSize(viewport);
   await page.locator('.crash-notice').getByRole('button',{name:'Copy',exact:true}).click();
   expect(await page.evaluate(()=>(window as any).__copied)).toBe('Minecraft stopped unexpectedly.\nUnexpected exit');
   await expect(page.locator('.crash-notice').getByRole('button',{name:'Copied',exact:true})).toBeVisible();
-  await page.getByRole('tab',{name:'Log',exact:true}).click();
+  await crash.getByRole('button',{name:'Log',exact:true}).click();
   await page.evaluate(()=>{for(let i=0;i<3000;i++)(window as any).__testEmit('log',{id:'running',line:`line-${i}`});});
   await expect(page.locator('.console')).toContainText('line-2999');
   expect(await page.locator('.console').evaluate(node=>node.textContent!.split('\n'))).toHaveLength(2000);
@@ -62,6 +75,9 @@ test('native events keep selection, halo, and progress separate; keyboard expose
   await expect(page.getByRole('button',{name:'Running world: Finished',exact:true})).toBeVisible();
   await expect(page.getByLabel('Search log',{exact:true})).toHaveValue('line-2999');
   await expect(page.locator('.console')).toHaveText('line-2999');
+  const copyLog=page.locator('.collection-toolbar').getByRole('button',{name:'Copy',exact:true});
+  await expect(copyLog).toHaveAttribute('data-shape','button');
+  await copyLog.click();expect(await page.evaluate(()=>(window as any).__copied)).toBe('line-2999');
   await page.evaluate(()=>(window as any).__testEmit('activity',{id:'running',status:'working',progress:null,phase:'Copying…'}));
   await expect(page.locator('.install-button')).toContainText('Copying…');
   await expect(page.locator('.install-button')).toBeDisabled();
@@ -80,7 +96,10 @@ test('native events keep selection, halo, and progress separate; keyboard expose
   await page.getByRole('dialog').getByRole('button',{name:'Delete',exact:true}).click();
   const failure=page.getByRole('alert').filter({hasText:'Deletion failed.'});
   await expect(failure).toContainText('Retry deletion.');
+  await expectMessageButtons(page,failure);
   await page.evaluate(()=>(window as any).__testEmit('activity',{id:'installing',status:'idle',progress:null,phase:'Finished'}));
   await expect(page.getByRole('button',{name:'Installing world: Finished',exact:true})).toBeVisible();
   await expect(failure).toContainText('Retry deletion.');
+  await failure.getByRole('button',{name:'Dismiss error',exact:true}).click();
+  await expect(failure).toHaveCount(0);
 });

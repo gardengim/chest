@@ -111,7 +111,7 @@
       </Button>
     </div>
     {#if kind!=='modpack' && !instance && !instances.length}<p class="hint">{$t('Create an instance first.')}</p>{/if}
-    {#if detailError}<div class="inline-error" role="alert">{detailError} <CopyButton text={detailError}/>{#if !installing}<Button shape="plain" onclick={()=>releaseRetry++}>{$t('Retry')}</Button>{/if}</div>{/if}
+    {#if detailError}<div class="inline-error" role="alert">{detailError} <CopyButton text={detailError}/>{#if !installing}<Button onclick={()=>releaseRetry++}>{$t('Retry')}</Button>{/if}</div>{/if}
     {#if included}<p class="catalog-success" role="status">{$t(included.enabled?'Already added.':'Added but disabled.')}</p>{/if}
     {#if notice}<p class="catalog-success" role="status">{notice}</p>{/if}
     {#if installing}<p class="hint" role="status">{$t('Keep Chest open until finished.')}</p>{/if}

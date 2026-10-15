@@ -295,7 +295,8 @@ main::-webkit-scrollbar, .instance-rail::-webkit-scrollbar { display: none; }
 .icon-button {
   width: var(--control-height);
   height: var(--control-height);
-  color: inherit;
+  padding:0;
+  flex:none;
 }
 
 .section-heading {
@@ -406,6 +407,8 @@ input[type=number] {
 }
 
 .inline-error {
+  --message-fill:var(--theme-danger);
+  --message-text:var(--theme-danger-text);
   color: var(--negative-text);
   font-size: 0.85714286rem;
 }
@@ -622,6 +625,10 @@ input[type=number] {
 }
 
 .notification {
+  --message-fill:var(--theme-success);
+  --message-text:var(--theme-success-text);
+  flex-wrap:wrap;
+  overflow-wrap:anywhere;
   padding: 0.85714286rem 1.71428571rem;
   color: var(--link);
   border-bottom: var(--divider) solid var(--frame);
@@ -630,12 +637,13 @@ input[type=number] {
   gap: 0.71428571rem;
   justify-content: space-between;
   align-items: center;
-  background: var(--theme-success);
+  background:var(--message-fill);
   border-color: var(--frame);
 }
 
 .notification.error {
-  background: color-mix(in srgb,var(--theme-danger) 30%,transparent);
+  --message-fill:var(--theme-danger);
+  --message-text:var(--theme-danger-text);
   color: var(--negative-text);
   border-color: var(--frame);
 }
@@ -646,6 +654,9 @@ input[type=number] {
 }
 
 .crash-notice {
+  --message-fill:var(--theme-danger);
+  --message-text:var(--theme-danger-text);
+  flex-wrap:wrap;
   padding: 1.28571429rem;
   display: flex;
   gap: 1.14285714rem;
@@ -653,7 +664,7 @@ input[type=number] {
   margin-bottom: 1.71428571rem;
   border-radius: 0;
   border: var(--stroke) solid var(--theme-danger);
-  background: var(--theme-danger);
+  background:var(--message-fill);
 }
 
 .crash-notice strong {
@@ -668,7 +679,9 @@ input[type=number] {
 }
 
 .crash-notice>div {
-  flex: 1;
+  flex:1 1 16rem;
+  min-width:0;
+  overflow-wrap:anywhere;
 }
 
 .modal {
@@ -885,9 +898,6 @@ input::placeholder {
   color: var(--negative-text);
 }
 
-.instance-content .crash-notice button[data-shape="plain"] {
-  color: var(--text);
-}
 
 .instance-content .console {
   margin-bottom: 0;
@@ -1566,8 +1576,16 @@ details[open]>summary::before{rotate:180deg}
 input,textarea,select{color:var(--theme-input-text);--icon-ink:var(--icon-on-input)}
 input::placeholder,textarea::placeholder{color:var(--theme-input-muted)}
 .console{color:var(--theme-console-text)}
-.notification{--text:var(--theme-success-text);--muted:var(--theme-success-text);color:var(--text)}
-.notification.error,.crash-notice{--text:var(--theme-danger-text);--muted:var(--theme-danger-text);--negative-text:var(--theme-danger-text);color:var(--text)}
+.notification{--text:var(--message-text);--muted:var(--message-text);color:var(--text)}
+.notification.error,.crash-notice{--text:var(--message-text);--muted:var(--message-text);--negative-text:var(--message-text);color:var(--text)}
 .catalog-success{color:var(--positive-text)}
 
 .instance-scene:has(>.instance-backdrop img) .instance-hero{--text:var(--theme-overlay-text);--muted:var(--theme-overlay-muted);--icon-ink:#ececec}
+
+/* Message actions use shared button feedback with the owning message palette. */
+:is(.notification,.crash-notice,.inline-error) .ui-button {
+  --button-fill:var(--message-fill);
+  --button-text:var(--message-text);
+  --icon-ink:var(--message-text);
+}
+.notification>span{flex:1 1 12rem;min-width:0}

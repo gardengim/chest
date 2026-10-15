@@ -541,8 +541,8 @@
 
   <main id="main-content" tabindex="-1">
     {#if $appUpdate.info?.version}<div class="notification"><span>{$t($appUpdate.phase==='ready'?'Restart Chest to finish updating.':'Chest update available')}: {$appUpdate.info.version}</span><Button onclick={()=>appUpdateDialog=true}>{$t($appUpdate.phase==='ready'?'Restart':'Update')}</Button></div>{/if}
-    {#if error}<div class="notification error" role="alert"><span>{$t(error)}</span><CopyButton text={$t(error)}/><Button shape="plain" aria-label={$t("Dismiss error")} onclick={()=>error=''}><Icon name="close" size={16}/></Button></div>{/if}
-    {#if notice}<div class="notification" role="status">{$t(notice)}<Button shape="plain" aria-label={$t("Dismiss notification")} onclick={()=>notice=''}><Icon name="close" size={16}/></Button></div>{/if}
+    {#if error}<div class="notification error" role="alert"><span>{$t(error)}</span><CopyButton text={$t(error)}/><Button class="icon-button" aria-label={$t("Dismiss error")} onclick={()=>error=''}><Icon name="close" size={16}/></Button></div>{/if}
+    {#if notice}<div class="notification" role="status">{$t(notice)}<Button class="icon-button" aria-label={$t("Dismiss notification")} onclick={()=>notice=''}><Icon name="close" size={16}/></Button></div>{/if}
     <div class="page">
     {#if loading}<div class="empty"><Icon name="chest" size={42}/><h2>{$t("Opening Chest…")}</h2></div>
     {:else if destination==='home' || isHomeSection(destination)}

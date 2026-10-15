@@ -109,8 +109,8 @@
         <p>{active.phase}</p>
       </div>
       <CopyButton text={`${$t(active.status==='crashed'?'Minecraft stopped unexpectedly.':active.status==='launch_failed'?'Minecraft could not start.':'Installation failed. Try again.')}\n${active.phase}`}/>
-      <Button shape="plain" onclick={()=>onselectTab('Log')}>{$t("Log")}</Button>
-      <Button shape="plain" class="icon-button" aria-label={$t("Acknowledge error")} onclick={onacknowledge}>
+      <Button onclick={()=>onselectTab('Log')}>{$t("Log")}</Button>
+      <Button class="icon-button" aria-label={$t("Acknowledge error")} onclick={onacknowledge}>
         <Icon name="close" size={16}/>
       </Button>
     </div>

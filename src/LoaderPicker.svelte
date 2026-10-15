@@ -29,5 +29,5 @@
     {#if !ready}<option value={loaderVersion}>{$t(error?'Unavailable':'Loading compatible loaders…')}</option>{/if}
     {#each versions as version}<option value={version}>{version}</option>{/each}
   </Select></label>
-  {#if error}<div class="inline-error">{error}<Button shape="plain" type="button" disabled={disabled} onclick={()=>retry++}>{$t("Retry")}</Button></div>{/if}
+  {#if error}<div class="inline-error">{error}<Button type="button" disabled={disabled} onclick={()=>retry++}>{$t("Retry")}</Button></div>{/if}
 {/if}

@@ -23,7 +23,7 @@
   {#if !full}<Scrollbar scroller={body} targetId={bodyId} orientation="horizontal" label={$t('{name} navigation',{name:$t(sectionInfo[section].label)})} onmeasure={metrics=>{width=metrics.viewport;left=metrics.position;total=metrics.total;}}/>{/if}
 </div>
 {#snippet heading()}<h2>{$t(sectionInfo[section].label)}{#if count!==undefined}<span class="count">{count}</span>{/if}</h2>{/snippet}
-{#snippet navigation()}<div class="shelf-navigation"><Button shape="plain" onclick={onviewall}>{$t('View all')}</Button>{#if scrollable}<NavigationControls label={$t('{name} navigation',{name:$t(sectionInfo[section].label)})} previousLabel={$t('Previous {name}',{name:$t(sectionInfo[section].label)})} nextLabel={$t('Next {name}',{name:$t(sectionInfo[section].label)})} previousDisabled={left<1} nextDisabled={left+width>=total-1} onprevious={()=>scroll(-1)} onnext={()=>scroll(1)}/>{/if}</div>{/snippet}
+{#snippet navigation()}<div class="shelf-navigation"><Button onclick={onviewall}>{$t('View all')}</Button>{#if scrollable}<NavigationControls label={$t('{name} navigation',{name:$t(sectionInfo[section].label)})} previousLabel={$t('Previous {name}',{name:$t(sectionInfo[section].label)})} nextLabel={$t('Next {name}',{name:$t(sectionInfo[section].label)})} previousDisabled={left<1} nextDisabled={left+width>=total-1} onprevious={()=>scroll(-1)} onnext={()=>scroll(1)}/>{/if}</div>{/snippet}
 <style>
   .home-shelf{min-width:0}
   .shelf-navigation{display:flex;flex-wrap:wrap;max-width:100%;gap:0.71428571rem;align-items:center}
