@@ -22,7 +22,7 @@ The full browser run caught a dependency on the old instance-name text element. 
 - Arabic adds one lazy translation chunk (approximately 35 KB, 12 KB compressed), without additional fonts or image assets.
 - Reviewed the rendered Arabic Home, Settings and 360-pixel-wide Settings screenshots. Automated accessibility checks passed on the covered Arabic and settings screens.
 
-Evidence is in [the saved evidence directory](evidence/2026-10-15-rtl-settings/). The local candidate record identifies the exact clean source revision and built executable hash. The repeatable command is documented in [the audit SOP](../audit-sop.md).
+Local machine paths and transient process IDs are removed from published logs. Evidence includes the [complete verification output](evidence/2026-10-15-rtl-settings/verification.txt), [native build output](evidence/2026-10-15-rtl-settings/build.txt), [WebKit output](evidence/2026-10-15-rtl-settings/webkit.txt) and [candidate identity](evidence/2026-10-15-rtl-settings/local-candidate.json). The local candidate record identifies the exact clean source revision and built executable hash. The repeatable command is documented in [the audit SOP](../audit-sop.md).
 
 [Check Chest for the application revision](https://github.com/gardengim/chest/actions/runs/38810337360) is still running on Windows, macOS and Linux at this report's handoff. Local results do not imply those jobs passed.
 

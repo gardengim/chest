@@ -1,0 +1,41 @@
+
+> chest@0.1.0 test
+> playwright test tests/button-rendering.spec.ts tests/buttons.spec.ts tests/toolbars.spec.ts tests/settings-edits.spec.ts tests/rtl-and-shelves.spec.ts tests/instance-settings-flow.spec.ts tests/worlds-servers.spec.ts:226
+
+[WebServer] (node) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 20 tests using 2 workers
+
+(node) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/button-rendering.spec.ts:12:1 › layout glyphs keep their intended size on Home and inside content tabs (2.2s)
+  ✓   2 tests/buttons.spec.ts:16:1 › button shapes share pointer, focus, and disabled feedback while tabs stay anchored (2.9s)
+  ✓   4 tests/buttons.spec.ts:47:1 › tab and sidebar hover fills stay clipped and do not lift their open edges (670ms)
+  ✓   3 tests/button-rendering.spec.ts:39:1 › button, radio and checkbox feedback never moves icons through fractional pixels (1.5s)
+  ✓   5 tests/instance-settings-flow.spec.ts:41:1 › one footer saves all settings; reset stages defaults and preserves identity (1.1s)
+  ✓   6 tests/button-rendering.spec.ts:63:1 › hover and press preserve glyph pixels and the content panel shadow (1.5s)
+  ✓   7 tests/instance-settings-flow.spec.ts:66:1 › tab and page navigation protect drafts; failed and invalid saves stay editable (797ms)
+  ✓   8 tests/rtl-and-shelves.spec.ts:26:1 › world and server shelves have independent gallery/list controls (583ms)
+  ✓   9 tests/instance-settings-flow.spec.ts:91:1 › navigation cannot discard or edit an in-flight save (598ms)
+  ✓  10 tests/rtl-and-shelves.spec.ts:41:1 › badges use matched surface colors, and shared text actions have horizontal hover space (697ms)
+  ✓  11 tests/instance-settings-flow.spec.ts:106:1 › native quit waits for unsaved instance settings and only exits after the decision (495ms)
+  ✓  13 tests/settings-edits.spec.ts:10:1 › settings sections share a save flow and unsaved previews can be discarded when leaving (1.2s)
+  ✓  12 tests/rtl-and-shelves.spec.ts:58:1 › Arabic mirrors the rail, dropdowns, tabs and horizontal scrollbar without mirroring artwork (1.3s)
+  ✓  15 tests/rtl-and-shelves.spec.ts:94:1 › Arabic preview can be discarded, and saving retains language and direction (522ms)
+  ✓  16 tests/toolbars.spec.ts:3:1 › radio segments share button feedback and keep the checked option recessed (684ms)
+  ✓  14 tests/settings-edits.spec.ts:44:1 › Save persists all settings, restore stages defaults, and Discard restores the saved values (1.3s)
+  ✓  17 tests/toolbars.spec.ts:32:1 › layout radio groups use pixel icons and native keyboard selection independently (541ms)
+  ✓  18 tests/settings-edits.spec.ts:74:1 › native menu navigation waits for Save and failed saves retain changes in the dialog (537ms)
+  ✓  20 tests/worlds-servers.spec.ts:226:1 › crowded server instance references collapse to a count and expand when space returns (674ms)
+  ✓  19 tests/toolbars.spec.ts:60:1 › collection toolbars share search geometry, action order and spacing without changing filtering (1.0s)
+
+  20 passed (14.0s)
