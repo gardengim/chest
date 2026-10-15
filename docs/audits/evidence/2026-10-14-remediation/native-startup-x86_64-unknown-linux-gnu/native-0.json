@@ -1,0 +1,75 @@
+{
+  "executable": "verified CI installer payload: x86_64-unknown-linux-gnu",
+  "executableSha256": "9e402d5d3d96109375ffc6e6c43bbf8d9159f2ea8ecbd2c5f75fdbe93c312f57",
+  "platform": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+  "profile": "owned disposable profile (removed)",
+  "profileRetained": false,
+  "instances": 0,
+  "samples": [
+    {
+      "processToLibraryMs": 3240.835832000016,
+      "stages": [
+        {
+          "elapsed_ms": 524.758731,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 530.822488,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 888.462601,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 2907.247006,
+          "stage": "library-rendered"
+        }
+      ]
+    },
+    {
+      "processToLibraryMs": 683.090902999993,
+      "stages": [
+        {
+          "elapsed_ms": 9.904825,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 15.840221000000001,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 127.096283,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 654.774182,
+          "stage": "library-rendered"
+        }
+      ]
+    },
+    {
+      "processToLibraryMs": 638.5501120000185,
+      "stages": [
+        {
+          "elapsed_ms": 9.734984,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 15.586509999999999,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 127.123768,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 610.539034,
+          "stage": "library-rendered"
+        }
+      ]
+    }
+  ],
+  "medianProcessToLibraryMs": 683.090902999993,
+  "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+}

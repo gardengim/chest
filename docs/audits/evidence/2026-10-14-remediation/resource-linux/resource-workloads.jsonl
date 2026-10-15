@@ -1,0 +1,8 @@
+{"ms":139.765942,"sample":0,"workload":"50000-screenshot-metadata"}
+{"ms":140.64951100000002,"sample":1,"workload":"50000-screenshot-metadata"}
+{"ms":137.184477,"sample":2,"workload":"50000-screenshot-metadata"}
+{"bytes":2147483648,"ms":1326.762989,"workload":"sha256"}
+{"bytes":2147483648,"ms":1426.38497,"verified":true,"workload":"verified-local-download"}
+{"bytes":2147483648,"ms":7054.269281,"verified":true,"workload":"duplicate"}
+{"bytes":2147483648,"ms":201.01917899999998,"sourcePreserved":true,"workload":"delete-copy"}
+{"inputBytes":819200000,"ms":868.175073,"retainedBytes":16730164,"workload":"100000-logs-100-sessions"}

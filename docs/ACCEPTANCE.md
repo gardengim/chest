@@ -15,11 +15,12 @@ cannot replace this record. Never use an irreplaceable world for failure testing
 | Install, launch app, reopen persisted library | | |
 | Own Microsoft app: cancel, login, refresh after restart, logout | | |
 | Vanilla install, launch, normal exit, Stop | | |
+| Home world → Play and home server → Join enter the intended target without aborting | | |
 | Fabric, Quilt, Forge and NeoForge with compatible content | | |
 | Supported modpack install, overrides, gameplay | | |
-| Pause/resume, interrupted download, retry, cache reuse | | |
+| Pause/resume, interrupted download, retry, cache reuse; owned orphan reconciliation preserves legacy/verified files | | |
 | Wrong Java, missing executable, low disk, offline provider | | |
-| Duplicate, archive roundtrip, backup and confirmed deletion | | |
+| Duplicate, archive roundtrip, backup and confirmed deletion; pending mutations disabled; failed deletion error persists and retry works | | |
 | Update A → B, signature rejection, restart and data preservation | | |
 | Keyboard navigation, focus restoration, dialogs, screen reader | | |
 | English/Korean/Spanish/Japanese/Simplified and Traditional Chinese, narrow window, 200% scaling | | |

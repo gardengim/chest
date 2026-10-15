@@ -2,8 +2,9 @@
 
 Planning baseline: audit of `f25d523`, report committed in `c0092c8`.
 See [findings and measurements](2026-10-14-finalization.md).
-Status: the main remediation implementation is pushed; subsequent UI and launch-crash
-fixes are local, with staging/push blocked by approval-review usage availability.
+Status: engineering follow-ups, including launch-crash fixes, download orphan
+reconciliation, navigation decisions and bounded pending logs, are pushed.
+Final platform checks and candidate evidence are tracked in the completion record.
 This document retains
 the agreed task breakdown; [results and remaining gates](2026-10-14-remediation.md)
 distinguish implemented work from uncompleted platform/human verification.

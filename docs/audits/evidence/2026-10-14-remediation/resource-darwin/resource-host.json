@@ -1,0 +1,9 @@
+{
+  "commit": "e8837258f52b621c580e4829e709e06e8f6631f4",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "cpu": "Apple M1 (Virtual)",
+  "logicalCpus": 3,
+  "totalMemoryBytes": 7516192768,
+  "rust": "rustc 1.99.0 (b940084d7 2026-09-28)"
+}

@@ -1,0 +1,47 @@
+{
+  "commit": "8c69ee459d1ac944c88d6d653b3aab7fb2ea0a50",
+  "platform": "darwin",
+  "signing": "Unsigned verification build; not distribution acceptance",
+  "files": [
+    {
+      "path": "dmg/bundle_dmg.sh",
+      "bytes": 19299,
+      "sha256": "dce473d510339f1a3f8009d84191ad2bf716d8cdbe12eb6e1f821771cf8f960f"
+    },
+    {
+      "path": "dmg/Chest_0.1.0_x64.dmg",
+      "bytes": 5830271,
+      "sha256": "bcb182898ab0bc8a18021234b8cbf2d020c7718a92af647da7ab1d57475bd226"
+    },
+    {
+      "path": "dmg/icon.icns",
+      "bytes": 247399,
+      "sha256": "c107ff7e6627f45826d0bfa59f339b31ce4b293d327228addf3fada7c0c9772d"
+    },
+    {
+      "path": "macos/Chest.app/Contents/Info.plist",
+      "bytes": 955,
+      "sha256": "68cf26cc59eebf37f68dc949c34855a853a57dbad19acb012f6beaed8d5f1659"
+    },
+    {
+      "path": "macos/Chest.app/Contents/MacOS/chest",
+      "bytes": 13803704,
+      "sha256": "fcfd731742cc035218481bd462142a0452f4407856f8304b416022e89e0f2d1a"
+    },
+    {
+      "path": "macos/Chest.app/Contents/Resources/icon.icns",
+      "bytes": 247399,
+      "sha256": "c107ff7e6627f45826d0bfa59f339b31ce4b293d327228addf3fada7c0c9772d"
+    },
+    {
+      "path": "share/create-dmg/support/eula-resources-template.xml",
+      "bytes": 2376,
+      "sha256": "7d61d948ba7f118306d61107fead78f04e3338585e2ec729abb65d5d2e21012d"
+    },
+    {
+      "path": "share/create-dmg/support/template.applescript",
+      "bytes": 1828,
+      "sha256": "13727c7930c50be639a1eb191e893f1ebc72c270268d4611391b41410a3e862a"
+    }
+  ]
+}

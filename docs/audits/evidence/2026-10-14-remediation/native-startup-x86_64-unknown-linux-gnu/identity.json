@@ -1,0 +1,6 @@
+{
+  "candidateCommit": "8c69ee459d1ac944c88d6d653b3aab7fb2ea0a50",
+  "platform": "Linux-6.8.0-1064-azure-x86_64-with-glibc2.35",
+  "architecture": "x86_64",
+  "boundary": "CI native startup only; no gameplay, credentials, signing acceptance or cold/warm classification"
+}

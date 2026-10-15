@@ -96,7 +96,7 @@ async function collect(options){
   }
   const verified=[];
   for(const target of Object.keys(targets))verified.push(await verifyCandidate(join(output,'candidate',`chest-candidate-${target}-${candidate.headSha}`),candidate.headSha,target));
-  if(process.platform==='darwin')command('python3',['scripts/inspect-candidate-installers.py','--bundle',join(output,'candidate'),'--output',join(output,'installer-inspection.json')]);
+  if(process.platform==='darwin')command('python3',['scripts/inspect-candidate-installers.py','--bundle',join(output,'candidate'),'--version',JSON.parse(git('show',`${candidate.headSha}:package.json`)).version,'--output',join(output,'installer-inspection.json')]);
   const measurements=[];
   for(const target of nativeTargets){
     const directory=join(output,'startup',`chest-native-startup-${target}-${candidate.headSha}`);
@@ -121,7 +121,7 @@ async function collect(options){
   await save(join(output,'artifact-verification.json'),verified);
   await save(join(output,'native-startup-summary.json'),measurements);
   await save(join(output,'resource-summary.json'),resourceRows);
-  await save(join(output,'handoff.json'),{source:candidate.headSha,runs:{candidate,checks,resources,startup},humanVerification:'pending',releasePublished:false});
+  await save(join(output,'handoff.json'),{source:candidate.headSha,tooling:{checkout:git('rev-parse','HEAD'),auditScriptSha256:await digest('scripts/audit-candidate.mjs'),installerInspectorSha256:await digest('scripts/inspect-candidate-installers.py')},runs:{candidate,checks,resources,startup},humanVerification:'pending',releasePublished:false});
   console.log(`Evidence verified: ${output}. STOP for human verification; no release/tag was created.`);
 }
 async function main(){

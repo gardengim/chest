@@ -1,0 +1,75 @@
+{
+  "executable": "verified CI installer payload: x86_64-pc-windows-msvc",
+  "executableSha256": "03b3beaed9b6406122d3bfc7651bb7a44439f9ea75d4e3dd9ccf9db8c18ba887",
+  "platform": "Windows-2025Server-10.0.26100-SP0",
+  "profile": "owned disposable profile (removed)",
+  "profileRetained": false,
+  "instances": 1000,
+  "samples": [
+    {
+      "processToLibraryMs": 1076.809499999996,
+      "stages": [
+        {
+          "elapsed_ms": 6.3552,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 39.97,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 659.6528999999999,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 1063.344,
+          "stage": "library-rendered"
+        }
+      ]
+    },
+    {
+      "processToLibraryMs": 986.2324999999998,
+      "stages": [
+        {
+          "elapsed_ms": 8.3903,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 53.2534,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 548.4008,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 947.3699,
+          "stage": "library-rendered"
+        }
+      ]
+    },
+    {
+      "processToLibraryMs": 1008.8446999999974,
+      "stages": [
+        {
+          "elapsed_ms": 7.5535000000000005,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 42.2583,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 560.3879000000001,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 976.1508,
+          "stage": "library-rendered"
+        }
+      ]
+    }
+  ],
+  "medianProcessToLibraryMs": 1008.8446999999974,
+  "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+}

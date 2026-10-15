@@ -1,0 +1,9 @@
+{
+  "commit": "e8837258f52b621c580e4829e709e06e8f6631f4",
+  "platform": "linux",
+  "architecture": "x64",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "logicalCpus": 4,
+  "totalMemoryBytes": 16766414848,
+  "rust": "rustc 1.99.0 (b940084d7 2026-09-28)"
+}

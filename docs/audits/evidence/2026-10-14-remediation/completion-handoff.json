@@ -1,0 +1,44 @@
+{
+  "source": "8c69ee459d1ac944c88d6d653b3aab7fb2ea0a50",
+  "tooling": {
+    "checkout": "2156456110f9d47ab4176f5a21047b130bafd7fa",
+    "auditScriptSha256": "130e1618c590aec17aadd41cdd9740fd764dd2c9ed6f2584c9a5d1cb4a4700a4",
+    "installerInspectorSha256": "0de851141ec56cab81263b5d4fcb425fb7cebc7d18616eb41e0fd820d3ac7de9"
+  },
+  "runs": {
+    "candidate": {
+      "conclusion": "success",
+      "databaseId": 38736216868,
+      "headSha": "8c69ee459d1ac944c88d6d653b3aab7fb2ea0a50",
+      "status": "completed",
+      "url": "https://github.com/gardengim/chest/actions/runs/38736216868",
+      "workflowName": "Build verification candidates"
+    },
+    "checks": {
+      "conclusion": "success",
+      "databaseId": 38737664009,
+      "headSha": "2156456110f9d47ab4176f5a21047b130bafd7fa",
+      "status": "completed",
+      "url": "https://github.com/gardengim/chest/actions/runs/38737664009",
+      "workflowName": "Check Chest"
+    },
+    "resources": {
+      "conclusion": "success",
+      "databaseId": 38735836497,
+      "headSha": "e8837258f52b621c580e4829e709e06e8f6631f4",
+      "status": "completed",
+      "url": "https://github.com/gardengim/chest/actions/runs/38735836497",
+      "workflowName": "Measure offline resource workloads"
+    },
+    "startup": {
+      "conclusion": "success",
+      "databaseId": 38737535142,
+      "headSha": "13316b4551a212cbb1220a6c9051d0d1b97e20f3",
+      "status": "completed",
+      "url": "https://github.com/gardengim/chest/actions/runs/38737535142",
+      "workflowName": "Measure packaged native startup"
+    }
+  },
+  "humanVerification": "pending",
+  "releasePublished": false
+}

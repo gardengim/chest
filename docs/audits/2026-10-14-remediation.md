@@ -1,10 +1,11 @@
 # 0.1.0 remediation results
 
-**Work remains in progress.** Additional home-navigation/badge fixes and the
-[world/server launch crash fix](2026-10-14-resource-launch-crash.md) are saved locally
-but not committed/pushed: automatic approval review reached its usage limit while
-staging. The measurements below identify the earlier `10aced0` candidate, which
-predates these follow-ups. They are not acceptance evidence for a final release.
+**Superseded status:** the staging/push approval-review limit was resolved. The
+launch and navigation fixes are pushed in `29e8e0b`; download ownership, pending
+log bounds and shared navigation decisions follow in `cd6f528`, with readiness
+and cached-hashing corrections in `e1da5de` and `f3d21e0`. See the
+[completion record](2026-10-14-completion.md) for current results and human gates.
+Measurements below remain historical and identify their original candidate.
 
 Implementation: `a7fb491e371b53b97b9dad80351a842ba20e5ce2`.
 Cross-platform fixture/measurement follow-up: `73a6863a97fe94472917aae2ac7520c56f9a4ad9`.
@@ -15,7 +16,7 @@ No tag, release publication or consolidation was made.
 This record supplements the [original audit](2026-10-14-finalization.md) and
 [task plan](2026-10-14-remediation-plan.md); it does not rewrite historical evidence.
 
-## Findings disposition
+## Initial findings disposition (historical baseline)
 
 | Finding | Minimal implementation | Evidence and remaining limits |
 | --- | --- | --- |
@@ -104,7 +105,7 @@ samples, not regression budgets. [Fixture source](evidence/2026-10-14-remediatio
 and [resource output](evidence/2026-10-14-remediation/image-workload-resources.txt)
 are retained alongside the raw JSON.
 
-## Remaining gates and deliberate deferrals
+## Initial gates and deferrals (superseded by completion record)
 
 T00–T12 engineering fixes are represented above; their target-device acceptance is
 not established by passing unit/browser tests. T13 has local automated/bundle evidence,
