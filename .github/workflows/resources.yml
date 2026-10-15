@@ -1,0 +1,32 @@
+name: Measure offline resource workloads
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  measure:
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Record host and source
+        shell: bash
+        run: |
+          node -e 'const os=require("node:os");console.log(JSON.stringify({commit:process.env.GITHUB_SHA,platform:process.platform,architecture:process.arch,cpu:os.cpus()[0].model,logicalCpus:os.cpus().length,totalMemoryBytes:os.totalmem(),rust:require("node:child_process").execFileSync("rustc",["-V"],{encoding:"utf8"}).trim()},null,2))' > resource-host.json
+      - name: Measure disposable local workloads
+        shell: bash
+        run: cargo run --locked --release --manifest-path core/Cargo.toml --example audit_workloads > resource-workloads.jsonl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chest-resources-${{ matrix.os }}-${{ github.sha }}
+          path: resource-*
+          if-no-files-found: error
+          retention-days: 14
