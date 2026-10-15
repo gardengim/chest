@@ -53,7 +53,9 @@ test('native events keep selection, halo, and progress separate; keyboard expose
   await page.evaluate(()=>{for(let i=0;i<3000;i++)(window as any).__testEmit('log',{id:'running',line:`line-${i}`});});
   await expect(page.locator('.console')).toContainText('line-2999');
   expect(await page.locator('.console').evaluate(node=>node.textContent!.split('\n'))).toHaveLength(2000);
-  await expect(page.locator('.console')).toContainText('line-1000');
+  await expect(page.locator('.console')).toContainText('Earlier logs omitted.');
+  await expect(page.locator('.console')).toContainText('line-1001');
+  await expect(page.locator('.console')).not.toContainText('line-1000');
   await page.getByLabel('Search log',{exact:true}).fill('line-2999');
   await page.evaluate(()=>(window as any).__testEmit('activity',{id:'running',status:'idle',progress:null,phase:'Finished'}));
   await expect(page.getByRole('button',{name:'Running world: Finished',exact:true})).toBeVisible();
