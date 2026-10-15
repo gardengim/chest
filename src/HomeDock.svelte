@@ -12,7 +12,6 @@
   let {sections,active,onchoose,onchange}:{sections:HomeSection[];active:HomeSection|null;onchoose:(section:HomeSection,visible:boolean)=>void;onchange:(sections:HomeSection[])=>void}=$props();
   let expanded=$state(false),announcement=$state(''),hiddenWidth=$state(0),hiddenHeight=$state(0);
   let root:HTMLElement;
-  let dockWidth=$state(0),dockHeight=$state(0);
   let menu=$state<{section:HomeSection|null;x:number;y:number;trigger:HTMLElement}|null>(null);
   const vertical=$derived(dockIsVertical($homeDockPosition,$homeDockOrientation));
   const expandsBack=$derived(vertical?$homeDockPosition.startsWith('bottom-'):$homeDockPosition.endsWith('-right'));
@@ -28,9 +27,9 @@
   function focusDock(){(root.querySelector<HTMLButtonElement>('[data-home-more]') || root.querySelector<HTMLButtonElement>('button'))?.focus();}
   let drag=$state<{section:HomeSection;pointer:number;x:number;y:number;originX:number;originY:number;left:number;top:number;bounds:{left:number;top:number;right:number;bottom:number;width:number;height:number};started:boolean}|null>(null);
   // Keep existing targets still while dragging, but clamp against the whole
-  // available area as expansion changes the dock's measured size.
-  const dragLeft=$derived(drag?Math.max(drag.bounds.left,Math.min(drag.left,drag.bounds.right-dockWidth)):0);
-  const dragTop=$derived(drag?Math.max(drag.bounds.top,Math.min(drag.top,drag.bounds.bottom-dockHeight)):0);
+  // available area using CSS percentages of the live size, without observer lag.
+  const dragLeft=$derived(drag?Math.max(drag.bounds.left,drag.left):0);
+  const dragTop=$derived(drag?Math.max(drag.bounds.top,drag.top):0);
   let drop=$state<{group:'visible'|'hidden';index:number}|null>(null);
   const shown=$derived(drag?.started && drop?.group==='visible' && sections.includes(drag.section)?moveShelf(sections,drag.section,drop.index):sections);
   let suppressClick=false;
@@ -48,7 +47,6 @@
     clearHold();suppressClick=false;menu=null;
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     const frame=root.getBoundingClientRect(),bounds=root.closest('.home-dock-position')!.getBoundingClientRect();
-    dockWidth=frame.width;dockHeight=frame.height;
     drag={left:frame.left,top:frame.top,bounds:{left:bounds.left,top:bounds.top,right:bounds.right,bottom:bounds.bottom,width:bounds.width,height:bounds.height},section,pointer:event.pointerId,x:event.clientX,y:event.clientY,originX:event.clientX,originY:event.clientY,started:false};
     holdTimer=setTimeout(()=>{if(drag)holdReady=true;},350);
   }
@@ -113,11 +111,10 @@
     position(point);
     return {update:position};
   }
-  function measureSize(node:HTMLElement,target:'dock'|'hidden'){
+  function measureSize(node:HTMLElement){
     const observer=new ResizeObserver(()=>{
       const {width,height}=node.getBoundingClientRect();
-      if(target==='dock'){dockWidth=width;dockHeight=height;}
-      else{hiddenWidth=width;hiddenHeight=height;}
+      hiddenWidth=width;hiddenHeight=height;
     });
     observer.observe(node);
     return {destroy:()=>observer.disconnect()};
@@ -131,17 +128,18 @@
     style:width={drag && showTargets?'max-content':undefined}
     style:left={drag && showTargets?`${dragLeft}px`:undefined}
     style:top={drag && showTargets?`${dragTop}px`:undefined}
+    style:translate={drag && showTargets?`min(0px, calc(${drag.bounds.right - dragLeft}px - 100%)) min(0px, calc(${drag.bounds.bottom - dragTop}px - 100%))`:undefined}
     style:max-width={drag && showTargets?`${drag.bounds.width}px`:undefined}
     style:max-height={drag && showTargets?`${drag.bounds.height}px`:undefined}>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions (The navigation landmark offers a context menu through both pointer and keyboard.) -->
-    <nav class="home-dock" class:vertical bind:this={root} use:measureSize={'dock'} tabindex="-1" aria-label={$t('Home sections')} oncontextmenu={context} onkeydown={contextKeys}>
+    <nav class="home-dock" class:vertical bind:this={root} tabindex="-1" aria-label={$t('Home sections')} oncontextmenu={context} onkeydown={contextKeys}>
       <div class="dock-group visible-tools" class:inactive={!sections.length && !showTargets} class:empty-visible={!sections.length && showTargets} class:drop-empty={!sections.length && drop?.group==='visible'} role="group" aria-label={$t('Visible sections')} data-home-drop="visible">
         {#if !sections.length && showTargets}<span class="empty-drop" aria-hidden="true">+</span>{/if}
         {@render items(shown,true)}
       </div>
       {#if hideTarget}<div class="hide-target" class:drop-hidden={drop?.group==='hidden'} data-home-drop="hidden" role="group" aria-label={$t('Hide shelf')}><span aria-hidden="true">−</span></div>{/if}
       <div class="dock-reveal" class:expanded style:width={vertical?undefined:expanded && hidden.length?`${hiddenWidth}px`:'0px'} style:height={vertical?(expanded && hidden.length?`${hiddenHeight}px`:'0px'):'auto'} inert={!expanded} aria-hidden={!expanded}>
-        <div class="dock-group hidden-tools" class:no-visible={!sections.length} use:measureSize={'hidden'} id="home-hidden-tools" role="group" aria-label={$t('Hidden sections')} data-home-drop="hidden">
+        <div class="dock-group hidden-tools" class:no-visible={!sections.length} use:measureSize id="home-hidden-tools" role="group" aria-label={$t('Hidden sections')} data-home-drop="hidden">
           {@render items(shownHidden,false)}
         </div>
       </div>
