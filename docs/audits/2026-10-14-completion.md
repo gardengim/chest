@@ -285,3 +285,7 @@ result and evidence for each task. Test disposable worlds and profiles.
    Unsigned candidate success cannot satisfy this gate or establish minimum OS support.
 
 No consolidation, tagging or publication follows automatically from this handoff.
+
+### Subsequent UI refinements — October 15
+
+The [RTL and instance settings report](2026-10-15-rtl-settings.md) records the newer application revision `b91e552`, its local build identity, all seven requested refinements, final validation and the remaining human checks. It supersedes earlier UI build identities for this round of owner verification. Existing confirmed authentication and game-launch results remain applicable; this follow-up does not authorize release consolidation.
