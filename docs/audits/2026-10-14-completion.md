@@ -208,6 +208,22 @@ All owned probe processes and disposable data were stopped/cleaned.
 unlocked Mac worked. The earlier locked-desktop probes remain rejected measurements;
 this confirmation does not turn them into valid startup timings.
 
+## Reported keychain prompts — under investigation
+
+The owner reports roughly three macOS authorization prompts per game launch for
+Chest's own `Chest Minecraft` keychain item. Authentication reads the saved refresh
+token, then saves a rotated token; the macOS keyring backend also looks up the
+existing item before updating it. Multiple protected operations may prompt when
+access is allowed only once. The owner clarified that Always Allow works, but
+prompts eventually return. Whether recurrence coincided with a rebuilt/replaced
+binary is not established. No credential contents or keychain password were inspected.
+
+The current local app has an ad-hoc designated requirement tied to its code hash.
+Changed builds may require authorization again; stable distribution signing remains
+an owner-controlled acceptance gate. See [Apple's keychain permission guidance](https://support.apple.com/en-ie/guide/keychain-access/kyca1243/mac)
+and [code signing requirements](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements).
+This is a diagnosis in progress, not a confirmed fix or completed credential-lifecycle check.
+
 ## Human verification — stop here after automated completion
 
 ### Owner-confirmed results — 2026-10-15
@@ -223,8 +239,11 @@ results on this Mac, not installer acceptance on all targets or measured startup
 | Unlocked Mac, normal foreground launch | Pass | Owner: “unlock and launch normally, worked.” |
 | Home → Worlds → instance → Play | Pass | Owner confirmed both requested launch paths work. |
 | Home → Servers → instance → Join | Pass | Same confirmation; no reported recurrence of the abort. |
+| Minecraft launch failure leaves Chest usable | Pass | Owner reported a Minecraft graphics-related launch crash while Chest stayed usable. Graphics cause not independently verified. |
 
-Failed-launch recovery and the remaining authentication, accessibility, visual,
+| Launch again after a Minecraft crash without restarting Chest | Pass | Owner confirmed about seven repeated launch attempts through Chest. This confirms retry remains available, not that the graphics failure is fixed. |
+
+The remaining authentication, accessibility, visual,
 platform, gameplay/recovery and distribution checks below remain unverified.
 
 
@@ -232,9 +251,10 @@ Use the exact installer hash in the attached inventory and the
 [packaged acceptance record](../ACCEPTANCE.md). Record device/OS, tester, hash,
 result and evidence for each task. Test disposable worlds and profiles.
 
-1. **Unlock and launch normally**, then test the reported crash paths: Home → Worlds → instance → Play; Home → Servers →
-   instance → Join. Confirm the intended world/server opens and Chest stays alive.
-   Repeat ordinary Launch and a failed launch; ensure errors remain recoverable.
+1. **Passed on the owner’s Mac:** unlocked normal launch, Home → Worlds → instance → Play,
+   Home → Servers → instance → Join, and repeated launch after Minecraft crashes.
+   Chest remains usable. No further repetitions of these checks are requested.
+   The reported Minecraft graphics crash remains a separate unresolved issue.
 2. **Live authentication:** Chest's own application ID, cancel sign-in, entitlement,
    refresh after restart, switch/sign-out, OS credential storage and actual gameplay.
    The owner reported successful sign-in; that is not evidence for every lifecycle route.
