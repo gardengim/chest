@@ -1,0 +1,57 @@
+name: Measure packaged native startup
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_run_id:
+        description: Candidate build run ID
+        required: true
+        type: string
+      candidate_commit:
+        description: Exact candidate source commit
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  startup:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.candidate_run_id }}
+          pattern: chest-candidate-${{ matrix.target }}-${{ inputs.candidate_commit }}
+          path: candidate
+          merge-multiple: true
+      - name: Linux desktop dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.1-0 xvfb
+      - name: Verify payload and measure startup
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+        run: python scripts/measure-candidate-startup.py --bundle candidate --commit "$CANDIDATE_COMMIT" --output native-results
+        shell: bash
+      - name: Native startup evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chest-native-startup-${{ matrix.target }}-${{ inputs.candidate_commit }}
+          path: native-results/
+          if-no-files-found: ignore
+          retention-days: 14
