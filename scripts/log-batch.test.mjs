@@ -35,3 +35,15 @@ test('a burst of distinct sessions cannot retain unbounded map entries',async()=
   assert.ok(delivered.get('session-9999').includes('Earlier logs omitted.'));
   batch.dispose();
 });
+
+test('line-bound batches retain the omission marker and the newest line',async()=>{
+  let delivered;
+  const batch=createLogBatch(entries=>delivered=entries);
+  for(let n=0;n<3000;n++)batch.push({id:'active',line:String(n)});
+  await wait(80);
+  const lines=delivered.get('active');
+  assert.equal(lines.length,2000);
+  assert.equal(lines[0],'Earlier logs omitted.');
+  assert.equal(lines.at(-1),'2999');
+  batch.dispose();
+});

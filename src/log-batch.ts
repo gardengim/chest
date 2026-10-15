@@ -6,7 +6,7 @@ export function createLogBatch(flush:(entries:Map<string,string[]>)=>void){
   let timer:ReturnType<typeof setTimeout>|undefined;
   function deliver(){
     timer=undefined;
-    const entries=new Map([...pending].map(([id,entry])=>[id,entry.omitted?['Earlier logs omitted.',...entry.lines]:entry.lines]));
+    const entries=new Map([...pending].map(([id,entry])=>[id,entry.omitted?['Earlier logs omitted.',...entry.lines.slice(-1999)]:entry.lines]));
     pending.clear();bytes=0;
     flush(entries);
   }
@@ -15,6 +15,7 @@ export function createLogBatch(flush:(entries:Map<string,string[]>)=>void){
       const entry=pending.get(id) || {lines:[],bytes:0,omitted:false};
       entry.lines.push(line);entry.bytes+=line.length*2;bytes+=line.length*2;
       if(entry.lines.length>2000){const removed=entry.lines.shift()!;entry.bytes-=removed.length*2;bytes-=removed.length*2;entry.omitted=true;}
+      pending.delete(id);
       pending.set(id,entry);
       while(pending.size>1000){
         const [oldest,buffer]=pending.entries().next().value!;
