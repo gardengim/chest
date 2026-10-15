@@ -8,7 +8,7 @@ test('radio segments share button feedback and keep the checked option recessed'
   expect(await control.locator(':scope > label').count()).toBe(2);
   await expect(control).toHaveCSS('border-width','0px');
   const appearance=(label:import('@playwright/test').Locator)=>label.evaluate(node=>{
-    const css=getComputedStyle(node);return {fill:css.backgroundColor,shadow:css.boxShadow,transform:css.transform,border:css.borderColor};
+    const css=getComputedStyle(node);return {fill:css.backgroundColor,shadow:css.boxShadow,transform:css.transform,top:css.top,border:css.borderColor};
   });
   const selected=await appearance(galleryLabel),raised=await appearance(listLabel);
   expect(selected.shadow).not.toBe(raised.shadow);
@@ -17,7 +17,7 @@ test('radio segments share button feedback and keep the checked option recessed'
   await expect(gallery).toBeChecked();
   await list.hover();const hovered=await appearance(listLabel);
   expect(hovered.fill).not.toBe(raised.fill);expect(hovered.border).not.toBe(raised.border);
-  expect(await listLabel.evaluate(node=>new DOMMatrix(getComputedStyle(node).transform).m42)).toBe(-1);
+  expect(await listLabel.evaluate(node=>parseFloat(getComputedStyle(node).top))).toBe(-1);
   const pressed=await page.evaluate(()=>{const probe=document.createElement('span');probe.style.boxShadow='var(--bevel-pressed)';document.body.append(probe);const shadow=getComputedStyle(probe).boxShadow;probe.remove();return shadow;});
   await page.mouse.down();await expect(listLabel).toHaveCSS('box-shadow',pressed);await page.mouse.up();
   await expect(list).toBeChecked();await expect(gallery).not.toBeChecked();

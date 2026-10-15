@@ -25,6 +25,17 @@ and test output. Review recorded uncommitted changes before accepting the eviden
 The Mac build includes only the current `.app`; old updater archives are excluded.
 No GUI launch, sign-in or normal user profile is used by this command.
 
+For macOS icon/compositing regressions, install WebKit once with
+`npx playwright install webkit`, then run the focused Retina checks:
+
+```sh
+CHEST_TEST_BROWSER=webkit npm test -- tests/button-rendering.spec.ts tests/buttons.spec.ts tests/toolbars.spec.ts tests/settings-edits.spec.ts
+```
+
+Run this separately from the local audit command. It uses WebKit at device scale 2;
+normal browser verification continues to use Chromium. Native app visual review
+still checks the system WebView and actual display.
+
 ## 2. Run platform workflows
 
 Push the frozen source. Start **Build verification candidates** and **Measure

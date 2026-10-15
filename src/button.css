@@ -8,6 +8,7 @@
     --button-edge:var(--bevel-highlight);
     --button-shadow: var(--bevel-raised), 0 var(--depth) var(--bevel-shadow);
     position:relative;
+    top:0;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -22,7 +23,7 @@
     font:inherit;
     font-size:0.85714286rem;
     cursor:pointer;
-    transition:background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast), color var(--motion-fast);
+    transition:background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), color var(--motion-fast);
   }
   :where(.ui-button[data-tone='accent']) {
     --button-fill:var(--theme-accent);
@@ -48,13 +49,15 @@
   }
   /* Radio labels must not increase specificity over native :enabled.
      Tab and rail feedback belongs to their clipped surface, not the rectangle. */
+  /* Relative offsets keep pixel glyphs on the paint grid; interpolated transforms
+     rasterize them at fractional positions and promote filtered ancestors. */
   :where(.ui-button):hover:is(:enabled,:where(:has(> input:enabled))):not([aria-disabled='true']) {
     background-color:var(--button-hover);
     border-color:var(--button-edge);
-    transform:translateY(calc(-1 * var(--pixel)));
+    top:calc(-1 * var(--pixel));
   }
   :where(.ui-button):active:is(:enabled,:where(:has(> input:enabled))):not([aria-disabled='true']) {
-    transform:translateY(var(--pixel));
+    top:var(--pixel);
     box-shadow:var(--bevel-pressed);
   }
   :where(.ui-button):is(:focus-visible,:has(> input:focus-visible)) {
@@ -91,7 +94,7 @@
   :where(.ui-button[data-shape='segment']) {
     width:var(--control-height);
     height:var(--control-height);
-    padding:.5rem;
+    padding:calc(2 * var(--pixel));
     flex:1 1 0;
   }
   :where(.ui-button[data-shape='segment'][data-selected]) {
@@ -105,11 +108,10 @@
   }
   :where(.ui-button[data-shape='segment'][data-selected]):hover:is(:enabled,:where(:has(> input:enabled))):not([aria-disabled='true']),
   :where(.ui-button[data-shape='segment'][data-selected]):active:is(:enabled,:where(:has(> input:enabled))):not([aria-disabled='true']) {
-    transform:none;
+    top:0;
     box-shadow:var(--button-shadow);
   }
   :where(.ui-button[data-shape='segment']):is(:focus-visible,:has(> input:focus-visible)) {outline-offset:calc(-1 * var(--stroke));}
-  .ui-button[data-shape='segment']>svg {max-width:100%;height:auto;aspect-ratio:1;}
 
   :where(.ui-button[data-shape='dock']) {
     --button-fill:transparent;
@@ -153,7 +155,7 @@
     padding:0.57142857rem;
     flex:none;
     background:transparent;
-    transform:none;
+    top:0;
   }
   :where(.ui-button[data-shape='rail'])::before,
   :where(.ui-button[data-shape='rail'])::after {
@@ -172,7 +174,7 @@
     transition:background-color .12s, box-shadow .12s;
   }
   :where(.ui-button[data-shape='rail']):hover:enabled:not([aria-disabled='true']),
-  :where(.ui-button[data-shape='rail']):active:enabled:not([aria-disabled='true']) { background:transparent; transform:none; box-shadow:none; }
+  :where(.ui-button[data-shape='rail']):active:enabled:not([aria-disabled='true']) { background:transparent; top:0; box-shadow:none; }
   :where(.ui-button[data-shape='rail']):hover:enabled:not([aria-disabled='true'])::after { background-color:var(--button-hover); }
   /* Press feedback wins over member bevels, activity hover, and hidden group headers. */
   .ui-button[data-shape='rail'][data-tone]:not([data-selected]):active:enabled:not([aria-disabled='true'])::after {
@@ -201,7 +203,7 @@
     background:transparent;
     color:var(--theme-control-text);
     box-shadow:none;
-    transform:none;
+    top:0;
   }
   :where(.ui-button[data-shape='tab'])::before, :where(.ui-button[data-shape='tab'])::after {
     content:'';
@@ -223,7 +225,7 @@
     transition:background-color .12s, box-shadow .12s;
   }
   :where(.ui-button[data-shape='tab']):hover:enabled:not([aria-disabled='true']),
-  :where(.ui-button[data-shape='tab']):active:enabled:not([aria-disabled='true']) { background:transparent; transform:none; box-shadow:none; }
+  :where(.ui-button[data-shape='tab']):active:enabled:not([aria-disabled='true']) { background:transparent; top:0; box-shadow:none; }
   :where(.ui-button[data-shape='tab']):hover:enabled:not([aria-disabled='true'])::after { background:var(--button-hover); }
   :where(.ui-button[data-shape='tab']:not([data-selected])):active:enabled:not([aria-disabled='true'])::after { box-shadow:var(--bevel-pressed); }
   :where(.ui-button[data-shape='tab'][data-selected]) {

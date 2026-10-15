@@ -22,5 +22,6 @@
 .segmented-control:not(.icon-only)>.ui-button{width:auto;height:auto;min-width:0;padding:.5em clamp(.25rem,2vw,1rem);flex:1 1 auto}
 .segment-label{min-width:0;overflow-wrap:anywhere}
 /* Keep native radio interaction and focus while the label supplies button visuals. */
-.segmented-control input[type='radio']{position:absolute;inset:0;width:100%;height:100%;min-width:0;min-height:0;margin:0;padding:0;opacity:0;transform:none;cursor:inherit}
+.segmented-control input[type='radio']:is(:hover,:active){top:0;box-shadow:none}
+.segmented-control input[type='radio']{position:absolute;inset:0;width:100%;height:100%;min-width:0;min-height:0;margin:0;padding:0;opacity:0;transform:none;transition:none;cursor:inherit}
 </style>

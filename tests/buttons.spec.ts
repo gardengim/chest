@@ -1,7 +1,7 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 
 async function feedback(page:Page,button:Locator,anchored=false){
-  const y=()=>button.evaluate(node=>{const value=getComputedStyle(node).transform;return value==='none'?0:new DOMMatrix(value).m42;});
+  const y=()=>button.evaluate(node=>{return parseFloat(getComputedStyle(node).top)||0;});
   await button.hover();
   expect(await y()).toBe(anchored?0:-1);
   await page.mouse.down();

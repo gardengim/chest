@@ -46,8 +46,8 @@
   </div>
 </section>
 <style>
-.content-tabs{margin-top:1.42857143rem;min-width:0;filter:drop-shadow(var(--depth) calc(2 * var(--depth)) 0 var(--bevel-shadow)) drop-shadow(0 var(--depth) calc(3 * var(--depth)) #0002)}
-.collection-panel{position:relative;background:var(--inventory);border:var(--stroke) solid var(--frame);padding:1.42857143rem;box-shadow:var(--bevel-inventory)}
+.content-tabs{margin-top:1.42857143rem;min-width:0}
+.collection-panel{position:relative;background:var(--inventory);border:var(--stroke) solid var(--frame);padding:1.42857143rem;box-shadow:var(--bevel-inventory),var(--shadow-drop)}
 @media(max-width:46.875em){.collection-panel{padding:1rem}}
 </style>
 
