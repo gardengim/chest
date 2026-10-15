@@ -53,6 +53,8 @@ async function freshOutput(path){
   return output;
 }
 async function local(output){
+  const browser=process.env.CHEST_BROWSER_EXECUTABLE||(await import('@playwright/test')).chromium.executablePath();
+  if(!(await stat(browser).catch(()=>null))?.isFile())throw new Error('Browser unavailable. Run npx playwright install chromium or set CHEST_BROWSER_EXECUTABLE.');
   const source=git('rev-parse','HEAD');
   const changes=git('status','--porcelain');
   await save(join(output,'source.json'),{source,workingTreeChanges:changes,platform:process.platform});
