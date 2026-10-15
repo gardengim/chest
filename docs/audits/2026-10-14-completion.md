@@ -240,7 +240,6 @@ results on this Mac, not installer acceptance on all targets or measured startup
 | Home → Worlds → instance → Play | Pass | Owner confirmed both requested launch paths work. |
 | Home → Servers → instance → Join | Pass | Same confirmation; no reported recurrence of the abort. |
 | Minecraft launch failure leaves Chest usable | Pass | Owner reported a Minecraft graphics-related launch crash while Chest stayed usable. Graphics cause not independently verified. |
-
 | Launch again after a Minecraft crash without restarting Chest | Pass | Owner confirmed about seven repeated launch attempts through Chest. This confirms retry remains available, not that the graphics failure is fixed. |
 
 The remaining authentication, accessibility, visual,
