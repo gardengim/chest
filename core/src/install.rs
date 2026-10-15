@@ -57,8 +57,13 @@ pub async fn fetch(client: &reqwest::Client, file: &Download) -> Result<()> {
     let limit = file.size.unwrap_or(MAX_DOWNLOAD_BYTES);
     if limit > MAX_DOWNLOAD_BYTES { bail!("Download exceeds size limit"); }
     let parent = file.path.parent().context("Invalid download path")?;
-    fs::create_dir_all(parent)?;
-    let temp = file.path.with_extension(format!("{}.download", uuid::Uuid::new_v4()));
+    let directory = parent.to_owned();
+    let _directory = tokio::task::spawn_blocking(move || crate::download_temp::DownloadDirectory::acquire(&directory)).await??;
+    // Recheck after waiting for a writer in another process.
+    if file.path.is_file() && file.size.is_none_or(|size| fs::metadata(&file.path).is_ok_and(|metadata| metadata.len() == size)) && hash_file(&file.path, file.hash.len() == 64)? == file.hash {
+        return Ok(());
+    }
+    let temp = crate::download_temp::temporary_path(parent);
     let _partial = PartialFile(temp.clone());
     let response = client.get(&file.url).send().await?.error_for_status()?;
     if response.content_length().is_some_and(|size| size > limit) {
@@ -447,7 +452,7 @@ mod tests {
         for _ in 0..3 {
             assert!(fetch(&client,&file).await.is_err());
             assert_eq!(fs::read(&path).unwrap(),b"existing");
-            assert_eq!(fs::read_dir(dir.path()).unwrap().count(),1,"failed transfers must remove their intermediates");
+            assert_eq!(fs::read_dir(dir.path()).unwrap().filter(|entry| entry.as_ref().unwrap().file_name() != ".chest-downloads.lock").count(),1,"failed transfers must remove their intermediates");
         }
         fetch(&client,&file).await.unwrap();assert_eq!(fs::read(&path).unwrap(),b"abc");
         server.await.unwrap();

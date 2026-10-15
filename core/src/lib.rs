@@ -19,6 +19,7 @@ pub mod fabric;
 pub mod forge;
 pub mod loaders;
 pub mod install;
+mod download_temp;
 pub mod metadata;
 pub mod news;
 pub mod modpack;

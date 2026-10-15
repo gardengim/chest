@@ -1,6 +1,8 @@
 <script lang="ts">
   import UnsavedChangesDialog from './UnsavedChangesDialog.svelte';
+  import {NavigationDecisions,type ExitAction} from './navigation-decisions.svelte';
   import {trimLogs} from './log-retention';
+  import {createLogBatch} from './log-batch';
   import {layoutOffset,moveToIndex,movedEnough} from './reorder';
   import DirectionIcon from './DirectionIcon.svelte';
   import CopyButton from './CopyButton.svelte';
@@ -56,8 +58,7 @@
   let settingsDraft=$state<SettingsFormState>({pending:false,clientId:'',javaPath:'',memory:4096});
   let settingsTab=$state<SettingsTab>('Accounts');
   let settingsBaseline=$state<SettingsValues|null>(null);
-  type ExitAction='close'|'quit'|'restart';
-  let leaveSettings=$state<{page:string}|{tab:SettingsTab}|{exit:ExitAction}|null>(null);
+  const decisions=new NavigationDecisions(()=>({destination,settingsTab,settingsDirty,settingsPending:settingsDraft.pending,creationDirty:creationChanged,creationPending:creation.pending}));
   let exitBlocked=$state(false);
   let exitConfirmation=$state<ExitAction|null>(null);
   const settingsValues=$derived<SettingsValues>({memory:settingsDraft.memory,javaPath:settingsDraft.javaPath,locale:$locale,
@@ -77,8 +78,8 @@
     settingsBaseline=null;
   }
   function chooseSettingsTab(next:SettingsTab,completed=false){
+    if(!decisions.allow({tab:next},completed))return;
     if(settingsTab==='Settings' && next!=='Settings'){
-      if(!completed && (settingsDirty || settingsDraft.pending)){leaveSettings={tab:next};return;}
       endSettingsSession();
     }
     settingsTab=next;
@@ -96,7 +97,7 @@
   function restoreSettings(){const defaults=restoreDefaultSettings();settingsDraft.memory=defaults.memory;settingsDraft.javaPath=defaults.javaPath;}
   async function finishSettingsNavigation(save:boolean){
     if(save && !await saveSettings())return;
-    const next=leaveSettings;leaveSettings=null;
+    const next=decisions.settings;decisions.settings=null;
     if(!next)return;
     if('exit' in next)await finishExit(next.exit);
     else if('tab' in next)chooseSettingsTab(next.tab,true);else select(next.page,true);
@@ -324,15 +325,13 @@
   const creationChanged=$derived(creation.name!=='' || creation.method!=='Custom' ||
     creation.version!==(versions[0]?.id || '') || creation.loader!=='vanilla' || creation.loaderVersion!=='' ||
     creation.parent!=='' || !!creation.pack || !!creation.archive || creation.files.length>0 || creation.catalog.length>0);
-  let leaveCreation=$state<string|{exit:ExitAction}|null>(null);
   let resourceLink=$state<ResourceLink|null>(null);
   function openResource(id:string,tab:'Worlds'|'Servers',item:string){select(id);if(destination===id){selectedTabs[id]=tab;resourceLink={id,tab,item,key:Date.now()};}}
   function select(id:string,completed=false) {
+    if(!decisions.allow({page:id},completed))return;
     if(destination==='profile' && settingsTab==='Settings' && id!=='profile'){
-      if(!completed && (settingsDirty || settingsDraft.pending)){leaveSettings={page:id};return;}
       endSettingsSession();
     }
-    if(destination==='create' && id!=='create' && !completed && (creationChanged || creation.pending)){leaveCreation=id;return;}
     if(destination!==id && instancesById.has(id))selectedTabs[id]='Overview';
     if(instancesById.has(id))launchDrafts[id] ??=createLaunchDraft();
     instanceMenu=null;destination=id;error='';notice='';if(instancesById.has(id) && !editors[id]) editors[id]={...instancesById.get(id)!};}
@@ -390,7 +389,7 @@
   async function instanceCreated(instance:Instance,icon?:string|null){
     if(!config.instances.some(i=>i.id===instance.id))config.instances.push(instance);
     if(icon)instanceIcons[instance.id]=icon;
-    leaveCreation=null;select(instance.id,true);void perform(reload);
+    decisions.creation=null;select(instance.id,true);void perform(reload);
   }
   async function action(instance:Instance){await perform(async()=>{
     switch(ui(instance).command){
@@ -421,8 +420,7 @@
     await perform(()=>action==='restart'?api.restartUpdatedApp():api.completeExit(action));
   }
   function requestExit(action:ExitAction){
-    if(settingsBaseline && (settingsDirty || settingsDraft.pending)){leaveSettings={exit:action};return;}
-    if(destination==='create' && (creationChanged || creation.pending)){leaveCreation={exit:action};return;}
+    if(!decisions.allow({exit:action}))return;
     void finishExit(action);
   }
   function handleDesktopMenu(action:DesktopMenuAction){
@@ -440,19 +438,10 @@
     }
   }
   onMount(()=>{
-    const pendingLogs=new Map<string,string[]>();
-    let logTimer:ReturnType<typeof setTimeout>|undefined;
-    function flushLogs(){
-      logTimer=undefined;
+    const logBatch=createLogBatch(pendingLogs=>{
       for(const [id,lines] of pendingLogs)if(instancesById.has(id))logs[id]=[...(logs[id] || []),...lines].slice(-2000);
       trimLogs(logs,[...pendingLogs.keys()]);
-      pendingLogs.clear();
-    }
-    function queueLog(log:{id:string;line:string}){
-      const lines=pendingLogs.get(log.id) || [];lines.push(log.line);
-      if(lines.length>2000)lines.splice(0,lines.length-2000);
-      pendingLogs.set(log.id,lines);logTimer ??= setTimeout(flushLogs,50);
-    }
+    });
     reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let cleanup=()=>{};let cleanupIntent=()=>{};let cleanupMenu=()=>{};let alive=true;
     void subscribeDesktopMenu(handleDesktopMenu,message=>{if(alive)error=message;}).then(stop=>{if(alive)cleanupMenu=stop;else stop();}).catch(e=>{if(alive)error=String(e);});
@@ -462,7 +451,7 @@
       // Install listeners before taking the activity snapshot. Events observed
       // during that snapshot win over its potentially older values.
       let observed:Set<string>|null=new Set();
-      const listening=subscribe(a=>{observed?.add(a.id);activities[a.id]=a;if(['idle','crashed'].includes(a.status) || a.phase==='Modpack prepared')void perform(reload);},queueLog).then(stop=>{
+      const listening=subscribe(a=>{observed?.add(a.id);activities[a.id]=a;if(['idle','crashed'].includes(a.status) || a.phase==='Modpack prepared')void perform(reload);},logBatch.push).then(stop=>{
         if(!alive)stop();else cleanup=stop;
       });
       const configuration=api.config();
@@ -490,7 +479,7 @@
       if(!alive){cleanupIntent();return;}
       await handleIntent();
     }catch(e){if(alive){error=String(e);loading=false;}}})();
-    return ()=>{alive=false;endSettingsSession();cancelBackground();clearTimeout(logTimer);pendingLogs.clear();cleanup();cleanupIntent();cleanupMenu();hoverForGroup('');};
+    return ()=>{alive=false;endSettingsSession();cancelBackground();logBatch.dispose();cleanup();cleanupIntent();cleanupMenu();hoverForGroup('');};
   });
 </script>
 
@@ -607,17 +596,17 @@
   </dialog>
 {/if}
 
-{#if leaveCreation}
+{#if decisions.creation}
   <UnsavedChangesDialog title={creation.pending?'Creating your instance…':'Discard draft?'} description={creation.pending?'Wait for creation to finish before leaving.':'Unsaved choices will be lost.'}
-    pending={creation.pending} oncancel={()=>leaveCreation=null} ondiscard={()=>{
-      const next=leaveCreation!;leaveCreation=null;
+    pending={creation.pending} oncancel={()=>decisions.creation=null} ondiscard={()=>{
+      const next=decisions.creation!;decisions.creation=null;
       creation={pending:false,method:'Custom',name:'',version:versions[0]?.id || '',loader:'vanilla',loaderVersion:'',parent:'',pack:null,archive:null,files:[],catalog:[]};
-      if(typeof next==='string')select(next,true);else void finishExit(next.exit);
+      if('page' in next)select(next.page,true);else void finishExit(next.exit);
     }}/>
 {/if}
-{#if leaveSettings}
+{#if decisions.settings}
   <UnsavedChangesDialog title="Save settings changes?" {error} pending={settingsDraft.pending} lockCancel
-    oncancel={()=>leaveSettings=null} ondiscard={()=>finishSettingsNavigation(false)} onsave={()=>finishSettingsNavigation(true)}/>
+    oncancel={()=>decisions.settings=null} ondiscard={()=>finishSettingsNavigation(false)} onsave={()=>finishSettingsNavigation(true)}/>
 {/if}
 
 {#if appUpdateDialog}
