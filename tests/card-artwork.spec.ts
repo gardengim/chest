@@ -50,6 +50,16 @@ test('instance cards and header share a mixed background pool, lazily load frame
   await expect(page.locator('.instance-hero .instance-art img')).toHaveCount(1);
   await expect(page.locator('.instance-scene .instance-backdrop img')).toHaveCount(2);
   expect(await page.evaluate(()=>(window as any).__screenshotRequests.map((request:any)=>request.edge))).toEqual([512,1024]);
+  // Intersection callbacks arrive independently of image loading. Let the
+  // visible header start its rotation before advancing the test clock.
+  await page.locator('.instance-scene .instance-backdrop').evaluate(node=>new Promise<void>(resolve=>{
+    const observer=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting)){
+        observer.disconnect();requestAnimationFrame(()=>resolve());
+      }
+    });
+    observer.observe(node);
+  }));
   await page.clock.runFor(8100);
   await expect(page.locator('.instance-scene .instance-backdrop img.visible')).toHaveAttribute('src',png);
   expect(await page.evaluate(()=>(window as any).__screenshotLoads)).toEqual(['shot-19.png','shot-19.png','shot-0.png']);

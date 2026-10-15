@@ -1,8 +1,9 @@
-// Exact-text deduplication preserves package-specific notices and copyright lines.
+// Git checkouts may change line endings without changing license content.
 export function sameLicenseText(left,right){
   const normalize=text=>text.replace(/\r\n?/g,'\n');
   return normalize(left)===normalize(right);
 }
+// Exact-text deduplication preserves package-specific notices and copyright lines.
 export function packLicenses({chest,notices}){
   const texts=[],indices=new Map();
   return {chest,texts,notices:notices.map(notice=>({...notice,texts:notice.texts.map(text=>{
