@@ -120,4 +120,16 @@ try:
         args.output.write_text(json.dumps(result, indent=2)+'\n')
     print(json.dumps(result, indent=2))
 finally:
-    if not args.keep_profile: shutil.rmtree(profile)
+    if not args.keep_profile:
+        # macOS stores the isolated WebView beside normal WebKit data, rather
+        # than inside Core's disposable directory. Remove only our fresh UUID.
+        marker = profile / '.chest-test-profile'
+        if platform.system() == 'Darwin' and marker.exists():
+            identifier = str(uuid.UUID(marker.read_text().strip()))
+            stores = Path.home() / 'Library/WebKit/app.chest.launcher/WebsiteDataStore'
+            owned = stores / identifier
+            if owned.exists():
+                if owned.is_symlink() or owned.resolve().parent != stores.resolve():
+                    raise RuntimeError('Refusing to clean an unconfined WebView profile')
+                shutil.rmtree(owned)
+        shutil.rmtree(profile)
