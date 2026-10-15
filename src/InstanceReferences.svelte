@@ -10,7 +10,7 @@
       frame=requestAnimationFrame(()=>{
         const labels=Array.from(node.querySelectorAll<HTMLElement>('[data-reference]'));
         const available=node.clientWidth;
-        const widths=labels.map(label=>(label.querySelector<HTMLElement>('.instance-name>span:last-child')?.scrollWidth || 0)+(label.querySelector<HTMLElement>('.instance-icon-ref')?.getBoundingClientRect().width || 0)+parseFloat(getComputedStyle(label.querySelector('.instance-name')!).gap));
+        const widths=labels.map(label=>(label.querySelector<HTMLElement>('.instance-name-text')?.scrollWidth || 0)+(label.querySelector<HTMLElement>('.instance-icon-ref')?.getBoundingClientRect().width || 0)+parseFloat(getComputedStyle(label.querySelector('.instance-name')!).gap));
         const gap=parseFloat(getComputedStyle(node).gap);
         const total=widths.reduce((sum,width)=>sum+width,0)+Math.max(0,widths.length-1)*gap;
         if(total<=available){count=instances.length;return;}
@@ -43,7 +43,7 @@
   [data-reference]{flex:none;max-width:100%;white-space:nowrap}
   [data-reference]:first-child{flex-shrink:1;min-width:0}
   [data-reference] :global(.instance-name){max-width:100%}
-  [data-reference] :global(.instance-name>span:last-child){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  [data-reference] :global(.instance-name-text){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   [data-reference].overflowed{position:absolute;visibility:hidden;max-width:none;pointer-events:none}
   [data-counter]{flex:none;font-size:0.85714286rem;color:var(--muted);white-space:nowrap}
   .measuring{position:absolute;visibility:hidden;pointer-events:none}
