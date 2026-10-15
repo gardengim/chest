@@ -14,8 +14,9 @@ test('release inputs agree; a mismatched tag is rejected',t=>{
 test('stale Cargo lockfile version is rejected',t=>{
   const root=fixture(t),path=join(root,'core/Cargo.lock');
   const source=readFileSync(path,'utf8').replace(/\r?\n/g,'\r\n');
-  const changed=source.replace(/(name = "chest-core"\r?\nversion = ")[^"]+/, '${1}999.0.0');
+  const changed=source.replace(/(name = "chest-core"\r?\nversion = ")[^"]+/, (_match,prefix)=>prefix+'999.0.0');
   assert.notEqual(changed,source,'fixture must change the package version');
+  assert.match(changed,/name = "chest-core"\r?\nversion = "999\.0\.0"/);
   writeFileSync(path,changed);
   assert.throws(()=>checkRelease(root),/versions must match/);
 });
