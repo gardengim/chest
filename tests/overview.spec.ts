@@ -56,8 +56,8 @@ test('Overview shows available versions and news, folder is readonly, and cards 
   await expect(page.getByLabel('Instance folder',{exact:true})).toHaveAttribute('readonly','');
   await expect(page.getByRole('heading',{name:'Instance settings'})).toBeVisible();
   await expect(page.getByText('Remove this instance and its local files.')).toHaveCount(0);
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Content',exact:true})).toHaveCount(0);
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Contents',exact:true})).toHaveCount(0);
   await page.getByRole('tab',{name:'Log',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Log',exact:true})).toHaveCount(0);
   await page.getByRole('button',{name:'Chest home',exact:true}).click();

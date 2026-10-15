@@ -42,9 +42,9 @@ test('active account face includes hat layer, uses crisp scaling, shares request
   await expect(profile.locator('img.base')).toHaveCount(0);await expect(profile.locator('svg[data-symbol="user"]')).toBeVisible();
 });
 
-test('instance account names and account picker options include their skin faces',async({page})=>{
+test('Overview omits account association; launch account picker options retain skin faces',async({page})=>{
   await fixture(page);await page.goto('/');await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();
-  await expect(page.locator('.account-name').filter({hasText:'First player'}).locator('img.base')).toBeVisible();
+  await expect(page.locator('.details')).not.toContainText('Account');
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await page.getByLabel('Account',{exact:true}).click();
   await expect(page.getByRole('option',{name:'First player',exact:true}).locator('img.base')).toBeVisible();

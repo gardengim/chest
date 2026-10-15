@@ -425,6 +425,9 @@ impl Core {
         Ok(())
     }
     pub fn save_instance(&self, instance: Instance) -> Result<Config> {
+        self.save_instance_settings(instance, None)
+    }
+    pub fn save_instance_settings(&self, instance: Instance, settings: Option<launch_settings::LaunchSettings>) -> Result<Config> {
         let _operation = self.operation_lock.lock().unwrap();
         if self.busy(&instance.id) {
             bail!("Wait for this instance to finish before editing");
@@ -443,7 +446,7 @@ impl Core {
                 bail!("Versions are determined by the queued modpack");
             }
         }
-        self.store.save(instance)
+        self.store.save_with_launch(instance, settings)
     }
     pub async fn versions(&self) -> Result<Vec<metadata::Version>> {
         let cache = self.store.root.join("manifest.json");

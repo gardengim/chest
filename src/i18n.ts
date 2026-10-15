@@ -2,7 +2,7 @@ import { derived, writable } from 'svelte/store';
 import { locale, type Locale } from './preferences';
 type Values=Record<string,string|number>;
 type Dictionary=Record<string,string>;
-const loaders={ko:()=>import('./locales/ko.json'),es:()=>import('./locales/es.json'),ja:()=>import('./locales/ja.json'),'zh-Hans':()=>import('./locales/zh-Hans.json'),'zh-Hant':()=>import('./locales/zh-Hant.json')};
+const loaders={ar:()=>import('./locales/ar.json'),ko:()=>import('./locales/ko.json'),es:()=>import('./locales/es.json'),ja:()=>import('./locales/ja.json'),'zh-Hans':()=>import('./locales/zh-Hans.json'),'zh-Hant':()=>import('./locales/zh-Hant.json')};
 const dictionary=writable<{language:Locale;values:Dictionary}>({language:'en',values:{}});
 let requested:Locale='en';
 locale.subscribe(language=>{

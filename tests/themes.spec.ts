@@ -267,11 +267,11 @@ test('media, icons, resource tabs and dialogs retain their protected styling und
   expect(geometry.box).toBe('0 0 24 24');
   expect(await addIcon.evaluate(node=>getComputedStyle(node).color)).not.toBe('rgb(22, 78, 170)');
   await page.getByRole('button',{name:'Theme world: Ready to play',exact:true}).click();
-  for(const tab of ['Overview','Content','Worlds','Servers','Screenshots','Settings','Log']){
+  for(const tab of ['Overview','Contents','Worlds','Servers','Screenshots','Settings','Log']){
     await page.getByRole('tab',{name:tab,exact:true}).click();
     await expect(page.locator('.instance-content')).toHaveCSS('background-color','rgb(226, 231, 241)');
     expect(await page.locator('#main-content').evaluate(node=>node.scrollWidth<=node.clientWidth+1)).toBe(true);
-    if(tab==='Content'){
+    if(tab==='Contents'){
       await expect(page.locator('.content-entry h3')).toHaveCSS('color','rgb(20, 32, 58)');
       const findings=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
       expect(findings.violations.map(({id,nodes})=>({id,targets:nodes.map(node=>node.target)}))).toEqual([]);

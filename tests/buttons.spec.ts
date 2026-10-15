@@ -32,8 +32,8 @@ test('button shapes share pointer, focus, and disabled feedback while tabs stay 
   await feedback(page,page.getByRole('button',{name:'Chest home',exact:true}),true);
   await expect(page.locator('.catalog-results > .pagination')).toHaveCount(0);
   await page.getByRole('button',{name:'World: Not installed',exact:true}).click();
-  await feedback(page,page.getByRole('button',{name:'Sign in',exact:true}));
-  await feedback(page,page.getByRole('tab',{name:'Content',exact:true}),true);
+  await feedback(page,page.getByRole('button',{name:'Install',exact:true}));
+  await feedback(page,page.getByRole('tab',{name:'Contents',exact:true}),true);
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await feedback(page,page.getByRole('button',{name:'Delete',exact:true}));
   await page.getByRole('button',{name:'Delete',exact:true}).click();

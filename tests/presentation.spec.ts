@@ -65,7 +65,7 @@ test('project dialogs share overlay colors, restore focus, and clean up; missing
   await expect(page.locator('.instance-icon svg.artwork')).toHaveCount(0);
 });
 
-test('page extraction preserves library choices, creation draft, settings draft, and each instance editor', async ({ page }) => {
+test('page extraction preserves library choices, creation draft, settings draft, and saved instance settings', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(()=>localStorage.setItem('chest-preview-v1',JSON.stringify({instances:[{id:'world',name:'World',version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:false}],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096})));
   await page.reload();
@@ -76,6 +76,7 @@ test('page extraction preserves library choices, creation draft, settings draft,
   await page.getByLabel('Name',{exact:true}).fill('Unsaved world');
   await page.getByLabel('Memory (MB)').fill('8192');
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Save',exact:true}).click();
   await page.getByLabel('Instance name').fill('Draft world');
   await page.getByRole('button',{name:'Settings'}).click();
   await page.getByRole('button',{name:'Discard'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
@@ -87,7 +88,7 @@ test('page extraction preserves library choices, creation draft, settings draft,
   await expect(page.locator('.instance-grid')).toHaveClass(/library-list/);
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await expect(page.getByLabel('Instance name')).toHaveValue('');
-  await page.getByRole('button',{name:'World: Not installed',exact:true}).click();
+  await page.getByRole('button',{name:'Unsaved world: Not installed',exact:true}).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByLabel('Name',{exact:true})).toHaveValue('Unsaved world');

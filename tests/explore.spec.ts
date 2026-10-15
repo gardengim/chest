@@ -49,7 +49,7 @@ test('native Explore uses the target compatibility, ignores stale searches, and 
     }};
   });
   await page.goto('/');await page.getByRole('button',{name:'Modded world: Not installed'}).click();
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
   await page.getByRole('button',{name:'Add',exact:true}).click();
   await expect(page.locator('.catalog-card')).toHaveCount(1);
   await expect(page.getByLabel('Target instance')).toHaveValue('fabric');

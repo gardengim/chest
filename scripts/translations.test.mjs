@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
-import {languages,detectLocale,resolveLocale} from '../src/languages.ts';
+import {languages,detectLocale,resolveLocale,localeDirection} from '../src/languages.ts';
 import {activityText} from '../src/activity-text.ts';
 const translations=await Promise.all(Object.keys(languages).filter(language=>language!=='en').map(async language=>[language,JSON.parse(await readFile(new URL(`src/locales/${language}.json`,root),'utf8'))]));
 const keys=Object.keys(translations[0][1]).sort();
@@ -53,4 +53,9 @@ test('known installation progress is localized while unknown diagnostics are pre
   assert.equal(activityText('Downloading assets · 8 / 16 files verified',translate),'正在下载游戏资源 · 已验证 8 个文件，共 16 个');
   assert.equal(activityText('Preparing modpack files · 2/3',translate),'正在准备整合包文件 · 2/3');
   assert.equal(activityText('Custom filename世界.jar: I/O error',translate),'Custom filename世界.jar: I/O error');
+});
+
+test('Arabic locale detection and writing direction are explicit',()=>{
+  assert.equal(resolveLocale('ar-SA'),'ar');assert.equal(detectLocale(['ar-EG','en']),'ar');
+  for(const language of Object.keys(languages))assert.equal(localeDirection(language),language==='ar'?'rtl':'ltr');
 });

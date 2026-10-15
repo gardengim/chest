@@ -134,7 +134,7 @@ test('all card kinds share their shell and media dimensions while grids can cont
 test('world, server and installed-content card actions share translucent dark backgrounds and blur',async({page},testInfo)=>{
   await fixture(page);await page.goto('/');
   await page.getByRole('button',{name:'Adventure: Ready to play',exact:true}).click();
-  for(const tab of ['Worlds','Servers','Content']){
+  for(const tab of ['Worlds','Servers','Contents']){
     await page.getByRole('tab',{name:tab,exact:true}).click();
     const actions=page.locator('.shared-card-actions .ui-button');await expect.poll(()=>actions.count()).toBeGreaterThan(0);
     await page.locator('.shared-card-actions').first().screenshot({path:testInfo.outputPath(`${tab.toLowerCase()}-card-actions.png`)});
@@ -173,7 +173,7 @@ test('missing artwork stays absent across cards and installed content, and Overv
   }
   await page.getByRole('button',{name:'Adventure: Ready to play',exact:true}).click();
   await expect(page.getByRole('button',{name:'Refresh files',exact:true})).toHaveCount(0);
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
   await expect(page.locator('.content-entry')).toHaveCount(1);
   await expect(page.locator('.content-entry .shared-card-art img,.content-entry .shared-card-art svg')).toHaveCount(0);
 });

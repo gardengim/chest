@@ -84,7 +84,7 @@
       </div>
     {/if}
     <section class="creation-section" aria-labelledby="creation-content-title">
-      <h2 id="creation-content-title">{$t("Content")}</h2>
+      <h2 id="creation-content-title">{$t("Contents")}</h2>
 
       <ContentCollection onadd={kind=>{contentKind=kind as typeof contentKind;browseContent=true;}} prefix="creation-content" entries={[
         ...draft.files.map((file,index)=>({id:`local:${index}`,name:filename(file.path),kind:file.kind,enabled:file.enabled,removable:true})),
@@ -111,7 +111,7 @@
 {/if}
 {#if browseContent}
   <dialog class="modal creation-picker" aria-label={$t("Add content")} use:showDialog oncancel={event=>{event.preventDefault();browseContent=false;}}>
-    <div class="section-heading"><h2>{$t("Content")}</h2><Button class="dialog-close" aria-label={$t("Close content browser")} onclick={()=>browseContent=false}><Icon name="close" size={18}/></Button></div>
+    <div class="section-heading"><h2>{$t("Contents")}</h2><Button class="dialog-close" aria-label={$t("Close content browser")} onclick={()=>browseContent=false}><Icon name="close" size={18}/></Button></div>
     <div class="creation-file-controls"><label>{$t("File type")}<Select bind:value={contentKind}><option value="mods">{$t("Mods")}</option><option value="resourcepacks">{$t("Resource packs")}</option><option value="shaderpacks">{$t("Shaders")}</option></Select></label><Button disabled={!native || choosing} onclick={()=>choose(async()=>{await addFiles();browseContent=false;})}><Icon name="folder" size={17}/>{$t("Choose file")}</Button></div>
     {#if draft.method==='Modpacks'}<p class="hint">{$t("Match your modpack’s version and loader.")}</p><div class="creation-fields"><label>{$t("Content game version")}<Select bind:value={draft.version}>{#each versions as version}<option value={version.id}>{version.id}</option>{/each}</Select></label><LoaderPicker gameVersion={draft.version} bind:loader={draft.loader} bind:loaderVersion={draft.loaderVersion}/></div>{/if}
     <Explore compact showTabs={false} kind={contentKind==='mods'?'mod':contentKind==='resourcepacks'?'resourcepack':'shader'} included={draft.catalog} allowModpacks={false} instances={[contentInstance]} {versions} target="creation" isBusy={()=>false} onadded={()=>{}} oncontentselected={content=>{const index=draft.catalog.findIndex(item=>item.source===content.source && item.project===content.project);if(index<0)draft.catalog.push(content);else draft.catalog[index]=content;browseContent=false;}}/>

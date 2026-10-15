@@ -43,7 +43,7 @@
     {#if badge}<span class="catalog-kind">{badge}</span>{/if}
   </div>{/if}
   <div class="shared-card-body">
-    <h3>{title}</h3>
+    <h3><bdi>{title}</bdi></h3>
     {@render children?.()}
     {#if actions}<div class="shared-card-actions">{@render actions()}</div>{/if}
   </div>
@@ -55,7 +55,7 @@
 {/if}
 
 <style>
-:global(.launcher-card){--text:var(--theme-card-text);--muted:var(--theme-card-muted);--icon-ink:var(--icon-on-card);--link:var(--theme-link);--negative-text:var(--theme-danger-text);position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-width:0;width:var(--card-width,100%);height:var(--card-height,auto);min-height:var(--card-min-height,0);max-height:var(--card-max-height,none);margin:0;padding:0;text-align:left;font-size:.85714286rem;overflow:hidden;border:var(--stroke) solid var(--frame);background:var(--card-fill,var(--theme-surface));color:var(--text);box-shadow:var(--shadow-drop)}
+:global(.launcher-card){--text:var(--theme-card-text);--muted:var(--theme-card-muted);--icon-ink:var(--icon-on-card);--link:var(--theme-link);--negative-text:var(--theme-danger-text);position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-width:0;width:var(--card-width,100%);height:var(--card-height,auto);min-height:var(--card-min-height,0);max-height:var(--card-max-height,none);margin:0;padding:0;text-align:start;font-size:.85714286rem;overflow:hidden;border:var(--stroke) solid var(--frame);background:var(--card-fill,var(--theme-surface));color:var(--text);box-shadow:var(--shadow-drop)}
 :global(.launcher-card:has(.card-backdrop img)){--text:var(--theme-overlay-text);--muted:var(--theme-overlay-muted);--icon-ink:#ececec}
 :global(.launcher-card)::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:var(--bevel-raised)}
 :global(.launcher-card.ui-button:not(:disabled):active)::after{box-shadow:var(--bevel-pressed)}
@@ -67,7 +67,7 @@
 .shared-card-body{display:flex;flex-direction:column;flex:1;min-width:0;min-height:var(--card-body-min,8rem);width:100%;padding:var(--card-padding);text-shadow:none;container-type:inline-size}
 :global(.launcher-card) .shared-card-body h3{font-size:1.28571429rem;margin:0 0 .35714286rem;overflow-wrap:anywhere;color:var(--text)}
 :global(.launcher-card) .shared-card-body :global(p),:global(.launcher-card) .shared-card-body :global(small){color:var(--muted)}
-.catalog-kind{position:absolute;bottom:.64285714rem;right:.71428571rem;color:var(--theme-input-text);background:var(--theme-input);border:var(--divider) solid var(--frame);padding:.21428571rem .42857143rem;font-size:.71428571rem}
+.catalog-kind{position:absolute;bottom:.64285714rem;inset-inline-end:.71428571rem;color:var(--theme-input-text);background:var(--theme-input);border:var(--divider) solid var(--frame);padding:.21428571rem .42857143rem;font-size:.71428571rem}
 :global(.launcher-card) :global(.card-backdrop){inset:0;width:auto;height:100%;background:var(--theme-card)}
 :global(.launcher-card) :global(.card-backdrop img.visible){opacity:var(--card-background-opacity,.8)}
 :global(.launcher-card) :global(.card-backdrop:not(:has(img))::after){display:none}

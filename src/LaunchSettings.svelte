@@ -4,32 +4,21 @@
   import {api} from './api';
   import AccountName from './AccountName.svelte';
   import SkinFace from './SkinFace.svelte';
-  import {defaultLaunchSettings,supportsGraphicsApi,type Account} from './types';
+  import {supportsGraphicsApi,type Account} from './types';
   import {createLaunchDraft,type LaunchDraft} from './ui-state';
   import Button from './Button.svelte';
+  import {setLaunchDraft,launchDraftValue} from './launch-draft';
   import SettingsGroup from './SettingsGroup.svelte';
   import Select from './Select.svelte';
   let {id,version='',accounts,busy=false,draft=$bindable(createLaunchDraft())}:{id:string;version?:string;accounts:Account[];busy?:boolean;draft?:LaunchDraft}=$props();
   async function load(instance:string,state:LaunchDraft){
     if(state.loaded || state.loading)return;state.loading=true;state.error='';
-    try{const value=await api.launchSettings(instance);state.settings={...defaultLaunchSettings(),...value};state.account=value.account_id || '';state.javaArgs=value.java_args.join('\n');state.gameArgs=value.game_args.join('\n');state.environment=Object.entries(value.environment).map(([key,val])=>`${key}=${val}`).join('\n');state.before=value.before_launch.join('\n');state.after=value.after_exit.join('\n');state.loaded=true;}
+    try{setLaunchDraft(state,await api.launchSettings(instance));state.loaded=true;state.baseline=launchDraftValue(state);}
     catch(e){state.error=String(e);}finally{state.loading=false;}
   }
   $effect(()=>{const instance=id;const state=untrack(()=>draft);void load(instance,state);});
-  const lines=(text:string)=>text.split(/\r?\n/).filter(line=>line.length>0);
-  async function save(){
-    const state=draft,instance=id;
-    if(!state.loaded || state.pending || busy)return;
-    state.pending=true;state.error='';state.saved=false;
-    try{
-      const env:Record<string,string>={};
-      for(const line of lines(state.environment)){const index=line.indexOf('=');if(index<1)throw new Error('Use NAME=value for each environment variable.');const key=line.slice(0,index);if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key) || Object.hasOwn(env,key))throw new Error('Use unique environment variable names.');Object.defineProperty(env,key,{value:line.slice(index+1),enumerable:true});}
-      const settings={...state.settings,account_id:state.account || null,java_args:lines(state.javaArgs),game_args:lines(state.gameArgs),environment:env,before_launch:lines(state.before),after_exit:lines(state.after)};
-      await api.saveLaunchSettings(instance,settings);state.settings=settings;state.saved=true;
-    }catch(e){state.error=String(e);}finally{state.pending=false;}
-  }
 </script>
-<form class="panel launch-settings settings-form" aria-label={$t('Launch settings')} onsubmit={event=>{event.preventDefault();void save();}}>
+<section class="panel launch-settings settings-form" aria-label={$t('Launch settings')}>
   <h2>{$t('Launch settings')}</h2>
   <fieldset disabled={!draft.loaded || draft.pending || busy}>
     <SettingsGroup title={$t('Launch behavior')}>
@@ -60,12 +49,10 @@
         <div class="settings-grid"><label>{$t('Before launch')}<textarea rows="3" bind:value={draft.before}></textarea></label><label>{$t('After exit')}<textarea rows="3" bind:value={draft.after}></textarea></label></div>
       </SettingsGroup>
     </details>
-    <div class="settings-save"><Button tone="accent" type="submit">{$t(draft.pending?'Saving…':'Save')}</Button></div>
   </fieldset>
   {#if draft.loading}<p role="status">{$t('Loading…')}</p>{/if}
   {#if draft.error}<p role="alert" class="inline-error">{draft.error}</p>{#if !draft.loaded}<Button onclick={()=>load(id,draft)}>{$t('Retry')}</Button>{/if}{/if}
-  {#if draft.saved}<p role="status">{$t('Saved')}</p>{/if}
-</form>
+</section>
 <style>
 .account-select{display:flex;align-items:center;gap:.57142857rem}.account-select :global(select){flex:1;min-width:0}
 fieldset{border:0;padding:0;margin:0;min-width:0}

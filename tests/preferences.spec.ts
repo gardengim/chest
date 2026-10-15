@@ -42,7 +42,7 @@ test('Empty news keeps its heading outside the panel and hides unused pagination
 });
 
 for(const language of [
-  {code:'es',settings:'Ajustes',language:'Idioma',create:'Crear instancia',newInstance:'Nueva instancia',name:'Nombre de la instancia',submit:'Crear',overview:'Resumen',log:'Registro',content:'Contenido',search:'Buscar contenido',empty:'Sin contenido'},
+  {code:'es',settings:'Ajustes',language:'Idioma',create:'Crear instancia',newInstance:'Nueva instancia',name:'Nombre de la instancia',submit:'Crear',overview:'Resumen',log:'Registro',content:'Contenidos',search:'Buscar contenido',empty:'Sin contenido'},
   {code:'ja',settings:'設定',language:'言語',create:'インスタンスを作成',newInstance:'新しいインスタンス',name:'インスタンス名',submit:'作成',overview:'概要',log:'ログ',content:'コンテンツ',search:'コンテンツを検索',empty:'コンテンツなし'},
   {code:'zh-Hans',settings:'设置',language:'语言',create:'创建实例',newInstance:'新建实例',name:'实例名称',submit:'创建',overview:'概览',log:'日志',content:'内容',search:'搜索内容',empty:'暂无内容'},
   {code:'zh-Hant',settings:'設定',language:'語言',create:'建立實例',newInstance:'新增實例',name:'實例名稱',submit:'建立',overview:'概覽',log:'記錄',content:'內容',search:'搜尋內容',empty:'沒有內容'}

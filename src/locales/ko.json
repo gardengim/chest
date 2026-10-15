@@ -560,5 +560,10 @@
   "Close Chest?": "Chest를 닫을까요?",
   "Installations will stop. Running games will remain open.": "설치는 중단됩니다. 실행 중인 게임은 계속 실행됩니다.",
   "Deleting…": "삭제 중…",
-  "Deletion failed. Some files may have been removed. Retry deletion.": "삭제하지 못했습니다. 일부 파일이 이미 삭제되었을 수 있습니다. 다시 삭제해 주세요."
+  "Deletion failed. Some files may have been removed. Retry deletion.": "삭제하지 못했습니다. 일부 파일이 이미 삭제되었을 수 있습니다. 다시 삭제해 주세요.",
+  "Contents": "콘텐츠",
+  "Name is required.": "이름을 입력하세요.",
+  "Window size must be between 320 × 240 and 16384 × 16384": "창 크기는 320 × 240에서 16384 × 16384 사이여야 합니다.",
+  "Collapse": "접기",
+  "Use unique environment variable names.": "환경 변수 이름은 중복될 수 없습니다."
 }

@@ -15,16 +15,16 @@ test('graphics API persists per instance, gates older versions and restores the 
   const form=page.locator('.launch-settings'),select=form.getByLabel('Graphics API',{exact:true});
   await expect(select).toHaveValue('default');await select.selectOption('vulkan');
   await expect(form).toContainText('Iris shader packs require OpenGL');
-  await form.getByRole('button',{name:'Save',exact:true}).click();
-  await expect(form.getByRole('status')).toHaveText('Saved');
+  await page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true}).click();
+  await expect(page.locator('.notification[role="status"]')).toContainText('Instance saved.');
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1')!).launch_settings.modern.graphics_api)).toBe('vulkan');
   await page.getByRole('button',{name:'Legacy: Ready to play',exact:true}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(select).toHaveValue('default');await expect(select.locator('option[value=vulkan]')).toHaveJSProperty('disabled',true);await expect(select.locator('option[value=open_gl]')).toHaveJSProperty('disabled',true);
   await expect(form).toContainText('Graphics API selection requires Minecraft 26.2 or later.');
   await page.reload();await page.getByRole('button',{name:'Modern: Ready to play',exact:true}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
-  await expect(select).toHaveValue('vulkan');await select.selectOption('open_gl');await form.getByRole('button',{name:'Save',exact:true}).click();
+  await expect(select).toHaveValue('vulkan');await select.selectOption('open_gl');await page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1')!).launch_settings.modern.graphics_api)).toBe('open_gl');
-  await select.selectOption('default');await form.getByRole('button',{name:'Save',exact:true}).click();
+  await select.selectOption('default');await page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1')!).launch_settings.modern.graphics_api)).toBe('default');
 });
 
@@ -49,7 +49,7 @@ test('pixel checkboxes share styling, respond to keyboard and scale with text',a
   await page.getByRole('dialog').getByRole('button',{name:'Discard',exact:true}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   const fullscreen=page.getByRole('checkbox',{name:'Fullscreen',exact:true});await expect(fullscreen).toHaveCSS('appearance','none');await fullscreen.check();
-  await page.locator('.launch-settings').getByRole('button',{name:'Save',exact:true}).click();
+  await page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1')!).launch_settings.modern.fullscreen)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('pixel-checkboxes.png')});
 });

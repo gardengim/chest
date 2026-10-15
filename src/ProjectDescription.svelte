@@ -38,7 +38,7 @@
   <div class="description-scroll" bind:this={scroller} id={uid} role="region" aria-label={$t('Description')} aria-busy={loading} tabindex="0">
     {#if loading}<p role="status">{$t('Loading description…')}</p>
     {:else if error}<p role="alert">{error}</p><Button onclick={()=>retry++}>{$t('Retry')}</Button>
-    {:else if content}<div class="rich-description" use:handleContent>{@html content}</div>
+    {:else if content}<div dir="auto" class="rich-description" use:handleContent>{@html content}</div>
     {:else}<p class="hint">{$t('No description available.')}</p>{/if}
     {#if linkError}<p role="alert">{$t('Could not open link.')}</p>{/if}
   </div>
@@ -46,7 +46,7 @@
 </div>
 <style>
 .description-panel{position:relative;min-width:0;min-height:0;flex:1;border:var(--stroke) solid var(--frame);box-shadow:var(--bevel-inset);background:var(--theme-input);color:var(--theme-input-text);--text:var(--theme-input-text);--muted:var(--theme-input-muted)}
-.description-scroll{height:100%;overflow:auto;overscroll-behavior:contain;padding:1rem;padding-right:calc(1rem + var(--scrollbar-size));min-width:0;outline-offset:calc(-1 * var(--stroke))}
+.description-scroll{height:100%;overflow:auto;overscroll-behavior:contain;padding:1rem;padding-inline-end:calc(1rem + var(--scrollbar-size));min-width:0;outline-offset:calc(-1 * var(--stroke))}
 .description-scroll:focus-visible{outline:var(--stroke) solid var(--focus-ring)}
 .rich-description{line-height:1.6;overflow-wrap:anywhere;min-width:0}
 .rich-description :global(*){max-width:100%;box-sizing:border-box}
@@ -55,11 +55,11 @@
 .rich-description :global(:is(p,ul,ol,blockquote,pre,table,details)){margin:.75em 0;font-size:inherit}
 .rich-description :global(:first-child){margin-top:0}
 .rich-description :global(img){display:block;width:auto;height:auto;margin:.75em auto;image-rendering:auto}
-.rich-description :global(:is(ul,ol)){padding-left:1.5em}
-.rich-description :global(a){color:inherit;text-decoration:underline;text-underline-offset:.2em}
+.rich-description :global(:is(ul,ol)){padding-inline-start:1.5em}
+.rich-description :global(a){padding-inline:.15em;box-decoration-break:clone;-webkit-box-decoration-break:clone;color:inherit;text-decoration:underline;text-underline-offset:.2em}
 .rich-description :global(a:hover){text-decoration-thickness:var(--stroke)}
 .rich-description :global(a:focus-visible){outline:var(--stroke) solid var(--focus-ring);outline-offset:var(--pixel)}
-.rich-description :global(blockquote){border-left:var(--stroke) solid var(--frame);padding-left:1em}
+.rich-description :global(blockquote){border-inline-start:var(--stroke) solid var(--frame);padding-inline-start:1em}
 .rich-description :global(:is(pre,code)){font-family:ui-monospace,monospace;font-size:.9em;white-space:pre-wrap;overflow-wrap:anywhere}
 .rich-description :global(pre){padding:.75em;box-shadow:var(--bevel-inset)}
 .rich-description :global(.rich-table-scroll){overflow-x:auto;max-width:100%}

@@ -1,7 +1,7 @@
 import './themes';
 import { writable, get } from 'svelte/store';
 import {normalizeShelves,defaultShelves,homeSections,normalizeDockPosition,defaultDockPosition,type DockOrientation} from './home-layout';
-import {isLocale,detectLocale,type Locale} from './languages';
+import {isLocale,detectLocale,localeDirection,type Locale} from './languages';
 export {languages,type Locale} from './languages';
 const key='chest-ui-preferences-v1';
 function read(){
@@ -26,6 +26,7 @@ export function beginPreferenceEdit(){editingSettings=true;}
 export function finishPreferenceEdit(commit:boolean){editingSettings=false;if(commit)apply();}
 function apply(){
   document.documentElement.lang=get(locale);
+  document.documentElement.dir=localeDirection(get(locale));
   document.documentElement.toggleAttribute('data-reduce-motion',get(reduceMotion));
   if(editingSettings)return;
   try{localStorage.setItem(key,JSON.stringify({locale:get(locale),...(JSON.stringify(get(homeHiddenOrder))===JSON.stringify(homeSections)?{}:{homeHiddenOrder:get(homeHiddenOrder)}),...(get(homeDockPosition)===defaultDockPosition?{}:{homeDockPosition:get(homeDockPosition)}),...(get(homeDockOrientation)==='auto'?{}:{homeDockOrientation:get(homeDockOrientation)}),...(JSON.stringify(get(homeShelves))===JSON.stringify(defaultShelves)?{}:{homeShelves:get(homeShelves)}),...(get(autoUpdateChecks)?{}:{autoUpdateChecks:false}),...(get(doubleClickLaunch)?{}:{doubleClickLaunch:false}),...(get(reduceMotion)?{reduceMotion:true}:{}),...(get(defaultInstanceLocation)?{defaultInstanceLocation:get(defaultInstanceLocation)}:{})}));}catch{/* Preferences still apply when storage is unavailable. */}

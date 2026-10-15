@@ -50,7 +50,7 @@ async function call<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
     }
     case 'set_sidebar_groups': config.sidebar_groups=args.groups as SidebarGroup[];result=write(config);break;
     case 'reorder_instances': {const ids=args.ids as string[];config.instances.sort((a,b)=>(ids.includes(a.id)?ids.indexOf(a.id):Infinity)-(ids.includes(b.id)?ids.indexOf(b.id):Infinity));result=write(config);break;}
-    case 'save_instance': { const instance=args.instance as Instance;config.instances=config.instances.map(i=>i.id===instance.id?{...instance,playtime_seconds:i.playtime_seconds || 0,installed:i.installed && i.version===instance.version && (i.loader || 'vanilla')===instance.loader && (i.loader_version || '')===instance.loader_version}:i);result=write(config);break; }
+    case 'save_instance': { const instance=args.instance as Instance;config.instances=config.instances.map(i=>i.id===instance.id?{...instance,playtime_seconds:i.playtime_seconds || 0,installed:i.installed && i.version===instance.version && (i.loader || 'vanilla')===instance.loader && (i.loader_version || '')===instance.loader_version}:i);if(args.settings){const c=config as Config & {launch_settings?:Record<string,LaunchSettings>};(c.launch_settings ??={})[(args.instance as Instance).id]=args.settings as LaunchSettings;}result=write(config);break; }
     case 'save_settings': config.client_id=String(args.clientId).trim();config.java_path=String(args.javaPath).trim();config.memory_mb=Number(args.memoryMb);result=write(config);break;
     case 'remove_instance': for(const b of config.server_bookmarks || [])if(b.instance_id===args.id)b.instance_id=null;config.instances=config.instances.filter(i=>i.id!==args.id);config.sidebar_groups=config.sidebar_groups?.map(g=>({...g,ids:g.ids.filter(id=>id!==args.id)})).filter(g=>g.ids.length);result=write(config);break;
     case 'duplicate_instance': {const old=config.instances.find(i=>i.id===args.id)!;const instance={...old,id:crypto.randomUUID(),name:`${old.name} copy`,installed:false,playtime_seconds:0};config.instances.push(instance);write(config);result=instance;break;}
@@ -128,7 +128,7 @@ export const api = {
   create:(name:string,version:string,loader:Loader='vanilla',loaderVersion='')=>call<Instance>('create_instance',{name,version,loader,loaderVersion}),
   groups:(groups:SidebarGroup[])=>call<Config>('set_sidebar_groups',{groups}),
   reorder:(ids:string[])=>call<Config>('reorder_instances',{ids}),
-  save:(instance:Instance)=>call<Config>('save_instance',{instance}),
+  save:(instance:Instance,settings?:LaunchSettings)=>call<Config>('save_instance',{instance,settings}),
   remove:(id:string)=>call<Config>('remove_instance',{id}), duplicate:(id:string)=>call<Instance>('duplicate_instance',{id}),
   install:(id:string)=>call<void>('install_instance',{id}),pause:(id:string,paused:boolean)=>call<void>('pause_install',{id,paused}),
   launch:(id:string)=>call<void>('launch_instance',{id}),stop:(id:string)=>call<void>('stop_instance',{id}),

@@ -560,5 +560,10 @@
   "Close Chest?": "关闭 Chest？",
   "Installations will stop. Running games will remain open.": "安装将停止，正在运行的游戏将保持运行。",
   "Deleting…": "正在删除…",
-  "Deletion failed. Some files may have been removed. Retry deletion.": "删除失败。部分文件可能已被删除。请重试删除。"
+  "Deletion failed. Some files may have been removed. Retry deletion.": "删除失败。部分文件可能已被删除。请重试删除。",
+  "Contents": "内容",
+  "Name is required.": "名称不能为空。",
+  "Window size must be between 320 × 240 and 16384 × 16384": "窗口大小必须介于320 × 240和16384 × 16384之间。",
+  "Collapse": "收起",
+  "Use unique environment variable names.": "环境变量名称不能重复。"
 }

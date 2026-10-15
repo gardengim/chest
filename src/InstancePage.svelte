@@ -1,7 +1,6 @@
 <script lang="ts">
   import Toolbar from './Toolbar.svelte';
   import SettingsGroup from './SettingsGroup.svelte';
-  import DirectionIcon from './DirectionIcon.svelte';
   import {untrack} from 'svelte';
   import { t } from './i18n';
   import {activityText} from './activity-text';
@@ -10,7 +9,6 @@
   import ContentCollection from './ContentCollection.svelte';
   import {createLaunchDraft,type LaunchDraft} from './ui-state';
   import type {ResourceLink} from './resource-navigation';
-  import AccountName from './AccountName.svelte';
   import LaunchSettings from './LaunchSettings.svelte';
   import News from './News.svelte';
   import Select from './Select.svelte';
@@ -26,13 +24,13 @@
   import { instanceUI, instanceStatus, type InstanceChoice } from './instance-ui';
   import { loaderLabel, tabs, type Activity, type Account, type Config, type Content, type Instance, type InstanceFiles, type Tab, type Version } from './types';
 
-  let { resourceLink=null,current, editor=$bindable(), launchDraft=$bindable(createLaunchDraft()), active, tab, account, accounts=[], source, versions, content=[], output=[],
-    onchoose, onselectTab, onbrowse, onsave, onacknowledge, ontoggle, onrefresh, onrefreshContent, instances=[], isBusy=()=>false, onconfig, bookmarks=[], onprofile }: {
-    resourceLink?:ResourceLink|null;onconfig?:(config:Config)=>void;bookmarks?:import('./types').ServerBookmark[];instances?:Instance[];isBusy?:(id:string)=>boolean;current: Instance; editor: Instance; launchDraft?:LaunchDraft; active?: Activity; tab: Tab; account?: Account; accounts?:Account[];
+  let { resourceLink=null,current, editor=$bindable(), launchDraft=$bindable(createLaunchDraft()), active, tab, accounts=[], source, versions, content=[], output=[],
+    onchoose, onselectTab, onbrowse, onsave, onacknowledge, ontoggle, onrefresh, onrefreshContent, instances=[], isBusy=()=>false, onconfig, bookmarks=[], onrestore, dirty=false }: {
+    resourceLink?:ResourceLink|null;onconfig?:(config:Config)=>void;bookmarks?:import('./types').ServerBookmark[];instances?:Instance[];isBusy?:(id:string)=>boolean;current: Instance; editor: Instance; launchDraft?:LaunchDraft; active?: Activity; tab: Tab; accounts?:Account[];
     source?: string; versions: Version[]; content?: Content[]; output?: string[];
     onchoose: (choice:InstanceChoice)=>void; onselectTab: (tab:Tab)=>void;
     onbrowse: (kind:string)=>void; onsave: ()=>void; onacknowledge: ()=>void;
-    ontoggle: (file:Content)=>void; onrefresh: ()=>void; onrefreshContent: ()=>Promise<unknown>; onprofile: ()=>void;
+    ontoggle: (file:Content)=>void; onrefresh: ()=>void; onrefreshContent: ()=>Promise<unknown>; onrestore: ()=>void;dirty?:boolean;
   } = $props();
   let logSearch=$state('');
   const logQuery=$derived(logSearch.trim().toLocaleLowerCase());
@@ -56,9 +54,6 @@
   $effect(()=>{const id=instanceId;void activityStatus;let alive=true;untrack(()=>{if(filesId!==id){filesId=id;files={worlds:[],servers:[],screenshots:[]};}fileError='';});
     void api.instanceFiles(id).then(value=>{if(alive)files=value;}).catch(e=>{if(alive)fileError=String(e);});return()=>{alive=false;};});
   const instanceTabs=$derived([...tabs.slice(0,2),...(files.worlds.length || tab==='Worlds'?['Worlds' as const]:[]),...(files.servers.length || tab==='Servers'?['Servers' as const]:[]),...(files.screenshots.length || tab==='Screenshots'?['Screenshots' as const]:[]),...tabs.slice(2)]);
-  let effectiveAccount=$state<Account|undefined>();
-  $effect(()=>{const id=instanceId;const selected=tab;const all=accounts;let alive=true;
-    void api.launchSettings(id).then(options=>{if(alive)effectiveAccount=options.account_id?all.find(a=>a.id===options.account_id):account;}).catch(()=>{if(alive)effectiveAccount=account;});return()=>{alive=false;};});
   let editLoaderReady=$state(false);
   const currentUI=$derived(instanceUI(current,active));
   const busy=$derived(currentUI.busy);
@@ -83,7 +78,7 @@
     <ArtworkImage source={source}/>
   </div>
   <div>
-    <h1>{current.name}</h1>
+    <h1><bdi>{current.name}</bdi></h1>
     <InstanceBrief instance={current}/>
     <p class="instance-summary">{activityText(instanceStatus(current,active),$t)}</p>
   </div>
@@ -99,7 +94,7 @@
       </span>
     {/if}
   </Button>
-  <Tabs options={instanceTabs} value={tab} prefix="instance" label={$t("Instance pages")} onchange={onselectTab}/>
+  <Tabs labels={{Content:'Contents'}} options={instanceTabs} value={tab} prefix="instance" label={$t("Instance pages")} onchange={onselectTab}/>
 </div>
 <div class="instance-content" id={`instance-panel-${tab}`} role="tabpanel" aria-labelledby={`instance-tab-${tab}`}>
   {#if active && ['crashed','failed','launch_failed'].includes(active.status)}
@@ -137,15 +132,7 @@
             <dt>Java</dt>
             <dd>{$t(current.java_path?'Custom executable':'Automatic')}</dd>
           </div>
-          <div>
-            <dt>{$t("Account")}</dt>
-            <dd>{#if effectiveAccount}<AccountName account={effectiveAccount}/>{:else}{$t('Not signed in')}{/if}</dd>
-          </div>
         </dl>
-        {#if !effectiveAccount}
-          <Button shape="plain" onclick={onprofile}>{$t("Sign in")} <DirectionIcon direction="right"/>
-          </Button>
-        {/if}
       </section>
       <div class="overview-updates">
       {#if newerRelease || loaderUpdate}
@@ -188,23 +175,22 @@
       </section>
     {/if}
   {:else if tab==='Settings'}
-    <div class="instance-settings-layout">
-      <form class="panel instance-settings settings-form" aria-label={$t('Instance settings')} onsubmit={e=>{e.preventDefault();void onsave();}}>
+    <form class="instance-settings-layout" aria-label={$t('Instance settings')} onsubmit={e=>{e.preventDefault();void onsave();}}>
+      <section class="panel instance-settings settings-form">
         <h2>{$t('Instance settings')}</h2>
         {#if currentUI.pending}<p class="hint">{$t('Install this modpack before editing or copying.')}</p>{/if}
         <SettingsGroup title={$t('General')}>
-          <label>{$t('Name')}<input bind:value={editor.name} required maxlength={120} disabled={busy || currentUI.pending}/></label>
+          <label>{$t('Name')}<input dir="auto" bind:value={editor.name} required maxlength={120} disabled={busy || currentUI.pending || launchDraft.pending || !launchDraft.loaded}/></label>
         </SettingsGroup>
         <SettingsGroup title={$t('Runtime')}>
-          <RuntimeFields bind:memory={editor.memory_mb} bind:javaPath={editor.java_path} disabled={busy || currentUI.pending}/>
+          <RuntimeFields bind:memory={editor.memory_mb} bind:javaPath={editor.java_path} disabled={busy || currentUI.pending || launchDraft.pending || !launchDraft.loaded}/>
         </SettingsGroup>
-        <div class="settings-save"><Button type="submit" tone="accent" disabled={busy || currentUI.pending}>{$t('Save')}</Button></div>
-      </form>
+      </section>
       <LaunchSettings bind:draft={launchDraft} id={current.id} version={current.version} {accounts} busy={busy || currentUI.pending}/>
       <section class="panel settings-form" aria-label={$t('Files and actions')}>
         <h2>{$t('Files and actions')}</h2>
         <div class="settings-input-action">
-          <label>{$t('Instance folder')}<input class="folder-path" aria-label={$t('Instance folder')} readonly value={folderPath} placeholder={folderError || (native?'Loading…':'Desktop app required')}/></label>
+          <label>{$t('Instance folder')}<input class="folder-path" aria-label={$t('Instance folder')} readonly value={folderPath} placeholder={$t(folderError || (native?'Loading…':'Desktop app required'))}/></label>
           <Button type="button" disabled={!native} onclick={()=>onchoose('folder')}><Icon name="folder" size={17}/>{$t('Open folder')}</Button>
         </div>
         <div class="form-actions settings-file-actions">
@@ -217,7 +203,11 @@
         <h2>{$t('Delete instance')}</h2>
         <Button type="button" tone="danger" disabled={busy} onclick={()=>onchoose('delete')}>{$t('Delete')}</Button>
       </section>
-    </div>
+      <div class="form-actions instance-settings-actions">
+        <Button type="submit" tone="accent" disabled={busy || currentUI.pending || launchDraft.pending || !launchDraft.loaded || !dirty}>{$t(launchDraft.pending?'Saving…':'Save')}</Button>
+        <Button disabled={busy || currentUI.pending || launchDraft.pending || !launchDraft.loaded} onclick={onrestore}>{$t('Restore defaults')}</Button>
+      </div>
+    </form>
 
   {:else}
     <Toolbar searchLabel={$t('Search log')} bind:value={logSearch} items={[

@@ -33,6 +33,8 @@
   import SkinFace from './SkinFace.svelte';
   import {isHomeSection} from './home-layout';
   import PageScrollbar from './PageScrollbar.svelte';
+  import {launchDraftValue,launchDraftDirty,readLaunchDraft,setLaunchDraft} from './launch-draft';
+  import {defaultLaunchSettings} from './types';
   import {createLaunchDraft} from './ui-state';
   import type { LaunchDraft, CreationFormState, LibraryView, SettingsFormState, SettingsTab } from './ui-state';
   import { showDialog } from './dialog';
@@ -58,7 +60,7 @@
   let settingsDraft=$state<SettingsFormState>({pending:false,clientId:'',javaPath:'',memory:4096});
   let settingsTab=$state<SettingsTab>('Accounts');
   let settingsBaseline=$state<SettingsValues|null>(null);
-  const decisions=new NavigationDecisions(()=>({destination,settingsTab,settingsDirty,settingsPending:settingsDraft.pending,creationDirty:creationChanged,creationPending:creation.pending}));
+  const decisions=new NavigationDecisions(()=>({destination,settingsTab,settingsDirty,settingsPending:settingsDraft.pending,creationDirty:creationChanged,creationPending:creation.pending,instanceDirty,instancePending:launchDrafts[destination]?.pending,instanceTab:tab}));
   let exitBlocked=$state(false);
   let exitConfirmation=$state<ExitAction|null>(null);
   const settingsValues=$derived<SettingsValues>({memory:settingsDraft.memory,javaPath:settingsDraft.javaPath,locale:$locale,
@@ -100,7 +102,7 @@
     const next=decisions.settings;decisions.settings=null;
     if(!next)return;
     if('exit' in next)await finishExit(next.exit);
-    else if('tab' in next)chooseSettingsTab(next.tab,true);else select(next.page,true);
+    else if('tab' in next)chooseSettingsTab(next.tab,true);else if('instanceTab' in next)await selectTab(next.instanceTab,true);else select(next.page,true);
   }
   $effect(()=>{if(!loading && destination==='profile' && settingsTab==='Settings' && !settingsBaseline)beginSettingsSession();});
   let confirm=$state<{kind:'delete'|'stop';id:string;name:string}|null>(null);
@@ -109,6 +111,23 @@
   const menuInstance=$derived(instanceMenu?instancesById.get(instanceMenu.id):undefined);
   const current=$derived(instancesById.get(destination));
   const tab=$derived(selectedTabs[destination] || 'Overview');
+  const instanceValues=(instance:Instance)=>JSON.stringify([instance.name,instance.version,instance.loader,instance.loader_version,instance.memory_mb,instance.java_path]);
+  const instanceDirty=$derived(!!current && (!!editors[current.id] && instanceValues(editors[current.id])!==instanceValues(current) || launchDraftDirty(launchDrafts[current.id])));
+  function restoreInstance(){
+    if(!current || busy || launchDrafts[current.id]?.pending)return;
+    editors[current.id]={...editors[current.id],memory_mb:config.memory_mb,java_path:config.java_path};
+    setLaunchDraft(launchDrafts[current.id],defaultLaunchSettings());
+  }
+  async function finishInstanceNavigation(save:boolean){
+    if(save && !await saveInstance())return;
+    const next=decisions.instance;if(!next)return;
+    if(!save && current){editors[current.id]={...current};launchDrafts[current.id]=createLaunchDraft();}
+    decisions.instance=null;
+    if('exit' in next)await finishExit(next.exit);
+    else if('instanceTab' in next)await selectTab(next.instanceTab,true);
+    else if('tab' in next)chooseSettingsTab(next.tab,true);
+    else select(next.page,true);
+  }
   let debugLaunch=$state<DebugLaunch>({available:false,enabled:false});
   const account=$derived(debugLaunch.enabled ? {...debugLaunch.account!,name:'ChestDebug (offline debug)'} : config.accounts.find(a=>a.id===config.active_account));
   async function toggleOfflineDebug(){await perform(async()=>{debugLaunch=await api.debugOffline(!debugLaunch.enabled);});}
@@ -330,7 +349,7 @@
     creation.version!==(versions[0]?.id || '') || creation.loader!=='vanilla' || creation.loaderVersion!=='' ||
     creation.parent!=='' || !!creation.pack || !!creation.archive || creation.files.length>0 || creation.catalog.length>0);
   let resourceLink=$state<ResourceLink|null>(null);
-  function openResource(id:string,tab:'Worlds'|'Servers',item:string){select(id);if(destination===id){selectedTabs[id]=tab;resourceLink={id,tab,item,key:Date.now()};}}
+  async function openResource(id:string,tab:'Worlds'|'Servers',item:string){select(id);if(destination===id){await selectTab(tab);if(destination===id && selectedTabs[id]===tab)resourceLink={id,tab,item,key:Date.now()};}}
   function select(id:string,completed=false) {
     if(!decisions.allow({page:id},completed))return;
     if(destination==='profile' && settingsTab==='Settings' && id!=='profile'){
@@ -383,7 +402,8 @@
     await perform(async()=>{await api.toggle(id,file.kind,file.name);contents[id]=await api.content(id);});
   }
   async function acknowledge(id:string){await perform(async()=>{await api.acknowledge(id);delete activities[id];});}
-  async function selectTab(next:Tab) {
+  async function selectTab(next:Tab,completed=false) {
+    if(!decisions.allow({instanceTab:next},completed))return;
     const id=destination;
     selectedTabs[id]=next;
     if(next==='Content')await refreshContent(id);
@@ -405,7 +425,27 @@
     }
   });}
   async function doubleClick(instance:Instance){if(get(doubleClickLaunch) && !ui(instance).busy)await action(instance);}
-  async function saveInstance(){if(!current || busy || currentUI?.pending)return;const id=current.id;await perform(async()=>{config=await api.save({...editors[id]});editors[id]={...config.instances.find(i=>i.id===id)!};notice='Instance saved.';});}
+  async function saveInstance(){
+    if(!current || busy || currentUI?.pending)return false;
+    const id=current.id,state=launchDrafts[id];
+    if(state?.pending || (tab==='Settings' && !state?.loaded))return false;
+    if(state)state.pending=true;
+    let saved=false;
+    await perform(async()=>{
+      const instance={...editors[id]};
+      if(!instance.name.trim() || instance.name.length>120)throw new Error('Name is required.');
+      if(!Number.isInteger(instance.memory_mb) || instance.memory_mb<512 || instance.memory_mb>65536)throw new Error('Memory must be between 512 and 65536 MB');
+      const settings=state?.loaded?readLaunchDraft(state):undefined;
+      if(settings && (!Number.isInteger(settings.width) || settings.width<320 || settings.width>16384 || !Number.isInteger(settings.height) || settings.height<240 || settings.height>16384))throw new Error('Window size must be between 320 × 240 and 16384 × 16384');
+      config=await api.save(instance,settings);
+      editors[id]={...config.instances.find(i=>i.id===id)!};
+      if(state && settings){setLaunchDraft(state,settings);state.baseline=launchDraftValue(state);}
+      notice='Instance saved.';saved=true;
+    });
+    if(state)state.pending=false;
+    return saved;
+  }
+
   async function confirmAction(){if(!confirm)return;const choice=confirm;confirm=null;await perform(async()=>{
     if(choice.kind==='stop')await api.stop(choice.id);
     else {config=await api.remove(choice.id);delete activities[choice.id];delete selectedTabs[choice.id];delete editors[choice.id];delete launchDrafts[choice.id];delete logs[choice.id];delete contents[choice.id];select('home');}
@@ -414,7 +454,7 @@
   function cancelDialog(event:Event){event.preventDefault();if(signingIn)void perform(()=>api.cancelSignIn());else confirm=null;}
   async function handleIntent(){if(!native)return;await perform(async()=>{const intent=await api.takeIntent();if(!intent)return;const instance=config.instances.find(i=>i.id===intent.id);if(!instance)return;select(instance.id);if(destination===instance.id && intent.launch && instance.installed && !ui(instance).busy)await action(instance);});}
   async function finishExit(action:ExitAction,confirmed=false){
-    if(busy || Object.values(activities).some(activity=>activity.status==='working') || signingIn || settingsDraft.pending || creation.pending || ['downloading','installing'].includes($appUpdate.phase)){
+    if(busy || Object.values(activities).some(activity=>activity.status==='working') || signingIn || settingsDraft.pending || creation.pending || Object.values(launchDrafts).some(draft=>draft.pending) || ['downloading','installing'].includes($appUpdate.phase)){
       exitBlocked=true;return;
     }
     if(!confirmed && action!=='restart' && Object.values(activities).some(activity=>['running','starting','installing','paused','pausing'].includes(activity.status))){
@@ -556,12 +596,12 @@
       {:catch}<p role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
     {:else if current}
       {#await loadInstancePage()}<p role="status">{$t("Loading…")}</p>{:then {default:InstancePage}}
-      <InstancePage resourceLink={resourceLink?.id===current.id?resourceLink:null} bookmarks={config.server_bookmarks} onconfig={value=>config=value} instances={config.instances} {isBusy} bind:launchDraft={launchDrafts[current.id]} accounts={config.accounts} {current} bind:editor={editors[current.id]} {active} {tab} {account}
+      <InstancePage resourceLink={resourceLink?.id===current.id?resourceLink:null} bookmarks={config.server_bookmarks} onconfig={value=>config=value} instances={config.instances} {isBusy} bind:launchDraft={launchDrafts[current.id]} accounts={config.accounts} {current} bind:editor={editors[current.id]} {active} {tab} dirty={instanceDirty} onrestore={restoreInstance}
         source={instanceIcons[current.id]} {versions} content={contents[current.id]} output={logs[current.id]}
         onchoose={choice=>instanceAction(current!,choice)} onselectTab={selectTab}
         onbrowse={kind=>browseContent(current!.id,kind)} onsave={saveInstance}
         onacknowledge={()=>acknowledge(current!.id)} ontoggle={file=>toggleContent(current!,file)}
-        onrefresh={()=>refreshLogs(current!.id)} onrefreshContent={()=>refreshContent(current!.id)} onprofile={()=>select('profile')}/>
+        onrefresh={()=>refreshLogs(current!.id)} onrefreshContent={()=>refreshContent(current!.id)}/>
       {:catch}<p role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
     {:else if destination==='profile'}
       {#await loadSettingsPage()}<p role="status">{$t("Loading…")}</p>{:then {default:SettingsPage}}
@@ -607,6 +647,10 @@
       creation={pending:false,method:'Custom',name:'',version:versions[0]?.id || '',loader:'vanilla',loaderVersion:'',parent:'',pack:null,archive:null,files:[],catalog:[]};
       if('page' in next)select(next.page,true);else void finishExit(next.exit);
     }}/>
+{/if}
+{#if decisions.instance}
+  <UnsavedChangesDialog title="Save settings changes?" {error} pending={launchDrafts[destination]?.pending || false} lockCancel
+    oncancel={()=>decisions.instance=null} ondiscard={()=>finishInstanceNavigation(false)} onsave={()=>finishInstanceNavigation(true)}/>
 {/if}
 {#if decisions.settings}
   <UnsavedChangesDialog title="Save settings changes?" {error} pending={settingsDraft.pending} lockCancel

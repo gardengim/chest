@@ -99,6 +99,25 @@ pub(crate) async fn hook(arguments: &[String], game: &Path, environment: &BTreeM
 mod tests {
     use super::*;
     #[test]
+    fn combined_instance_settings_save_is_atomic_and_preserves_installation() {
+        let directory = tempfile::tempdir().unwrap();
+        let core = Core::new(directory.path().into(), |_|{}, |_|{}).unwrap();
+        let mut instance = core.store.create("Original".into(), "26.3".into(), "grass".into()).unwrap();
+        core.store.installed(&instance.id).unwrap();
+        instance.name = "Updated".into();
+        let settings = LaunchSettings { width: 1280, ..Default::default() };
+        core.save_instance_settings(instance.clone(), Some(settings)).unwrap();
+        assert!(core.store.instance(&instance.id).unwrap().installed);
+        instance.name = "Must not persist".into();
+        let invalid = LaunchSettings { width: 0, ..Default::default() };
+        assert!(core.save_instance_settings(instance.clone(), Some(invalid)).is_err());
+        assert_eq!(core.store.instance(&instance.id).unwrap().name, "Updated");
+        assert_eq!(core.launch_settings(&instance.id).unwrap().width, 1280);
+        let reopened = Core::new(directory.path().into(), |_|{}, |_|{}).unwrap();
+        assert_eq!(reopened.store.instance(&instance.id).unwrap().name, "Updated");
+        assert_eq!(reopened.launch_settings(&instance.id).unwrap().width, 1280);
+    }
+    #[test]
     fn defaults_and_validation() {
         let config=Config::default();
         let mut options:LaunchSettings=serde_json::from_str("{}").unwrap();

@@ -32,7 +32,7 @@ test('development offline mode enables launch without sign-in and leaves real ac
   await page.getByRole('button',{name:'Enable',exact:true}).click();
   await expect(page.getByText('Enabled for this session.')).toBeVisible();
   await page.getByRole('button',{name:'Debug world: Ready to play',exact:true}).click();
-  await expect(page.getByText('ChestDebug (offline debug)',{exact:true})).toBeVisible();
+  await expect(page.locator('.details')).not.toContainText('Account');
   await expect(page.getByRole('button',{name:'Sign in'})).toHaveCount(0);
   await page.locator('.install-button').click();
   expect(await page.evaluate(()=>(window as any).__launches)).toEqual(['world']);
@@ -40,7 +40,7 @@ test('development offline mode enables launch without sign-in and leaves real ac
   await page.getByRole('button',{name:'Settings'}).click();
   await page.getByRole('button',{name:'Disable',exact:true}).click();
   await page.getByRole('button',{name:'Debug world: Ready to play',exact:true}).click();
-  await expect(page.getByText('Not signed in',{exact:true})).toBeVisible();
+  await expect(page.locator('.details')).not.toContainText('Account');
   await page.locator('.install-button').click();
   await expect(page.getByRole('alert')).toContainText('Sign in before playing');
 });

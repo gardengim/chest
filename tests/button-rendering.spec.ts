@@ -18,7 +18,7 @@ test('layout glyphs keep their intended size on Home and inside content tabs',as
     }
   }
   await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
   const control=page.getByRole('radiogroup',{name:'Content view',exact:true});
   await expect(control.locator('svg').first()).toHaveCSS('width','24px');
   await expect(page.locator('.content-tabs')).toHaveCSS('filter','none');
@@ -85,7 +85,7 @@ test('hover and press preserve glyph pixels and the content panel shadow',async(
   await check(page.getByRole('radiogroup',{name:'Library layout',exact:true}).getByRole('radio',{name:'List',exact:true}).locator('..'),'home-switch');
   await check(page.getByRole('radiogroup',{name:'Project layout',exact:true}).getByRole('radio',{name:'List',exact:true}).locator('..'),'explore-switch');
   await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
   const panel=page.locator('.collection-panel');
   const shadow=await panel.evaluate(node=>getComputedStyle(node).boxShadow);
   await check(page.getByRole('radiogroup',{name:'Content view',exact:true}).getByRole('radio',{name:'Gallery',exact:true}).locator('..'),'content-switch');

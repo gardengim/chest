@@ -10,7 +10,7 @@ test('empty sidebar puts + after Chest, creation draft survives cancelled naviga
   await expect(page.getByLabel('Instance name')).toHaveValue('Draft world');
 });
 test('switching sidebar instances resets the active tab to Overview',async({page})=>{
-  await create(page,'Survival');await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await create(page,'Survival');await page.getByRole('tab',{name:'Contents',exact:true}).click();
   await create(page,'Creative');await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveAttribute('aria-selected','true');
   await page.getByRole('button',{name:/Survival: Not installed/}).click();await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveAttribute('aria-selected','true');
   await page.reload();await page.getByRole('button',{name:/Survival: Not installed/}).click();await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveAttribute('aria-selected','true');
@@ -18,7 +18,7 @@ test('switching sidebar instances resets the active tab to Overview',async({page
 });
 test('preview refuses actual installation, settings persist, delete requires confirmation',async({page})=>{
   await create(page,'Test world');await page.getByRole('button',{name:'Install',exact:true}).click();await expect(page.getByRole('alert')).toContainText('desktop app');
-  await page.getByRole('tab',{name:'Settings',exact:true}).click();await page.getByLabel('Memory (MB)').fill('8192');await page.locator('.instance-settings').getByRole('button',{name:'Save',exact:true}).click();
+  await page.getByRole('tab',{name:'Settings',exact:true}).click();await page.getByLabel('Memory (MB)').fill('8192');await page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   await page.reload();await page.getByRole('button',{name:/Test world: Not installed/}).click();await expect(page.getByText('8 GB',{exact:true})).toBeVisible();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();await page.getByRole('button',{name:'Delete',exact:true}).click();
   await expect(page.getByRole('dialog')).toBeVisible();await page.getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.getByRole('heading',{name:'Test world',exact:true})).toBeVisible();
@@ -38,8 +38,8 @@ test('instance tabs share creation keyboard navigation and panel relationships',
   await create(page,'Keyboard world');
   const overview=page.getByRole('tab',{name:'Overview',exact:true});
   await overview.focus();await overview.press('ArrowRight');
-  await expect(page.getByRole('tab',{name:'Content',exact:true})).toBeFocused();
-  await expect(page.getByRole('tabpanel',{name:'Content',exact:true})).toHaveAttribute('aria-labelledby','instance-tab-Content');
+  await expect(page.getByRole('tab',{name:'Contents',exact:true})).toBeFocused();
+  await expect(page.getByRole('tabpanel',{name:'Contents',exact:true})).toHaveAttribute('aria-labelledby','instance-tab-Content');
   await page.keyboard.press('End');
   await expect(page.getByRole('tab',{name:'Log',exact:true})).toBeFocused();
   await expect(page.getByRole('tabpanel')).toContainText('No output');
@@ -67,14 +67,14 @@ test('late content responses stay with their original instance after navigation'
   });
   await page.goto('/');
   await page.getByRole('button',{name:'First: Ready to play',exact:true}).click();
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
   await page.getByRole('button',{name:'Second: Ready to play',exact:true}).click();
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
   await expect(page.locator('.content-collection')).toContainText('second.jar');
   await page.evaluate(()=>(window as any).__resolveContent([{name:'first.jar',kind:'mods',enabled:true}]));
   await expect(page.locator('.content-collection')).toContainText('second.jar');
   await page.getByRole('button',{name:'First: Ready to play',exact:true}).click();
-  await page.getByRole('tab',{name:'Content',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
   await expect(page.locator('.content-collection')).toContainText('first.jar');
 });
 

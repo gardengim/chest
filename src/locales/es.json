@@ -560,5 +560,10 @@
   "Close Chest?": "¿Cerrar Chest?",
   "Installations will stop. Running games will remain open.": "Las instalaciones se detendrán. Los juegos en ejecución permanecerán abiertos.",
   "Deleting…": "Eliminando…",
-  "Deletion failed. Some files may have been removed. Retry deletion.": "No se pudo eliminar la instancia. Puede que algunos archivos ya se hayan eliminado. Vuelve a intentarlo."
+  "Deletion failed. Some files may have been removed. Retry deletion.": "No se pudo eliminar la instancia. Puede que algunos archivos ya se hayan eliminado. Vuelve a intentarlo.",
+  "Contents": "Contenidos",
+  "Name is required.": "El nombre es obligatorio.",
+  "Window size must be between 320 × 240 and 16384 × 16384": "El tamaño de ventana debe estar entre 320 × 240 y 16384 × 16384.",
+  "Collapse": "Contraer",
+  "Use unique environment variable names.": "Usa nombres únicos para las variables de entorno."
 }

@@ -74,13 +74,13 @@
 .collection-toolbar{min-width:0;max-width:100%;container-type:inline-size;margin-bottom:1.28571429rem}
 .toolbar-scale{position:absolute;width:1rem;height:1rem;visibility:hidden;pointer-events:none}
 .toolbar-row{display:flex;align-items:center;justify-content:flex-end;gap:.85714286rem;flex-wrap:wrap;min-width:0}
-.toolbar-trailing{order:6;flex:0 0 auto;min-width:0;max-width:100%;margin-left:auto}
+.toolbar-trailing{order:6;flex:0 0 auto;min-width:0;max-width:100%;margin-inline-start:auto}
 .toolbar-title{order:0;flex:1 1 auto;min-width:0}.toolbar-title :global(h2){display:inline-flex;align-items:center;gap:.71428571rem;margin:0;font-size:1.42857143rem;flex-wrap:wrap}
 .toolbar-search{order:2;flex:1 1 12rem;max-width:24rem;min-width:0}.toolbar-row:not(.has-heading) .toolbar-search{max-width:none}
 .toolbar-primary{order:1}.toolbar-item:not(.toolbar-primary){order:3}.toolbar-item{flex:0 1 auto;min-width:0;max-width:100%}.toolbar-filters{order:3;flex:0 1 14rem;min-width:0;max-width:100%}.toolbar-filters :global(label){margin:0;min-width:0}
-.toolbar-status{order:2;margin-right:auto;color:var(--navigation-text);font-size:.85714286rem;min-width:0}
+.toolbar-status{order:2;margin-inline-end:auto;color:var(--navigation-text);font-size:.85714286rem;min-width:0}
 .toolbar-more{order:4;flex:none}.toolbar-navigation{order:5;flex:0 0 auto;max-width:100%}
 .toolbar-overflow{max-width:calc(100vw - 1rem);max-height:calc(100dvh - 1rem);padding:.71428571rem}
 .toolbar-overflow:popover-open{display:grid;gap:.71428571rem}.overflow-item{min-width:0}.overflow-item :global(.ui-button){width:100%}
-@container(max-width:40rem){.toolbar-title{order:-2;flex-basis:100%}.toolbar-title :global(h2){max-width:100%}.toolbar-search{max-width:none;flex-basis:8rem}.toolbar-row{justify-content:flex-start}.toolbar-navigation{margin-left:auto}}
+@container(max-width:40rem){.toolbar-title{order:-2;flex-basis:100%}.toolbar-title :global(h2){max-width:100%}.toolbar-search{max-width:none;flex-basis:8rem}.toolbar-row{justify-content:flex-start}.toolbar-navigation{margin-inline-start:auto}}
 </style>

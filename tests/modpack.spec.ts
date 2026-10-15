@@ -71,7 +71,7 @@ test('modpacks queue immediately, allow navigation, and report background progre
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByRole('button',{name:'Duplicate',exact:true})).toBeDisabled();
   await expect(page.getByRole('button',{name:'Export',exact:true})).toBeDisabled();
-  await expect(page.locator('.instance-settings').getByRole('button',{name:'Save',exact:true})).toBeDisabled();
+  await expect(page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true})).toBeDisabled();
   await expect(page.getByRole('button',{name:'Delete',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'My pack: Pack verification failed'}).click({button:'right'});
   await expect(page.getByRole('menuitem',{name:'Duplicate',exact:true})).toBeDisabled();

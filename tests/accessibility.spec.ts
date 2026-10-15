@@ -12,7 +12,7 @@ test('core pages and creation discard dialog meet automated accessibility rules'
   await page.getByLabel('Instance name').fill('Accessible world');
   await page.getByRole('button',{name:'Chest home'}).click();await expect(page.getByRole('dialog')).toBeVisible();await audit(page);
   await page.getByRole('button',{name:'Cancel',exact:true}).click();await finishCreation(page);
-  for(const name of ['Overview','Content','Versions','Settings','Log']){
+  for(const name of ['Overview','Contents','Versions','Settings','Log']){
     await page.getByRole('tab',{name,exact:true}).click();await audit(page);
   }
   await page.getByRole('button',{name:'Settings'}).click();await audit(page);

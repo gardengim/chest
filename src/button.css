@@ -73,7 +73,7 @@
     --button-text:inherit;
     --button-shadow:none;
     border:0;
-    padding:0.57142857rem 0;
+    padding:0.57142857rem 0.42857143rem;
   }
   :where(.ui-button[data-shape='plain'][data-tone='danger']) { --button-text:var(--negative-text); }
   :where(.ui-button[data-shape='card']) {
@@ -86,7 +86,7 @@
     display:block;
     min-height:0;
     padding:0;
-    text-align:left;
+    text-align:start;
     overflow:hidden;
   }
   /* Segments share button visuals. Unselected segments retain
@@ -151,7 +151,7 @@
     width:calc(100% - var(--rail-inset) + var(--stroke));
     height:4rem;
     min-height:4rem;
-    margin-left:var(--rail-inset);
+    margin-inline-start:var(--rail-inset);
     padding:0.57142857rem;
     flex:none;
     background:transparent;
@@ -188,7 +188,7 @@
     z-index:1;
   }
   :where(.ui-button[data-shape='rail'][data-selected])::before,
-  :where(.ui-button[data-shape='rail'][data-selected])::after { right:calc(-1 * var(--stroke)); }
+  :where(.ui-button[data-shape='rail'][data-selected])::after { inset-inline-end:calc(-1 * var(--stroke)); }
   :where(.ui-button[data-shape='rail'][data-selected])::after { background-image:linear-gradient(90deg, var(--rail-join-start,var(--theme-surface)), var(--rail-selected,var(--theme-page)) 85%); }
 
   /* Tabs share feedback but stay connected to the inventory panel. */
@@ -243,3 +243,5 @@
   @media (max-width:61.25em) { :where(.ui-button[data-shape='tab']) { padding-inline:0.64285714rem; } }
   @media (max-width:46.875em) { :where(.ui-button[data-shape='tab']) { padding-inline:0.57142857rem; } }
   @media (prefers-reduced-motion:reduce) { :where(.ui-button), :where(.ui-button)::after { transition:none; } }
+
+:root[dir="rtl"] .ui-button[data-shape='rail'][data-selected]::after{background-image:linear-gradient(270deg,var(--rail-join-start,var(--theme-surface)),var(--rail-selected,var(--theme-page)) 85%)}

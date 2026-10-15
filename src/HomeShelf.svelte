@@ -13,7 +13,7 @@
   let width=$state(0),left=$state(0),total=$state(0);
   const scrollable=$derived(total>width+1);
   const showNavigation=$derived(!full && !!onviewall && (scrollable || moreContent));
-  function scroll(direction:number){body?.scrollBy({left:direction*width*.85,behavior:$presentation.motion?'smooth':'instant'});}
+  function scroll(direction:number){body?.scrollBy({left:direction*(body && getComputedStyle(body).direction==='rtl'?-1:1)*width*.85,behavior:$presentation.motion?'smooth':'instant'});}
 </script>
 <div class="home-shelf" class:full>
   {#if tools}{@render tools(heading,showNavigation?navigation:undefined)}{:else}<Toolbar {heading} navigation={showNavigation?navigation:undefined}/>{/if}

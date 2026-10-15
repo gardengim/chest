@@ -25,7 +25,7 @@
   let {onviewall,mode,config,isBusy,onconfig,onopen,icons={},embedded=false,gallery=false}:{onviewall?:()=>void;icons?:Record<string,string>;embedded?:boolean;gallery?:boolean;mode:'worlds'|'servers';config:Config;isBusy:(id:string)=>boolean;onconfig:(config:Config)=>void;onopen:(id:string,item:string)=>void}=$props();
   let library=$state<WorldLibrary>({worlds:[],unavailable:[]}),loading=$state(false),search=$state(''),error=$state(''),notice=$state(''),pending=$state(false);
   let serverLibrary=$state<import('./types').ServerLibrary>({servers:[],unavailable:[]}),layout=$state<'gallery'|'list'>('gallery');
-  const cardLayout=$derived(gallery?'gallery':mode==='servers'?layout:'list');
+  const cardLayout=$derived(layout);
   let edit=$state<ServerBookmark|null>(null),adding=$state<ServerBookmark|null>(null),removing=$state<ServerBookmark|null>(null),target=$state('');
   const worlds=$derived(library.worlds.filter(world=>`${world.name} ${config.instances.find(i=>i.id===world.instance_id)?.name || ''}`.toLowerCase().includes(search.trim().toLowerCase())));
   const servers=$derived(mergeServers(config.server_bookmarks || [],serverLibrary.servers).filter(server=>`${server.name} ${server.address}`.toLowerCase().includes(search.trim().toLowerCase())));
@@ -51,7 +51,7 @@
 </script>
 {#if !embedded}<h1>{$t(mode==='worlds'?'Worlds':'Servers')}</h1>{/if}
 <HomeShelf section={mode} full={!gallery} {onviewall}>
-  {#snippet tools(heading,navigation)}<Toolbar {heading} {navigation} trailing={mode==='servers' && !gallery?layoutButton:undefined} searchLabel={$t(mode==='worlds'?'Search worlds':'Search servers')} bind:value={search} items={[
+  {#snippet tools(heading,navigation)}<Toolbar {heading} {navigation} trailing={layoutButton} searchLabel={$t(mode==='worlds'?'Search worlds':'Search servers')} bind:value={search} items={[
     ...(mode==='servers'?[{id:'add',label:$t('Add'),priority:100,content:addButton}]:[]),
     {id:'refresh',label:$t('Refresh'),priority:0,content:refreshButton}
   ]}/>{/snippet}
@@ -77,7 +77,7 @@
 </HomeShelf>
 {#snippet addButton()}<AddButton disabled={pending} onclick={()=>{error='';edit={id:'',name:'',address:'',instance_id:null,expected_version:'',expected_loader:null};}}/>{/snippet}
 {#snippet refreshButton()}<Button disabled={loading} onclick={refresh}>{$t('Refresh')}</Button>{/snippet}
-{#snippet layoutButton()}<LayoutSwitch label={$t('Servers layout')} bind:value={layout}/>{/snippet}
+{#snippet layoutButton()}<LayoutSwitch label={$t(mode==='worlds'?'Worlds layout':'Servers layout')} bind:value={layout}/>{/snippet}
 {#if choosing}<InstanceChooser instances={config.instances.filter(instance=>choosing!.instance_ids.includes(instance.id))} {icons} onchoose={id=>{const server=choosing!;choosing=null;onopen(id,serverAddressKey(server.address));}} onclose={()=>choosing=null}/>{/if}
 {#if menu}<ContextMenu title={menu.server.name} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
   {#if menu.server.instance_ids.length}<Button shape="plain" role="menuitem" onclick={()=>action(server=>open(server))}>{$t('Open instance')}</Button>{/if}

@@ -5,7 +5,7 @@ test('creation stays on one page, retains drafts, defaults blank names, and alig
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Game and mod loader'})).toBeVisible();
   await expect(page.getByLabel('Instance name',{exact:true})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Content',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Contents',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'Next',exact:true})).toHaveCount(0);
   await page.getByLabel('Minecraft version',{exact:true}).selectOption('1.21.4');
   await page.getByLabel('Mod loader',{exact:true}).selectOption('fabric');
@@ -39,7 +39,7 @@ test('home Explore hands a pack to creation and does not install immediately',as
   await expect(page.getByRole('heading',{name:'Fabulously Optimized',exact:true})).toBeVisible();
   await expect(page.locator('.selected-pack > .artwork')).toHaveCount(0);
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1') || '{"instances":[]}').instances.length)).toBe(0);
-  await expect(page.getByRole('heading',{name:'Content',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Contents',exact:true})).toBeVisible();
 });
 
 test('import, local files and catalog releases share one final submission',async({page})=>{
@@ -113,7 +113,7 @@ test('discard confirmation resets creation and cancels navigation on Escape',asy
 
 test('Vanilla hides loader mods and creation sections follow content then details',async({page})=>{
   await page.goto('/');await page.getByRole('button',{name:'Create instance',exact:true}).click();
-  const content=await page.getByRole('heading',{name:'Content',exact:true}).boundingBox();
+  const content=await page.getByRole('heading',{name:'Contents',exact:true}).boundingBox();
   const details=await page.getByRole('heading',{name:'Instance details',exact:true}).boundingBox();
   expect(details!.y).toBeGreaterThan(content!.y);
   await page.getByRole('button',{name:'Add',exact:true}).click();

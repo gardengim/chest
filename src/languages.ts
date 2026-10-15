@@ -1,4 +1,4 @@
-export const languages={en:'English',ko:'한국어',es:'Español',ja:'日本語','zh-Hans':'简体中文','zh-Hant':'繁體中文'} as const;
+export const languages={ar:'العربية',en:'English',ko:'한국어',es:'Español',ja:'日本語','zh-Hans':'简体中文','zh-Hant':'繁體中文'} as const;
 export type Locale=keyof typeof languages;
 export const isLocale=(value:unknown):value is Locale=>typeof value==='string' && Object.hasOwn(languages,value);
 export function resolveLocale(language:string):Locale|undefined {
@@ -14,3 +14,5 @@ export function detectLocale(preferences:readonly string[]):Locale {
   for(const preference of preferences){const locale=resolveLocale(preference);if(locale)return locale;}
   return 'en';
 }
+
+export const localeDirection=(locale:Locale)=>locale==='ar'?'rtl':'ltr';

@@ -28,21 +28,21 @@ test('per-instance account, window, log and command settings persist independent
   expect(await page.locator('.danger-zone').evaluate(node=>!!(document.querySelector('.launch-settings')!.compareDocumentPosition(node)&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
   await form.getByLabel('Account',{exact:true}).selectOption('two');
   await form.getByLabel('Window width',{exact:true}).fill('1280');
-  await page.getByRole('button',{name:'Chest home',exact:true}).click();await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();await expect(form.getByLabel('Window width',{exact:true})).toHaveValue('1280');
+  await page.getByRole('button',{name:'Chest home',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click();await expect(form.getByLabel('Window width',{exact:true})).toHaveValue('1280');
   await form.getByLabel('Window height',{exact:true}).fill('720');
   await form.getByLabel('Fullscreen',{exact:true}).check();await form.getByLabel('Open log on launch',{exact:true}).check();
   await form.getByText('Advanced',{exact:true}).click();
   await form.getByLabel('Java arguments',{exact:true}).fill('-Dexample=with spaces\n-XX:+UseG1GC');
   await form.getByLabel('Environment variables',{exact:true}).fill('EXAMPLE=one=two');
   await form.getByLabel('Before launch',{exact:true}).fill('/path with spaces/tool\nargument with spaces');
-  await form.getByRole('button',{name:'Save',exact:true}).click();await expect(form.getByRole('status')).toHaveText('Saved');
+  await page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true}).click();await expect(page.locator('.notification[role="status"]')).toContainText('Instance saved.');
   const config=await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1')!));
   expect(config.active_account).toBe('one');expect(config.launch_settings.world).toMatchObject({width:1280,height:720,fullscreen:true,account_id:'two',java_args:['-Dexample=with spaces','-XX:+UseG1GC'],environment:{EXAMPLE:'one=two'},before_launch:['/path with spaces/tool','argument with spaces'],open_log:true});
-  await page.getByRole('tab',{name:'Overview',exact:true}).click();await expect(page.locator('.details')).toContainText('Second player');
+  await page.getByRole('tab',{name:'Overview',exact:true}).click();await expect(page.locator('.details')).not.toContainText('Account');
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(form.getByLabel('Window width',{exact:true})).toHaveValue('1280');
   await form.getByText('Advanced',{exact:true}).click();await form.getByLabel('Environment variables',{exact:true}).fill('INVALID');
-  await form.getByRole('button',{name:'Save',exact:true}).click();await expect(form.getByRole('alert')).toContainText('NAME=value');
+  await page.locator('.instance-settings-actions').getByRole('button',{name:'Save',exact:true}).click();await expect(page.locator('.notification[role="alert"]')).toContainText('NAME=value');
 });
 
 test('local files expose conditional tabs and content types remain separate in list and gallery',async({page},testInfo)=>{
@@ -78,7 +78,7 @@ test('local files expose conditional tabs and content types remain separate in l
   await preview.getByRole('button',{name:'Open',exact:true}).click();
   expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='open_instance_file').args)).toEqual({id:'world',kind:'screenshots',name:'2026-10-11.png'});
   await page.keyboard.press('Escape');await expect(preview).toHaveCount(0);
-  await page.getByRole('tab',{name:'Content',exact:true}).click();await expect(page.locator('.content-entry')).toHaveCount(1);await expect(page.locator('.content-entry')).toContainText('example.jar');
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();await expect(page.locator('.content-entry')).toHaveCount(1);await expect(page.locator('.content-entry')).toContainText('example.jar');
   await expect(page.locator('.content-entry').getByRole('button',{name:'Disable',exact:true})).toBeVisible();
   await page.getByLabel('Search content',{exact:true}).fill('EXAMPLE');
   await expect(page.locator('.content-entry')).toHaveCount(1);

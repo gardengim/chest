@@ -122,7 +122,7 @@
 
 </script>
 <svelte:window onresize={()=>end(undefined,true)} onpointermove={move} onpointerup={event=>end(event)} onpointercancel={event=>end(event,true)} onpointerdown={event=>{suppressClick=false;if(expanded && event.target instanceof Node && !root?.contains(event.target))expanded=false;}} onkeydown={event=>{if(event.key==='Escape'){if(menu){menu=null;focusDock();}else if(drag)end(undefined,true);else if(expanded){expanded=false;focusDock();}}}}/>
-<div class="home-dock-position" data-position={$homeDockPosition} class:vertical>
+<div dir="ltr" class="home-dock-position" data-position={$homeDockPosition} class:vertical>
   <div class="home-dock-anchor"
     style:position={drag && showTargets?'fixed':undefined}
     style:width={drag && showTargets?'max-content':undefined}
@@ -143,7 +143,7 @@
           {@render items(shownHidden,false)}
         </div>
       </div>
-      {#if hidden.length}<Button shape="dock" class="dock-label" data-home-more data-home-drop="hidden" aria-label={$t(expanded?'Collapse':'More')} aria-expanded={expanded} aria-controls="home-hidden-tools" onclick={()=>{if(suppressClick){suppressClick=false;return;}expanded=!expanded;}}><span class="dock-toggle" aria-hidden="true">{#if !expanded && !sections.length}⋯{:else}<DirectionIcon direction={toggleDirection}/>{/if}</span></Button>{/if}
+      {#if hidden.length}<Button shape="dock" class="dock-label" data-home-more data-home-drop="hidden" aria-label={$t(expanded?'Collapse':'More')} aria-expanded={expanded} aria-controls="home-hidden-tools" onclick={()=>{if(suppressClick){suppressClick=false;return;}expanded=!expanded;}}><span class="dock-toggle" aria-hidden="true">{#if !expanded && !sections.length}⋯{:else}<DirectionIcon logical={false} direction={toggleDirection}/>{/if}</span></Button>{/if}
     </nav>
   </div>
 </div>
@@ -153,7 +153,7 @@
 {#snippet items(order:HomeSection[],visible:boolean)}
   {#each order as section (section)}
     <div class="dock-item" animate:flip={{duration:$presentation.motion?160:0}} class:dragging={drag?.started && drag.section===section}>
-      <Button shape="dock" class="dock-label" selected={active===section} aria-current={active===section?(visible?'location':'page'):undefined} data-section={section} aria-label={label(section)} aria-keyshortcuts={visible?'Alt+ArrowLeft Alt+ArrowRight Alt+ArrowDown':'Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp'} onpointerdown={event=>begin(event,section)} onkeydown={event=>keys(event,section,visible)} onclick={()=>choose(section,visible)}><span class="dock-text">{label(section)}</span></Button>
+      <Button shape="dock" class="dock-label" selected={active===section} aria-current={active===section?(visible?'location':'page'):undefined} data-section={section} aria-label={label(section)} aria-keyshortcuts={visible?'Alt+ArrowLeft Alt+ArrowRight Alt+ArrowDown':'Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp'} onpointerdown={event=>begin(event,section)} onkeydown={event=>keys(event,section,visible)} onclick={()=>choose(section,visible)}><span dir="auto" class="dock-text">{label(section)}</span></Button>
     </div>
   {/each}
 {/snippet}
@@ -197,4 +197,5 @@
   .vertical .empty-visible,.vertical .hide-target{width:100%;min-height:2.85714286rem;align-self:stretch}
   .vertical .hide-target{margin-right:0;margin-bottom:calc(2 * var(--pixel))}
   @media(prefers-reduced-motion:reduce){.dock-reveal{transition:none}}
+  :global(:root[dir="rtl"]) .home-dock-position{left:.85714286rem;right:calc(var(--rail-width) + .85714286rem)}
 </style>

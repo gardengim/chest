@@ -350,8 +350,8 @@ fn reorder_instances(core: App<'_>, ids: Vec<String>) -> Result<Config, String> 
     core.store.reorder(&ids).map_err(err)
 }
 #[tauri::command]
-fn save_instance(core: App<'_>, instance: Instance) -> Result<Config, String> {
-    core.save_instance(instance).map_err(err)
+fn save_instance(core: App<'_>, instance: Instance, settings: Option<chest_core::launch_settings::LaunchSettings>) -> Result<Config, String> {
+    core.save_instance_settings(instance, settings).map_err(err)
 }
 #[tauri::command]
 async fn install_instance(core: App<'_>, id: String) -> Result<(), String> {

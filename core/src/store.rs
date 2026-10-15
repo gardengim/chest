@@ -252,8 +252,15 @@ impl Store {
         Ok(instance)
     }
     pub fn save(&self, instance: Instance) -> Result<Config> {
+        self.save_with_launch(instance, None)
+    }
+    pub fn save_with_launch(&self, instance: Instance, settings: Option<crate::launch_settings::LaunchSettings>) -> Result<Config> {
         validate(&instance)?;
         self.change(|c| {
+            if let Some(settings) = &settings {
+                settings.graphics_arguments(&instance.version)?;
+                settings.validate(c)?;
+            }
             let old = c
                 .instances
                 .iter_mut()
@@ -270,6 +277,7 @@ impl Store {
             old.installed = installed;
             old.playtime_seconds = playtime;
             old.storage_parent = storage_parent;
+            if let Some(settings) = settings { c.launch_settings.insert(old.id.clone(), settings); }
             Ok(())
         })
     }

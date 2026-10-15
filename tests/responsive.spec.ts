@@ -40,7 +40,7 @@ for(const [width,height,scale] of [[320,640,1],[600,480,1],[1150,800,1],[1920,10
     await fits(page,'Home');
     for(const name of ['Worlds','Servers','Screenshots','Explore','News']){await openHomeTool(page,name);await fits(page,`Home ${name}`);}
     await page.getByRole('button',{name:'Adventure with a very long instance name: Ready to play',exact:true}).click();
-    for(const name of ['Overview','Content','Versions','Worlds','Servers','Screenshots','Settings','Log']){
+    for(const name of ['Overview','Contents','Versions','Worlds','Servers','Screenshots','Settings','Log']){
       await page.getByRole('tab',{name,exact:true}).click();await fits(page,`Instance ${name}`);
       if(name==='Screenshots'){
         await page.locator('.screenshot-tile').first().click();await fits(page,'Screenshot preview');await page.keyboard.press('Escape');
