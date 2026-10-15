@@ -558,5 +558,7 @@
   "Clear image cache?": "清除图片缓存？",
   "Wait for file operations to finish before closing Chest.": "请等待文件操作完成后再关闭 Chest。",
   "Close Chest?": "关闭 Chest？",
-  "Installations will stop. Running games will remain open.": "安装将停止，正在运行的游戏将保持运行。"
+  "Installations will stop. Running games will remain open.": "安装将停止，正在运行的游戏将保持运行。",
+  "Deleting…": "正在删除…",
+  "Deletion failed. Some files may have been removed. Retry deletion.": "删除失败。部分文件可能已被删除。请重试删除。"
 }

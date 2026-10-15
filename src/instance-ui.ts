@@ -9,7 +9,7 @@ export function instanceStatus(instance: Instance, activity?: Activity) {
 // One description of the primary action and mutation guards for every entry point.
 export function instanceUI(instance: Instance, activity?: Activity) {
   const status = activity?.status || 'idle';
-  const transitional = ['pausing', 'starting', 'stopping'].includes(status);
+  const transitional = ['pausing', 'starting', 'stopping', 'working'].includes(status);
   const busy = transitional || ['installing', 'paused', 'running'].includes(status);
   const pending = instance.version === 'pending';
   const command = transitional ? null
@@ -21,11 +21,11 @@ export function instanceUI(instance: Instance, activity?: Activity) {
     paused: 'Paused', pausing: 'Pausing…', starting: 'Starting…',
     stopping: 'Stopping…', running: 'Running', failed: 'Retry',
   };
-  const label = status === 'installing'
+  const label = status === 'working' ? activity?.phase || 'Loading…' : status === 'installing'
     ? activity?.progress == null ? 'Installing…' : 'Installing · {percent}%'
     : labels[status] || (instance.installed ? 'Launch' : 'Install');
   const actionLabel = ({ pause: 'Pause', resume: 'Resume', stop: 'Stop' } as Record<string, string>)[command || ''] || label;
-  const icon = status === 'running' ? 'running' : command === 'stop' || status === 'stopping' ? 'stop'
+  const icon = status === 'working' ? 'folder' : status === 'running' ? 'running' : command === 'stop' || status === 'stopping' ? 'stop'
     : command === 'launch' || command === 'resume' || status === 'starting' ? 'play' : 'download';
   return {
     busy, pending, transitional, command, label, labelValues:{percent:Math.floor((activity?.progress || 0)*100)}, actionLabel, icon,

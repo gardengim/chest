@@ -106,9 +106,26 @@ pub struct Core {
     pub auth_cancel: Mutex<Option<Arc<AtomicBool>>>,
     pub auth_lock: Semaphore,
 }
-struct FileOperation<'a> { core: &'a Core, id: String }
+struct FileOperation<'a> { core: &'a Core, id: String, previous: Option<Activity> }
+const DELETE_ERROR: &str = "Deletion failed. Some files may have been removed. Retry deletion.";
 impl Drop for FileOperation<'_> {
-    fn drop(&mut self) { self.core.jobs.lock().unwrap().remove(&self.id); }
+    fn drop(&mut self) {
+        if let Ok(instance) = self.core.store.instance(&self.id) {
+            if let Some(previous) = self.previous.take() {
+                self.core.activity(previous);
+            } else {
+                self.core.activities.lock().unwrap().remove(&self.id);
+                (self.core.emit_activity)(Activity::new(&self.id,"idle",None,
+                    if instance.installed {"Ready to play"} else {"Not installed"}));
+            }
+        } else {
+            self.core.activities.lock().unwrap().remove(&self.id);
+            (self.core.emit_activity)(Activity::new(&self.id,"idle",None,""));
+        }
+        // Keep the reservation until the final status is sent, so a new job
+        // cannot have its starting status overwritten by this operation.
+        self.core.jobs.lock().unwrap().remove(&self.id);
+    }
 }
 pub struct MaintenanceGuard<'a>(&'a Core);
 impl Drop for MaintenanceGuard<'_> {
@@ -509,15 +526,19 @@ impl Core {
         fs::rename(source, target)?;
         Ok(())
     }
-    fn file_operation(&self, id: &str) -> Result<FileOperation<'_>> {
+    fn file_operation(&self, id: &str, phase: &str) -> Result<FileOperation<'_>> {
         self.reserve(id, "files")?;
-        Ok(FileOperation { core: self, id: id.into() })
+        let previous = self.activities.lock().unwrap().get(id).cloned()
+            .filter(|activity| matches!(activity.status.as_str(),"idle"|"failed"|"launch_failed"|"crashed"));
+        let operation = FileOperation { core: self, id: id.into(), previous };
+        self.activity(Activity::new(id,"working",None,phase));
+        Ok(operation)
     }
     pub fn file_operations_active(&self) -> bool {
         self.jobs.lock().unwrap().values().any(|job| job.kind == "files")
     }
     pub fn duplicate(&self, id: &str) -> Result<Instance> {
-        let _operation = self.file_operation(id)?;
+        let _operation = self.file_operation(id,"Copying…")?;
         if self.store.dir(id)?.join("modpack-request.json").exists() || self.store.dir(id)?.join("creation-content.json").exists() {
             bail!("Finish preparing this modpack before duplicating it");
         }
@@ -545,8 +566,11 @@ impl Core {
         Ok(new)
     }
     pub fn remove(&self, id: &str) -> Result<Config> {
-        let _operation = self.file_operation(id)?;
-        let config = self.store.remove(id)?;
+        let _operation = self.file_operation(id,"Deleting…")?;
+        let config = self.store.remove(id).map_err(|error| {
+            self.log(id,&format!("Deletion failed: {error:#}"));
+            error.context(DELETE_ERROR)
+        })?;
         self.activities.lock().unwrap().remove(id);
         self.logs.lock().unwrap().remove(id);
         Ok(config)
@@ -859,7 +883,9 @@ mod lifecycle_tests {
         let temp = tempfile::tempdir().unwrap();
         let core = Core::new(temp.path().into(), |_| {}, |_| {}).unwrap();
         let instance = core.store.create("World".into(), "1.21.4".into(), "grass".into()).unwrap();
-        let reservation = core.file_operation(&instance.id).unwrap();
+        core.activity(Activity::new(&instance.id,"launch_failed",None,"Previous error"));
+        let reservation = core.file_operation(&instance.id,"Copying…").unwrap();
+        assert_eq!(core.activities()[0].status,"working");
         assert!(core.file_operations_active());
         assert!(core.duplicate(&instance.id).is_err());
         assert!(core.remove(&instance.id).is_err());
@@ -867,10 +893,37 @@ mod lifecycle_tests {
         assert!(core.begin_maintenance().is_err());
         drop(reservation);
         assert!(!core.busy(&instance.id));
+        assert_eq!(core.activities()[0].phase,"Previous error");
         fs::remove_dir_all(core.instance_folder(&instance.id).unwrap()).unwrap();
         assert!(core.duplicate(&instance.id).is_err());
         assert!(!core.busy(&instance.id));
         assert_eq!(core.store.config().instances.len(), 1);
+    }
+    #[test]
+    fn deleted_instances_do_not_retain_file_operation_activity() {
+        let temp = tempfile::tempdir().unwrap();
+        let core = Core::new(temp.path().into(), |_| {}, |_| {}).unwrap();
+        let instance = core.store.create("World".into(),"1.21.4".into(),"grass".into()).unwrap();
+        core.remove(&instance.id).unwrap();
+        assert!(!core.busy(&instance.id));
+        assert!(core.activities().iter().all(|activity| activity.id != instance.id));
+    }
+    #[test]
+    fn deletion_config_failure_keeps_its_record_and_can_be_retried() {
+        let temp = tempfile::tempdir().unwrap();
+        let core = Core::new(temp.path().into(), |_| {}, |_| {}).unwrap();
+        let instance = core.store.create("World".into(),"1.21.4".into(),"grass".into()).unwrap();
+        let original = fs::read(temp.path().join("config.json")).unwrap();
+        fs::create_dir(temp.path().join("config.json.tmp")).unwrap();
+        assert_eq!(core.remove(&instance.id).unwrap_err().to_string(),DELETE_ERROR);
+        assert!(core.store.instance(&instance.id).is_ok());
+        assert_eq!(fs::read(temp.path().join("config.json")).unwrap(),original);
+        assert!(!core.busy(&instance.id));
+        assert!(core.logs(&instance.id).iter().any(|line|line.starts_with("Deletion failed:")));
+        fs::remove_dir(temp.path().join("config.json.tmp")).unwrap();
+        core.remove(&instance.id).unwrap();
+        assert!(core.store.config().instances.is_empty());
+        assert!(core.activities().is_empty());
     }
     #[test]
     fn artwork_comes_from_instance_data_and_rejects_invalid_images() {

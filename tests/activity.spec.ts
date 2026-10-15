@@ -15,6 +15,7 @@ test('native events keep selection, halo, and progress separate; keyboard expose
       if(name==='plugin:event|listen'){listeners.set(args.event,args.handler);return n;}
       if(name==='get_config')return structuredClone(config);if(name==='get_activities')return activities;if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
       if(name==='pause_install'){w.__testEmit('activity',{id:args.id,status:args.paused?'paused':'installing',progress:.45,phase:args.paused?'Paused':'Downloading assets'});return;}
+      if(name==='remove_instance')throw new Error('Deletion failed. Some files may have been removed. Retry deletion.');
       if(name==='get_logs'||name==='get_content')return [];
       return null;
     }};
@@ -61,4 +62,25 @@ test('native events keep selection, halo, and progress separate; keyboard expose
   await expect(page.getByRole('button',{name:'Running world: Finished',exact:true})).toBeVisible();
   await expect(page.getByLabel('Search log',{exact:true})).toHaveValue('line-2999');
   await expect(page.locator('.console')).toHaveText('line-2999');
+  await page.evaluate(()=>(window as any).__testEmit('activity',{id:'running',status:'working',progress:null,phase:'Copying…'}));
+  await expect(page.locator('.install-button')).toContainText('Copying…');
+  await expect(page.locator('.install-button')).toBeDisabled();
+  await expect(page.getByRole('button',{name:'Stop',exact:true})).toHaveCount(0);
+  const copying=page.getByRole('button',{name:'Running world: Copying…',exact:true});
+  await copying.click({button:'right'});
+  await expect(page.getByRole('menuitem',{name:'Duplicate',exact:true})).toBeDisabled();
+  await expect(page.getByRole('menuitem',{name:'Delete',exact:true})).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await page.getByLabel('Search log',{exact:true}).fill('line-2998');
+  await expect(page.locator('.console')).toHaveText('line-2998');
+  await page.evaluate(()=>(window as any).__testEmit('activity',{id:'running',status:'idle',progress:null,phase:'Finished'}));
+  await page.getByRole('button',{name:'Running world: Finished',exact:true}).click({button:'right'});
+  await expect(page.getByRole('menuitem',{name:'Duplicate',exact:true})).toBeEnabled();
+  await page.getByRole('menuitem',{name:'Delete',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Delete',exact:true}).click();
+  const failure=page.getByRole('alert').filter({hasText:'Deletion failed.'});
+  await expect(failure).toContainText('Retry deletion.');
+  await page.evaluate(()=>(window as any).__testEmit('activity',{id:'installing',status:'idle',progress:null,phase:'Finished'}));
+  await expect(page.getByRole('button',{name:'Installing world: Finished',exact:true})).toBeVisible();
+  await expect(failure).toContainText('Retry deletion.');
 });

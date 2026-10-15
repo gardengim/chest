@@ -558,5 +558,7 @@
   "Clear image cache?": "画像キャッシュを消去しますか？",
   "Wait for file operations to finish before closing Chest.": "ファイル操作が完了してからChestを閉じてください。",
   "Close Chest?": "Chestを閉じますか？",
-  "Installations will stop. Running games will remain open.": "インストールは停止します。実行中のゲームは開いたままになります。"
+  "Installations will stop. Running games will remain open.": "インストールは停止します。実行中のゲームは開いたままになります。",
+  "Deleting…": "削除中…",
+  "Deletion failed. Some files may have been removed. Retry deletion.": "削除できませんでした。一部のファイルはすでに削除されている可能性があります。削除を再試行してください。"
 }

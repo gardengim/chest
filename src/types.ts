@@ -1,5 +1,5 @@
 export type Tab = 'Overview' | 'Worlds' | 'Servers' | 'Screenshots' | 'Content' | 'Versions' | 'Settings' | 'Log';
-export type Status = 'idle' | 'installing' | 'pausing' | 'paused' | 'running' | 'starting' | 'stopping' | 'crashed' | 'launch_failed' | 'failed';
+export type Status = 'idle' | 'installing' | 'pausing' | 'paused' | 'running' | 'starting' | 'stopping' | 'working' | 'crashed' | 'launch_failed' | 'failed';
 export type Loader = 'vanilla' | 'fabric' | 'quilt' | 'forge' | 'neoforge';
 export interface Instance { id:string; name:string; version:string; loader:Loader; loader_version:string; memory_mb:number; java_path:string; artwork:string; installed:boolean; playtime_seconds?:number; }
 export type InstanceBackground={kind:'provider';url:string}|{kind:'screenshot';name:string;modified:number};

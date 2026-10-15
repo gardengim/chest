@@ -124,7 +124,11 @@
     return issue && running?'mixed':issue?'issue':running?'running':undefined;
   }
   function statusText(instance:Instance) {return activityText(instanceStatus(instance,activities[instance.id]),$t);}
-  async function perform(task:()=>Promise<unknown>) {error='';notice='';try{return await task();}catch(e){error=String(e instanceof Error?e.message:e);return undefined;}}
+  async function perform(task:()=>Promise<unknown>,clearFeedback=true) {
+    if(clearFeedback){error='';notice='';}
+    try{return await task();}
+    catch(e){if(clearFeedback || !error)error=String(e instanceof Error?e.message:e);return undefined;}
+  }
   async function reload() {
     const pending=new Set(config.instances.filter(i=>i.version==='pending').map(i=>i.id));
     config=await api.config();
@@ -410,7 +414,7 @@
   function cancelDialog(event:Event){event.preventDefault();if(signingIn)void perform(()=>api.cancelSignIn());else confirm=null;}
   async function handleIntent(){if(!native)return;await perform(async()=>{const intent=await api.takeIntent();if(!intent)return;const instance=config.instances.find(i=>i.id===intent.id);if(!instance)return;select(instance.id);if(destination===instance.id && intent.launch && instance.installed && !ui(instance).busy)await action(instance);});}
   async function finishExit(action:ExitAction,confirmed=false){
-    if(busy || signingIn || settingsDraft.pending || creation.pending || ['downloading','installing'].includes($appUpdate.phase)){
+    if(busy || Object.values(activities).some(activity=>activity.status==='working') || signingIn || settingsDraft.pending || creation.pending || ['downloading','installing'].includes($appUpdate.phase)){
       exitBlocked=true;return;
     }
     if(!confirmed && action!=='restart' && Object.values(activities).some(activity=>['running','starting','installing','paused','pausing'].includes(activity.status))){
@@ -451,7 +455,7 @@
       // Install listeners before taking the activity snapshot. Events observed
       // during that snapshot win over its potentially older values.
       let observed:Set<string>|null=new Set();
-      const listening=subscribe(a=>{observed?.add(a.id);activities[a.id]=a;if(['idle','crashed'].includes(a.status) || a.phase==='Modpack prepared')void perform(reload);},logBatch.push).then(stop=>{
+      const listening=subscribe(a=>{observed?.add(a.id);activities[a.id]=a;if(['idle','crashed'].includes(a.status) || a.phase==='Modpack prepared')void perform(reload,false);},logBatch.push).then(stop=>{
         if(!alive)stop();else cleanup=stop;
       });
       const configuration=api.config();
