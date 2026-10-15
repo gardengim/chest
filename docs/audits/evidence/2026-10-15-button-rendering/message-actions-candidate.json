@@ -1,0 +1,10 @@
+{
+  "source": "c6e071e20152c4e21042f47046a54cae71c2cba2",
+  "workingTreeChanges": "",
+  "artifact": "src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+  "logicalAppBytes": 13069522,
+  "executableBytes": 12821168,
+  "executableSha256": "774fc4becd1481b8abfc2df8c900e160d29259f3904e85df2707259a4ba59bae",
+  "distributionSigning": false,
+  "notarization": false
+}

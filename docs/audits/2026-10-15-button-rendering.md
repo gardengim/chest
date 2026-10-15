@@ -1,6 +1,7 @@
 # Button and glyph rendering follow-up
 
-Application change: `1d75620`; macOS owner visual review remains pending after rebuilding.
+Initial rendering change: `1d75620`; message-action follow-up: `c6e071e` below.
+Mac owner visual review remains pending after rebuilding.
 The earlier [completion candidate](2026-10-14-completion.md) and its measurements keep
 their original identities. This follow-up changes shared control rendering.
 
@@ -45,7 +46,7 @@ fractional hover positions. After the fix:
 [pre-fix failures](evidence/2026-10-15-button-rendering/before-fix.txt).
 
 The [three-platform CI check](https://github.com/gardengim/chest/actions/runs/38799685128)
-is still running at this handoff; it is not recorded here as a pass. Earlier
+passed on Windows, macOS and Linux for `1d75620`. Earlier
 installer inventories identify the pre-fix candidate and are not this rebuild.
 
 WebKit checks are repeatable through `CHEST_TEST_BROWSER=webkit npm test -- ...`;
@@ -62,3 +63,37 @@ Chest staying usable and accepting repeated launch attempts is already verified.
 Relaunch the rebuilt Chest app and review the reported Home Instances, Explore,
 instance Content and Add hover/press cases. No release/tag/consolidation follows
 from these results.
+
+## Shared action and message-palette follow-up
+
+Source: `c6e071e`.
+
+View all, shared Copy, crash Log/acknowledge, notification dismiss and inline Retry
+now use the standard raised Button variant. Copy remains one reusable component
+with its clipboard result announcement. Icon-only controls share the existing
+elastic control size and central padding rather than individual local button rules.
+
+Colored messages own `--message-fill` and `--message-text`; their surfaces and
+nested Button colors read the same values. Hover colors still derive from the shared
+button fill. Error notifications now use the opaque danger surface and its paired
+foreground, matching crash banners; success messages use their own palette.
+No red literal is embedded in a Button. Inline error actions use the danger palette.
+Message actions wrap in narrow layouts instead of overflowing.
+
+Retina WebKit: **11 focused checks pass**, including red and custom-color messages,
+success dismissal in Light mode, log/error clipboard contents, error dismissal,
+View all navigation, pixel stability and 320-pixel crash-action containment. A
+pagination focus-retention check now activates via keyboard explicitly because
+Safari pointer clicks do not establish button focus. The focus assertion remains.
+
+Sequential local verification passes **177 browser, 100 Core, 3 native library
+and 24 script tests**, with 0 Svelte errors/warnings. The unsigned `.app` build passes.
+[Verification](evidence/2026-10-15-button-rendering/message-actions-verification.txt),
+[WebKit checks](evidence/2026-10-15-button-rendering/message-actions-webkit.txt),
+[build output](evidence/2026-10-15-button-rendering/message-actions-build.txt), and
+[current candidate identity](evidence/2026-10-15-button-rendering/message-actions-candidate.json)
+are retained. The earlier installer inventories remain historical.
+
+The [message-action platform check](https://github.com/gardengim/chest/actions/runs/38801591271)
+is in progress at handoff and is not recorded as a pass. Native visual acceptance
+of these message actions remains pending; quit and reopen the rebuilt app to review.
