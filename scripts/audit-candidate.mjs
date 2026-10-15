@@ -81,7 +81,11 @@ async function collect(options){
   const checks=await successfulRun(options.check,'Check Chest');
   const resources=await successfulRun(options.resources,'Measure offline resource workloads');
   const startup=await successfulRun(options.startup,'Measure packaged native startup');
-  if(checks.headSha!==candidate.headSha)throw new Error('Checks and candidate must use the same source');
+  // Test/tooling follow-ups can validate an already-built candidate, but no
+  // application, dependency or compiler configuration may have changed.
+  for(const path of ['src','core','src-tauri','public','index.html','package-lock.json','bun.lock','svelte.config.js','tsconfig.json','vite.config.ts'])if(git('rev-parse',`${checks.headSha}:${path}`)!==git('rev-parse',`${candidate.headSha}:${path}`))throw new Error(`Checks validate different build inputs: ${path}`);
+  const manifest=commit=>{const value=JSON.parse(git('show',`${commit}:package.json`));delete value.scripts;return JSON.stringify(value);};
+  if(manifest(checks.headSha)!==manifest(candidate.headSha))throw new Error('Checks validate different package metadata/dependencies');
   // A UI-only follow-up may reuse Core measurements. Record both revisions and
   // require the exact Core tree and measurement workflow to be unchanged.
   for(const path of ['core','.github/workflows/resources.yml'])if(git('rev-parse',`${resources.headSha}:${path}`)!==git('rev-parse',`${candidate.headSha}:${path}`))throw new Error(`Resource evidence is stale: ${path}`);

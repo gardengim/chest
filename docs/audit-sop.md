@@ -45,9 +45,12 @@ requires actual-device acceptance.
 npm run audit:candidate -- collect --candidate CANDIDATE_RUN --check CHECK_RUN --resources RESOURCE_RUN --startup STARTUP_RUN --output /path/to/new-ci-evidence
 ```
 
-The command requires successful completed runs, matching candidate/check sources,
+The command requires successful completed runs, matching candidate/check application and build inputs,
 all four installer targets with exact sizes/hashes, and complete native readiness
-samples. Resource evidence may use a UI-only predecessor only when its Core tree
+samples. Test/tooling-only follow-ups may validate an existing candidate; the script
+compares application trees, dependency files, compiler configuration and package
+metadata (excluding script commands), and records both source commits.
+Resource evidence may use a UI-only predecessor only when its Core tree
 and resource workflow match exactly; both source identities remain recorded.
 Downloads remain in the output directory with inventories and summaries. On macOS,
 read-only DMG integrity/architecture/version and Linux package headers are also

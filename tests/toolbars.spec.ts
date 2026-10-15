@@ -76,9 +76,13 @@ test('collection toolbars share search geometry, action order and spacing withou
     const add=toolbar.getByRole('button',{name:'Add',exact:true});
     await expect(add).toHaveAttribute('data-tone','accent');
     await expect(add.locator('[data-symbol="plus"]')).toHaveCount(1);
-    const search=await toolbar.locator('.search-field').boundingBox(),button=await add.boundingBox();
-    expect(Math.abs(search!.y-button!.y)).toBeLessThanOrEqual(1);
-    expect(button!.x).toBeLessThan(search!.x);
+    // Lazy shelves above can move this toolbar between separate protocol calls.
+    // Read both boxes in one browser task and retain the actual geometry checks.
+    await expect.poll(()=>toolbar.evaluate(node=>{
+      const search=node.querySelector('.search-field')!.getBoundingClientRect();
+      const button=node.querySelector('[data-tool="add"] .ui-button')!.getBoundingClientRect();
+      return {aligned:Math.abs(search.y-button.y)<=1,addBeforeSearch:button.x<search.x};
+    })).toEqual({aligned:true,addBeforeSearch:true});
   }
   expect(await instances.locator('[data-tool="add"] .ui-button').allTextContents()).toEqual(['Add']);
   expect(await servers.locator('[data-tool] > .ui-button').allTextContents()).toEqual(['Add','Refresh']);
