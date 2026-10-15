@@ -1,0 +1,83 @@
+[WebServer] (node:72263) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:72276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:72298) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:72321) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:72325) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/button-rendering.spec.ts:11:1 › layout glyphs keep their intended size on Home and inside content tabs (5.5s)
+(node:72360) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 tests/button-rendering.spec.ts:38:1 › button and radio push feedback never moves icons through fractional pixels (580ms)
+
+
+  1) tests/button-rendering.spec.ts:11:1 › layout glyphs keep their intended size on Home and inside content tabs 
+
+    Error: expect(locator).toHaveCSS(expected) failed
+
+    Locator:  getByRole('radiogroup', { name: 'Library layout', exact: true }).locator('svg').first()
+    Expected: "24px"
+    Received: "22px"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCSS" getByRole('radiogroup', { name: 'Library layout', exact: true }).locator('svg').first() with timeout 5000ms
+      - waiting for getByRole('radiogroup', { name: 'Library layout', exact: true }).locator('svg').first()
+        14 × locator resolved to <svg width="24" height="24" focusable="false" aria-hidden="true" viewBox="0 0 24 24" class="svelte-dcais2" data-symbol="layout-gallery">…</svg>
+           - unexpected value "22px"
+
+
+      13 |     const control=page.getByRole('radiogroup',{name,exact:true});
+      14 |     for(const icon of await control.locator('svg').all()){
+    > 15 |       await expect(icon).toHaveCSS('width','24px');
+         |                          ^
+      16 |       await expect(icon).toHaveCSS('height','24px');
+      17 |     }
+      18 |   }
+        at $WORKSPACE/tests/button-rendering.spec.ts:15:26
+
+    Error Context: test-results/button-rendering-layout-gl-91f50-ome-and-inside-content-tabs/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/button-rendering-layout-gl-91f50-ome-and-inside-content-tabs/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/button-rendering-layout-gl-91f50-ome-and-inside-content-tabs/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/button-rendering.spec.ts:38:1 › button and radio push feedback never moves icons through fractional pixels 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      45 |     await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+      46 |     const hover=await sampling;
+    > 47 |     expect(hover.every(value=>Number.isInteger(value))).toBe(true);
+         |                                                         ^
+      48 |     expect(hover.at(-1)).toBe(-1);
+      49 |     const pressing=offsets(control);await page.mouse.down();
+      50 |     const pressed=await pressing;
+        at $WORKSPACE/tests/button-rendering.spec.ts:47:57
+
+    Error Context: test-results/button-rendering-button-an-9ba5c-s-through-fractional-pixels/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/button-rendering-button-an-9ba5c-s-through-fractional-pixels/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/button-rendering-button-an-9ba5c-s-through-fractional-pixels/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/button-rendering.spec.ts:11:1 › layout glyphs keep their intended size on Home and inside content tabs 
+    tests/button-rendering.spec.ts:38:1 › button and radio push feedback never moves icons through fractional pixels 

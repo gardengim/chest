@@ -2,6 +2,9 @@
 
 Started 2026-10-14; automated completion 2026-10-15 (America/Los_Angeles).
 **Automated work completed. Owner verified unlocked Mac startup and both reported crash paths; remaining device acceptance is paused for human verification.**
+A subsequent [button-rendering follow-up](2026-10-15-button-rendering.md) addresses
+issues found during owner visual review; the historical candidate below retains its identity.
+
 Application source candidate:
 `8c69ee459d1ac944c88d6d653b3aab7fb2ea0a50`. Measurement records below identify their own source revisions;
 the sustained idle sample predates the final focus and pending-operation fixes.
@@ -240,9 +243,14 @@ results on this Mac, not installer acceptance on all targets or measured startup
 | Home → Worlds → instance → Play | Pass | Owner confirmed both requested launch paths work. |
 | Home → Servers → instance → Join | Pass | Same confirmation; no reported recurrence of the abort. |
 | Minecraft launch failure leaves Chest usable | Pass | Owner reported a Minecraft graphics-related launch crash while Chest stayed usable. Graphics cause not independently verified. |
-| Launch again after a Minecraft crash without restarting Chest | Pass | Owner confirmed about seven repeated launch attempts through Chest. This confirms retry remains available, not that the graphics failure is fixed. |
+| Launch again after a Minecraft crash without restarting Chest | Pass | Owner confirmed about seven repeated launch attempts through Chest. |
+| Unsaved Settings Save / Discard / Cancel | Pass | Owner confirmed the described flow works. |
+| Keyboard navigation and dialog focus | Pass | Owner confirmed Tab/Shift+Tab, selectors, focus trapping and restoration work. |
+| Theme/view-switch visual review | Follow-up needed | Owner found inconsistent glyph thickness and transient content shadow loss; see rendering follow-up. |
 
-The remaining authentication, accessibility, visual,
+The owner reports the same Minecraft graphics crash in Prism; it is tracked as
+a separate game/environment issue outside Chest finalization blockers.
+The remaining authentication, native screen-reader/accessibility, visual,
 platform, gameplay/recovery and distribution checks below remain unverified.
 
 
