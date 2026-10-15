@@ -5,6 +5,9 @@ mod resource_launch;
 mod resource_edit;
 mod archive;
 pub mod instance_files;
+mod screenshot_images;
+pub mod storage;
+mod log_buffer;
 pub mod worlds;
 pub mod server_bookmarks;
 pub mod launch_settings;
@@ -25,7 +28,7 @@ use anyhow::{bail, Context, Result};
 use serde::Serialize;
 use serde_json::Value;
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{HashMap},
     fs,
     path::PathBuf,
     process::Stdio,
@@ -95,11 +98,16 @@ pub struct Core {
     activities: Mutex<HashMap<String, Activity>>,
     operation_lock: Mutex<()>,
     maintenance: AtomicBool,
-    logs: Mutex<HashMap<String, VecDeque<String>>>,
+    logs: Mutex<log_buffer::LogBuffer>,
+    image_cache_lock: Mutex<()>,
     emit_activity: Arc<dyn Fn(Activity) + Send + Sync>,
     emit_log: Arc<dyn Fn(Log) + Send + Sync>,
     pub auth_cancel: Mutex<Option<Arc<AtomicBool>>>,
     pub auth_lock: Semaphore,
+}
+struct FileOperation<'a> { core: &'a Core, id: String }
+impl Drop for FileOperation<'_> {
+    fn drop(&mut self) { self.core.jobs.lock().unwrap().remove(&self.id); }
 }
 pub struct MaintenanceGuard<'a>(&'a Core);
 impl Drop for MaintenanceGuard<'_> {
@@ -133,7 +141,8 @@ impl Core {
             activities: Mutex::new(HashMap::new()),
             operation_lock: Mutex::new(()),
             maintenance: AtomicBool::new(false),
-            logs: Mutex::new(HashMap::new()),
+            logs: Mutex::new(log_buffer::LogBuffer::default()),
+            image_cache_lock: Mutex::new(()),
             emit_activity: Arc::new(activity),
             emit_log: Arc::new(log),
             auth_cancel: Mutex::new(None),
@@ -224,11 +233,7 @@ impl Core {
     pub fn log(&self, id: &str, line: &str) {
         let line = line.chars().take(8192).collect::<String>();
         let mut logs = self.logs.lock().unwrap();
-        let list = logs.entry(id.into()).or_default();
-        list.push_back(line.clone());
-        while list.len() > 2000 {
-            list.pop_front();
-        }
+        logs.push(id, line.clone());
         drop(logs);
         (self.emit_log)(Log {
             id: id.into(),
@@ -236,12 +241,7 @@ impl Core {
         });
     }
     pub fn logs(&self, id: &str) -> Vec<String> {
-        self.logs
-            .lock()
-            .unwrap()
-            .get(id)
-            .map(|v| v.iter().cloned().collect())
-            .unwrap_or_default()
+        self.logs.lock().unwrap().get(id)
     }
     pub fn busy(&self, id: &str) -> bool {
         self.jobs.lock().unwrap().contains_key(id)
@@ -506,40 +506,43 @@ impl Core {
         fs::rename(source, target)?;
         Ok(())
     }
+    fn file_operation(&self, id: &str) -> Result<FileOperation<'_>> {
+        self.reserve(id, "files")?;
+        Ok(FileOperation { core: self, id: id.into() })
+    }
+    pub fn file_operations_active(&self) -> bool {
+        self.jobs.lock().unwrap().values().any(|job| job.kind == "files")
+    }
     pub fn duplicate(&self, id: &str) -> Result<Instance> {
-        let _operation = self.operation_lock.lock().unwrap();
-        if self.busy(id) {
-            bail!("Close this instance before duplicating it");
-        }
+        let _operation = self.file_operation(id)?;
         if self.store.dir(id)?.join("modpack-request.json").exists() || self.store.dir(id)?.join("creation-content.json").exists() {
             bail!("Finish preparing this modpack before duplicating it");
         }
         let old = self.store.instance(id)?;
-        let mut new = self
-            .store
-            .create(format!("{} copy", old.name), old.version, old.artwork)?;
-        new.memory_mb = old.memory_mb;
-        new.java_path = old.java_path;
-        new.loader = old.loader;
-        new.loader_version = old.loader_version;
-        self.store.save(new.clone())?;
-        if let Some(settings)=self.store.config().launch_settings.get(id).cloned(){
-            self.store.change(|config|{config.launch_settings.insert(new.id.clone(),settings);Ok(())})?;
-        }
-        if let Err(e) = copy_tree(
-            &self.store.dir(id)?.join("game"),
-            &self.store.dir(&new.id)?.join("game"),
-        ) {
-            let _ = self.store.remove(&new.id);
-            return Err(e);
-        }
+        let mut new = old.clone();
+        new.id = uuid::Uuid::new_v4().to_string();
+        new.name = format!("{} copy", old.name);
+        new.storage_parent.clear();
+        new.playtime_seconds = 0;
+        new.installed = false;
+        store::validate(&new)?;
+        let destination = self.store.dir(&new.id)?;
+        let result = (|| -> Result<()> {
+            copy_tree(&self.store.dir(id)?.join("game"), &destination.join("game"))?;
+            self.store.change(|config| {
+                if let Some(settings) = config.launch_settings.get(id).cloned() {
+                    config.launch_settings.insert(new.id.clone(), settings);
+                }
+                config.instances.push(new.clone());
+                Ok(())
+            })?;
+            Ok(())
+        })();
+        if let Err(error) = result { let _ = fs::remove_dir_all(destination); return Err(error); }
         Ok(new)
     }
     pub fn remove(&self, id: &str) -> Result<Config> {
-        let _operation = self.operation_lock.lock().unwrap();
-        if self.busy(id) {
-            bail!("Close this instance before deleting it");
-        }
+        let _operation = self.file_operation(id)?;
         let config = self.store.remove(id)?;
         self.activities.lock().unwrap().remove(id);
         self.logs.lock().unwrap().remove(id);
@@ -847,6 +850,24 @@ mod lifecycle_tests {
         assert_eq!(path, core.store.root.join("instances").join(&instance.id).join("game"));
         assert!(core.instance_folder("../elsewhere").is_err());
         assert!(core.instance_folder(&uuid::Uuid::new_v4().to_string()).is_err());
+    }
+    #[test]
+    fn file_reservations_reject_conflicts_and_failed_copies_are_not_published() {
+        let temp = tempfile::tempdir().unwrap();
+        let core = Core::new(temp.path().into(), |_| {}, |_| {}).unwrap();
+        let instance = core.store.create("World".into(), "1.21.4".into(), "grass".into()).unwrap();
+        let reservation = core.file_operation(&instance.id).unwrap();
+        assert!(core.file_operations_active());
+        assert!(core.duplicate(&instance.id).is_err());
+        assert!(core.remove(&instance.id).is_err());
+        assert!(core.save_instance(instance.clone()).is_err());
+        assert!(core.begin_maintenance().is_err());
+        drop(reservation);
+        assert!(!core.busy(&instance.id));
+        fs::remove_dir_all(core.instance_folder(&instance.id).unwrap()).unwrap();
+        assert!(core.duplicate(&instance.id).is_err());
+        assert!(!core.busy(&instance.id));
+        assert_eq!(core.store.config().instances.len(), 1);
     }
     #[test]
     fn artwork_comes_from_instance_data_and_rejects_invalid_images() {

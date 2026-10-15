@@ -25,3 +25,15 @@ It leaves Microsoft application setup, accounts, instances, home customization
 and imported scheme library intact. Save is required to persist restored values.
 Folder-opening actions and manual update checks are immediate operations rather
 than settings changes. Updates retain the existing installation/restart flow.
+
+Native Close/Quit and updater Restart now use the same draft decisions. Pending
+writes/file operations must finish first. Active installations/games require exit
+confirmation; closing stops launcher work without deliberately killing games.
+Forced termination cannot guarantee a prompt or completed writes.
+
+Storage accounting runs only after Check storage and includes custom instance roots
+without double-counting directories. Clear image cache shows the measured size and
+asks for confirmation. It removes only generated PNG/temporary derivatives, never
+shared game binaries, original screenshots, worlds or credentials. Unreadable or
+oversized inventories are marked incomplete; shared-binary garbage collection is
+intentionally deferred until reference analysis can prove deletion safe.

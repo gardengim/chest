@@ -547,5 +547,16 @@
   "Finishing modpack preparation": "모드팩 준비 마무리 중",
   "{phase} · {verified} of {total} files verified": "{phase} · 파일 {total}개 중 {verified}개 확인됨",
   "Preparing modpack files · {current}/{total}": "모드팩 파일 준비 중 · {current}/{total}",
-  "Invalid Microsoft application ID": "올바르지 않은 Microsoft 앱 ID입니다"
+  "Invalid Microsoft application ID": "올바르지 않은 Microsoft 앱 ID입니다",
+  "Wait for the current operation to finish.": "현재 작업이 끝날 때까지 기다려 주세요.",
+  "Check storage": "저장 공간 확인",
+  "Clear image cache": "이미지 캐시 지우기",
+  "Shared game files": "공유 게임 파일",
+  "Image cache": "이미지 캐시",
+  "Other files": "기타 파일",
+  "Storage scan is incomplete.": "저장 공간을 모두 확인하지 못했습니다.",
+  "Clear image cache?": "이미지 캐시를 지울까요?",
+  "Wait for file operations to finish before closing Chest.": "파일 작업이 끝난 후 Chest를 닫아 주세요.",
+  "Close Chest?": "Chest를 닫을까요?",
+  "Installations will stop. Running games will remain open.": "설치는 중단됩니다. 실행 중인 게임은 계속 실행됩니다."
 }

@@ -20,10 +20,10 @@ test('library backdrop requests and rotation stay bounded by visibility and moti
       return [];
     }};
   });
-  await page.goto('/');await expect(page.locator('.instance-card')).toHaveCount(40);
+  await page.goto('/');await expect(page.locator('.instance-card')).toHaveCount(24);
   await expect.poll(()=>page.evaluate(()=>(window as any).__shots.length)).toBeGreaterThan(0);
   expect(await page.evaluate(()=>(window as any).__shots.length)).toBeLessThan(40);
-  expect(await page.evaluate(()=>(window as any).__shots.includes('world-39'))).toBe(false);
+  expect(await page.evaluate(()=>(window as any).__shots.includes('world-23'))).toBe(false);
   await expect.poll(()=>page.evaluate(()=>(window as any).__rotations.size)).toBeGreaterThan(0);
   expect(await page.locator('.instance-card .instance-backdrop').evaluateAll(nodes=>nodes.every(n=>n.querySelectorAll('img').length<=2))).toBe(true);
   await page.evaluate(()=>{(window as any).__hidden=true;document.dispatchEvent(new Event('visibilitychange'));});
@@ -33,7 +33,7 @@ test('library backdrop requests and rotation stay bounded by visibility and moti
   await page.emulateMedia({reducedMotion:'reduce'});
   await expect.poll(()=>page.evaluate(()=>(window as any).__rotations.size)).toBe(0);
   await page.locator('.instance-card').last().scrollIntoViewIfNeeded();
-  await expect.poll(()=>page.evaluate(()=>(window as any).__shots.includes('world-39'))).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>(window as any).__shots.includes('world-23'))).toBe(true);
   await expect.poll(()=>page.evaluate(()=>(window as any).__newsPending.length)).toBe(4);
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await page.evaluate(async()=>{

@@ -48,7 +48,7 @@
         <Button disabled={!native || pending || isBusy(world.instance_id) || !canPlay(world)} title={$t('Direct world launch requires Minecraft 1.20 or later')} onclick={()=>run(()=>api.launchResource(world.instance_id,'world',world.folder))}>{$t('Play')}</Button>
         <Button disabled={!native || pending || isBusy(world.instance_id)} onclick={()=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');})}>{$t('Back up')}</Button>
         <Button class="secondary-action" disabled={!native || pending || isBusy(world.instance_id) || !instances.some(instance=>instance.id!==world.instance_id && instance.version!=='pending')} onclick={event=>choose(world,event.currentTarget)}>{$t('Copy')}</Button>
-        <Button class="card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={event=>openMenu(event,world)}>⋮</Button>
+        <Button class="card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={event=>openMenu(event,world)}><Icon name="more" size={18}/></Button>
       {/if}{/snippet}
     </Card>
   {:else}<p class="muted">{$t('No worlds')}</p>{/each}

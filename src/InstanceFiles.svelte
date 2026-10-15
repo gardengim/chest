@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   import CardGrid from './CardGrid.svelte';
   import Toolbar from './Toolbar.svelte';
   import RenameResource from './RenameResource.svelte';
@@ -55,7 +56,7 @@
         <Button disabled={!native || busy || pending || !instances.find(instance=>instance.id===id)?.installed} onclick={()=>run(()=>api.launchResource(id,'server',server.ip))}>{$t('Join')}</Button>
         <Button onclick={()=>run(async()=>{await navigator.clipboard.writeText(server.ip);notice=$t('Copied');})}>{$t('Copy')}</Button>
         <Button class="secondary-action" disabled={!native || busy || pending} onclick={()=>renaming=server}>{$t('Rename')}</Button>
-        <Button class="card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.server===server} onclick={event=>openMenu(event,server)}>⋮</Button>
+        <Button class="card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.server===server} onclick={event=>openMenu(event,server)}><Icon name="more" size={18}/></Button>
       {/snippet}
     </Card>
   {/each}</CardGrid>

@@ -64,7 +64,7 @@
 .shared-card-art :global(img),.shared-card-art :global(svg){width:28%;max-width:var(--card-icon-size);height:auto;aspect-ratio:1;object-fit:contain;color:inherit;filter:drop-shadow(0 .85714286rem .71428571rem #0003)}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(img){width:100%;max-width:none;height:100%;aspect-ratio:auto;object-fit:var(--card-image-fit,cover);image-rendering:auto;filter:none}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(span:not(.catalog-kind)){padding:var(--card-padding);font-size:.85714286rem;color:var(--muted)}
-.shared-card-body{display:flex;flex-direction:column;flex:1;min-width:0;min-height:var(--card-body-min,8rem);width:100%;padding:var(--card-padding);text-shadow:0 1px .21428571rem #0008;container-type:inline-size}
+.shared-card-body{display:flex;flex-direction:column;flex:1;min-width:0;min-height:var(--card-body-min,8rem);width:100%;padding:var(--card-padding);text-shadow:none;container-type:inline-size}
 :global(.launcher-card) .shared-card-body h3{font-size:1.28571429rem;margin:0 0 .35714286rem;overflow-wrap:anywhere;color:var(--text)}
 :global(.launcher-card) .shared-card-body :global(p),:global(.launcher-card) .shared-card-body :global(small){color:var(--muted)}
 .catalog-kind{position:absolute;bottom:.64285714rem;right:.71428571rem;color:var(--theme-input-text);background:var(--theme-input);border:var(--divider) solid var(--frame);padding:.21428571rem .42857143rem;font-size:.71428571rem}
@@ -79,7 +79,8 @@
 :global(.launcher-card[data-layout='list']) .catalog-kind{display:none}
 .shared-card-actions{display:flex;align-items:center;gap:.71428571rem;flex-wrap:wrap;margin-top:auto;padding-top:1.14285714rem}
 .shared-card-actions:empty{display:none}
-.shared-card-actions :global(.ui-button){--button-fill:#0006;--button-hover:#0008;--button-text:var(--text);--icon-ink:inherit;--button-shadow:var(--bevel-raised);border-color:#ffffff26;backdrop-filter:blur(.42857143rem);-webkit-backdrop-filter:blur(.42857143rem);height:auto;min-height:var(--control-height);white-space:normal;padding:.5em .71428571rem}
+.shared-card-actions :global(.ui-button){--button-fill:#000c;--button-hover:#000d;--button-text:var(--theme-overlay-text);--icon-ink:#ececec;--button-shadow:var(--bevel-raised);border-color:#ffffff26;backdrop-filter:blur(.42857143rem);-webkit-backdrop-filter:blur(.42857143rem);height:auto;min-height:var(--control-height);white-space:normal;padding:.5em .71428571rem}
+:global(.launcher-card:has(.card-backdrop img)) .shared-card-body{text-shadow:0 1px .21428571rem #0008}
 .shared-card-actions :global(.card-action-more){font-size:1.57142857rem;line-height:1;padding:.25em .57142857rem}
 :global(.launcher-card.disabled-entry) .shared-card-art{opacity:.5}
 .card-visibility{position:absolute;inset:0;pointer-events:none}

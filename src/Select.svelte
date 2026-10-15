@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   import { t } from './i18n';
   import { tick, type Snippet } from 'svelte';
   import type { HTMLSelectAttributes } from 'svelte/elements';
@@ -115,7 +116,7 @@
     <Button shape="plain" role="option" id={uid+'-option-'+i} aria-selected={value===option.value}
       class={['dropdown-option',active===i && 'highlighted']} tabindex={-1} disabled={option.disabled}
       onpointermove={()=>active=i} onmousedown={event=>event.preventDefault()} onclick={()=>choose(i)}>
-      <span>{#if optionContent}{@render optionContent(option.value,option.label)}{:else}{option.label}{/if}</span><span aria-hidden="true">{value===option.value?'✓':''}</span>
+      <span>{#if optionContent}{@render optionContent(option.value,option.label)}{:else}{option.label}{/if}</span><span aria-hidden="true">{#if value===option.value}<Icon name="check" size={16}/>{/if}</span>
     </Button>
   {/each}
 </div>

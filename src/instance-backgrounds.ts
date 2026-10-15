@@ -17,7 +17,7 @@ export function instanceBackgrounds(id:string){
   const done=()=>pending.delete(id);void request.then(done,done);
   return request;
 }
-export function backgroundImage(id:string,image:InstanceBackground){
+export function backgroundImage(id:string,image:InstanceBackground,edge=512){
   if(image.kind==='provider')return Promise.resolve(image.url);
-  return loadCardArtwork(`screenshot:${id}:${image.name}:${image.modified}`,()=>api.screenshotImage(id,image.name));
+  return loadCardArtwork(`thumbnail:${id}:${image.name}:${image.modified}:${edge}`,()=>api.screenshotThumbnail(id,image.name,edge));
 }

@@ -467,7 +467,7 @@ async fn files(
                             .find(|u| allowed_url(u).is_ok())
                     })
                     .context("No supported download URL for pack file")?;
-                Download {
+                Download { size: None,
                     phase: "Installing modpack".into(),
                     path,
                     url: url.into(),
@@ -503,7 +503,7 @@ async fn files(
                     Kind::Resourcepack => "resourcepacks",
                     _ => "shaderpacks",
                 };
-                Download {
+                Download { size: None,
                     phase: "Installing modpack".into(),
                     path: game_path(game, &format!("{folder}/{}", file.name))?,
                     url: file.url,
@@ -696,7 +696,7 @@ pub(crate) async fn prepare(core: &Arc<Core>, id: &str, job: &Job) -> Result<()>
             crate::install::checkpoint(core,id,job,None,"Downloading modpack archive").await?;
             download(
                 &client,
-                &Download {
+                &Download { size: None,
                     phase: "Installing modpack".into(),
                     path: stage.join("pack.zip"),
                     url: file.url,

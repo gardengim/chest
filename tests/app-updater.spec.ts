@@ -3,8 +3,11 @@ import {test,expect} from '@playwright/test';
 test('signed updater UI retries checks, streams progress, persists across navigation, and offers restart',async({page})=>{
   await page.addInitScript(()=>{
     const w=window as any;w.isTauri=true;let checks=0,installs=0;
+    const callbacks=new Map<number,Function>(),listeners=new Map<string,number>();let sequence=0;
     const info={current_version:'0.1.0',development:false,version:null,notes:null};
-    w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+    w.__TAURI_INTERNALS__={transformCallback:(callback:Function)=>{callbacks.set(++sequence,callback);return sequence;},invoke:async(name:string,args:any)=>{
+      if(name==='plugin:event|listen'){listeners.set(args.event,args.handler);return sequence;}
+      if(name==='plugin:event|emit'){callbacks.get(listeners.get(args.event)!)?.({payload:args.payload});return;}
       if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
       if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
       if(name==='take_instance_intent')return null;
@@ -67,7 +70,8 @@ test('test profiles can check but cannot replace the app or check automatically'
       if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
       if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
       if(name==='take_instance_intent')return null;
-      const info={current_version:'0.1.0',development:false,test_profile:true,version:null,notes:null};
+      const callbacks=new Map<number,Function>(),listeners=new Map<string,number>();let sequence=0;
+    const info={current_version:'0.1.0',development:false,test_profile:true,version:null,notes:null};
       if(name==='get_app_update_info')return info;
       if(name==='check_app_update'){w.__checks++;return {...info,version:'0.2.0'};}
       if(name==='install_app_update')throw new Error('Test must never invoke replacement');

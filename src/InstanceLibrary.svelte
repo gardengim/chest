@@ -1,5 +1,6 @@
 <script lang="ts">
   import CardGrid from './CardGrid.svelte';
+  import Pagination from './Pagination.svelte';
   import Toolbar from './Toolbar.svelte';
   import AddButton from './AddButton.svelte';
   import DirectionIcon from './DirectionIcon.svelte';
@@ -28,11 +29,18 @@
     selectionTimer=setTimeout(()=>onselect(instance.id),250);
   }
   function doubleClickInstance(instance:Instance){cancelSelection();onselect(instance.id);ondoubleclick(instance);}
-  const visible=$derived(instances.filter(i=>i.name.toLowerCase().includes(view.filter.toLowerCase())));
+  let page=$state(0);
+  const pageSize=24;
+  const query=$derived(view.filter.trim().toLowerCase());
+  const visible=$derived(instances.filter(i=>i.name.toLowerCase().includes(query)));
+  const pages=$derived(Math.max(1,Math.ceil(visible.length/pageSize)));
+  const shown=$derived(visible.slice(full?page*pageSize:0,full?(page+1)*pageSize:pageSize));
+  $effect(()=>{query;page=0;});
+  $effect(()=>{page=Math.min(page,pages-1);});
 </script>
 
 <section class="home-library" aria-label={$t('Instances')}>
-<HomeShelf section="instances" {full} count={instances.length} {onviewall}>
+<HomeShelf section="instances" {full} count={visible.length} moreContent={visible.length>pageSize} {onviewall}>
   {#snippet tools(heading,navigation)}
     <Toolbar {heading} {navigation} trailing={layout} searchLabel={$t('Search instances')} bind:value={view.filter} items={[
       {id:'add',label:$t('Add'),priority:100,content:add}
@@ -53,7 +61,7 @@
     </div>
   {:else}
     <CardGrid class={['instance-grid',view.layout==='list' && 'library-list']} layout={view.layout}>
-      {#each visible as instance (instance.id)}
+      {#each shown as instance (instance.id)}
         <Card class="instance-card" title={instance.name} icon={icons[instance.id]} instanceId={instance.id} layout={view.layout} aria-haspopup="menu" aria-expanded={menuId===instance.id} oncontextmenu={event=>{cancelSelection();onmenu(event,instance);}} onkeydown={event=>onmenukeys(event,instance)} onclick={event=>clickInstance(event,instance)} ondblclick={()=>doubleClickInstance(instance)}>
             <InstanceBrief {instance}/>
             <div class="card-status">
@@ -64,6 +72,7 @@
     </CardGrid>
   {/if}
 </HomeShelf>
+{#if full}<Pagination label={$t('Instances')} {page} {pages} onchange={value=>page=value}/>{/if}
 </section>
 
 {#snippet add()}<AddButton onclick={oncreate}/>{/snippet}

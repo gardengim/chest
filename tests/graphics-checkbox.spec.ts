@@ -45,7 +45,9 @@ test('pixel checkboxes share styling, respond to keyboard and scale with text',a
   await checkbox.evaluate(node=>{(node as HTMLInputElement).indeterminate=false;(node as HTMLInputElement).disabled=true;});await expect(checkbox).toBeDisabled();await expect(checkbox).toHaveCSS('opacity','0.5');
   await page.emulateMedia({forcedColors:'active'});await expect(checkbox).toHaveCSS('border-top-style','solid');
   await page.emulateMedia({forcedColors:'none'});await page.addStyleTag({content:'html{font-size:87.5% !important}'});
-  await page.getByRole('button',{name:'Modern: Ready to play',exact:true}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
+  await page.getByRole('button',{name:'Modern: Ready to play',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Discard',exact:true}).click();
+  await page.getByRole('tab',{name:'Settings',exact:true}).click();
   const fullscreen=page.getByRole('checkbox',{name:'Fullscreen',exact:true});await expect(fullscreen).toHaveCSS('appearance','none');await fullscreen.check();
   await page.locator('.launch-settings').getByRole('button',{name:'Save',exact:true}).click();
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1')!).launch_settings.modern.fullscreen)).toBe(true);

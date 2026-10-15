@@ -2,7 +2,7 @@ import {invoke} from '@tauri-apps/api/core';
 import {listen} from '@tauri-apps/api/event';
 import {native} from './api';
 
-export type DesktopMenuAction='create'|'settings'|'about'|'updates'|'issues'|'home'|'instances'|'servers'|'worlds'|'news'|'screenshots'|'explore'|'data-folder';
+export type DesktopMenuAction='create'|'settings'|'about'|'updates'|'issues'|'home'|'instances'|'servers'|'worlds'|'news'|'screenshots'|'explore'|'data-folder'|'close'|'quit'|'restart';
 
 export async function subscribeDesktopMenu(onaction:(action:DesktopMenuAction)=>void,onerror:(message:string)=>void){
   if(!native)return ()=>{};

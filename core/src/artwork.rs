@@ -286,8 +286,20 @@ mod tests {
         let address = listener.local_addr().unwrap();
         let task = tokio::spawn(async move {
             let (mut socket, _) = listener.accept().await.unwrap();
-            let mut request = [0; 512];
-            socket.read(&mut request).await.unwrap();
+            // Consume the handshake and status frames even when the client fragments them.
+            for _ in 0..2 {
+                let mut prefix = Vec::new();
+                loop {
+                    let byte = socket.read_u8().await.unwrap();
+                    prefix.push(byte);
+                    assert!(prefix.len() <= 5);
+                    if byte & 0x80 == 0 { break; }
+                }
+                let length = parse_varint(&prefix, &mut 0).unwrap();
+                assert!(length <= 512);
+                let mut frame = vec![0; length];
+                socket.read_exact(&mut frame).await.unwrap();
+            }
             let json = serde_json::json!({"favicon":png(&image()).unwrap()}).to_string();
             let mut response = vec![0];
             varint(json.len() as i32, &mut response);

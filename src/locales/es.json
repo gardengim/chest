@@ -547,5 +547,16 @@
   "Finishing modpack preparation": "Finalizando preparación del modpack",
   "{phase} · {verified} of {total} files verified": "{phase} · {verified} de {total} archivos verificados",
   "Preparing modpack files · {current}/{total}": "Preparando archivos del modpack · {current}/{total}",
-  "Invalid Microsoft application ID": "ID de aplicación de Microsoft no válido"
+  "Invalid Microsoft application ID": "ID de aplicación de Microsoft no válido",
+  "Wait for the current operation to finish.": "Espera a que termine la operación actual.",
+  "Check storage": "Comprobar almacenamiento",
+  "Clear image cache": "Borrar caché de imágenes",
+  "Shared game files": "Archivos compartidos del juego",
+  "Image cache": "Caché de imágenes",
+  "Other files": "Otros archivos",
+  "Storage scan is incomplete.": "El análisis del almacenamiento está incompleto.",
+  "Clear image cache?": "¿Borrar la caché de imágenes?",
+  "Wait for file operations to finish before closing Chest.": "Espera a que terminen las operaciones de archivos antes de cerrar Chest.",
+  "Close Chest?": "¿Cerrar Chest?",
+  "Installations will stop. Running games will remain open.": "Las instalaciones se detendrán. Los juegos en ejecución permanecerán abiertos."
 }

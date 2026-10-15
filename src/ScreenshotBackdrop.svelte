@@ -30,8 +30,9 @@
   $effect(()=>{
     const visible=rendered,instanceId=id || '';
     let alive=true;
+    if(variant==='card' && (id || (sources?.length || 0)>1) && !inView){ready=[];return;}
     // Resolve only the current/previous frames, never an entire screenshot folder.
-    void Promise.all(visible.map(async image=>({image,source:await backgroundImage(instanceId,image)}))).then(frames=>{
+    void Promise.all(visible.map(async image=>({image,source:await backgroundImage(instanceId,image,variant==='card'?512:1024)}))).then(frames=>{
       if(!alive)return;
       ready=frames.filter((frame):frame is {image:InstanceBackground;source:string}=>!!frame.source);
       for(const frame of frames)if(!frame.source)remove(frame.image);

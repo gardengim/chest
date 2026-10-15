@@ -76,8 +76,7 @@ fn handle(app: &AppHandle, id: &str) -> tauri::Result<()> {
     match id {
         "create" | "settings" | "about" | "updates" | "issues" | "home" | "instances" |
         "servers" | "worlds" | "news" | "screenshots" | "explore" => window.emit("desktop-menu", id)?,
-        "quit" => app.exit(0),
-        "close" => window.close()?,
+        "quit" | "close" => { crate::lifecycle::request(app, id); },
         "minimize" => window.minimize()?,
         "maximize" => { if window.is_maximized()? { window.unmaximize()?; } else { window.maximize()?; } }
         "fullscreen" => window.set_fullscreen(!window.is_fullscreen()?)?,

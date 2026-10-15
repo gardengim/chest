@@ -41,23 +41,38 @@ pub fn hash_file(path: &Path, sha256: bool) -> Result<String> {
         Ok(format!("{:x}", hash.finalize()))
     }
 }
+// Download intermediates belong to this operation, including on cancellation/error.
+struct PartialFile(PathBuf);
+impl Drop for PartialFile {
+    fn drop(&mut self) { let _ = fs::remove_file(&self.0); }
+}
+const MAX_DOWNLOAD_BYTES: u64 = 2 * 1024 * 1024 * 1024;
 pub async fn fetch(client: &reqwest::Client, file: &Download) -> Result<()> {
     if ![40, 64].contains(&file.hash.len()) || !file.hash.chars().all(|c| c.is_ascii_hexdigit()) {
         bail!("Invalid file checksum");
     }
-    if file.path.is_file() && hash_file(&file.path, file.hash.len() == 64)? == file.hash {
+    if file.path.is_file() && file.size.is_none_or(|size| fs::metadata(&file.path).is_ok_and(|metadata| metadata.len() == size)) && hash_file(&file.path, file.hash.len() == 64)? == file.hash {
         return Ok(());
     }
+    let limit = file.size.unwrap_or(MAX_DOWNLOAD_BYTES);
+    if limit > MAX_DOWNLOAD_BYTES { bail!("Download exceeds size limit"); }
     let parent = file.path.parent().context("Invalid download path")?;
     fs::create_dir_all(parent)?;
-    let temp = file.path.with_extension("download");
+    let temp = file.path.with_extension(format!("{}.download", uuid::Uuid::new_v4()));
+    let _partial = PartialFile(temp.clone());
     let response = client.get(&file.url).send().await?.error_for_status()?;
+    if response.content_length().is_some_and(|size| size > limit) {
+        bail!("Download exceeds size limit");
+    }
+    let mut downloaded = 0u64;
     let mut stream = response.bytes_stream();
     let mut output = tokio::fs::File::create(&temp).await?;
     let mut sha1 = Sha1::new();
     let mut sha256 = Sha256::new();
     while let Some(bytes) = stream.next().await {
         let bytes = bytes?;
+        downloaded = downloaded.checked_add(bytes.len() as u64).context("Download exceeds size limit")?;
+        if downloaded > limit { bail!("Download exceeds size limit"); }
         output.write_all(&bytes).await?;
         if file.hash.len() == 64 {
             sha256.update(&bytes);
@@ -65,6 +80,7 @@ pub async fn fetch(client: &reqwest::Client, file: &Download) -> Result<()> {
             sha1.update(&bytes);
         }
     }
+    if file.size.is_some_and(|size| downloaded != size) { bail!("Download size does not match metadata"); }
     output.flush().await?;
     drop(output);
     let hash = if file.hash.len() == 64 {
@@ -122,7 +138,7 @@ pub async fn install(core: Arc<Core>, id: String, job: Arc<Job>) -> Result<()> {
     let meta_path = version_dir.join(format!("{}.json", instance.version));
     fetch(
         &core.client,
-        &Download {
+        &Download { size: None,
             url: version.url.clone(),
             hash: version.sha1.clone(),
             path: meta_path.clone(),
@@ -182,7 +198,7 @@ pub async fn install(core: Arc<Core>, id: String, job: Arc<Job>) -> Result<()> {
             .join("assets/objects")
             .join(&hash[..2])
             .join(hash);
-        files.push(Download {
+        files.push(Download { size: object["size"].as_u64(),
             url: format!(
                 "https://resources.download.minecraft.net/{}/{hash}",
                 &hash[..2]
@@ -323,7 +339,7 @@ pub async fn java(core: &Core, meta: &Value, override_path: &str) -> Result<Path
     let archive = core.store.root.join("java/downloads").join(name);
     fetch(
         &core.client,
-        &Download {
+        &Download { size: package["size"].as_u64(),
             url: metadata::text(package, "link")?.into(),
             hash: metadata::text(package, "checksum")?.into(),
             path: archive.clone(),
@@ -426,9 +442,13 @@ mod tests {
             "HTTP/1.1 200 OK\r\nContent-Length: 3\r\nConnection: close\r\n\r\nabc",
         ]).await;
         let dir=tempfile::tempdir().unwrap();let path=dir.path().join("file.jar");fs::write(&path,b"existing").unwrap();
-        let file=Download {url,hash:"a9993e364706816aba3e25717850c26c9cd0d89d".into(),path:path.clone(),phase:"Test".into()};
+        let file=Download { size: None,url,hash:"a9993e364706816aba3e25717850c26c9cd0d89d".into(),path:path.clone(),phase:"Test".into()};
         let client=reqwest::Client::builder().timeout(std::time::Duration::from_secs(3)).build().unwrap();
-        for _ in 0..3 {assert!(fetch(&client,&file).await.is_err());assert_eq!(fs::read(&path).unwrap(),b"existing");}
+        for _ in 0..3 {
+            assert!(fetch(&client,&file).await.is_err());
+            assert_eq!(fs::read(&path).unwrap(),b"existing");
+            assert_eq!(fs::read_dir(dir.path()).unwrap().count(),1,"failed transfers must remove their intermediates");
+        }
         fetch(&client,&file).await.unwrap();assert_eq!(fs::read(&path).unwrap(),b"abc");
         server.await.unwrap();
         // No server remains: a verified cache hit must work entirely offline.
@@ -438,7 +458,7 @@ mod tests {
     async fn filesystem_failure_does_not_publish_download() {
         let (url,server)=server(vec!["HTTP/1.1 200 OK\r\nContent-Length: 3\r\nConnection: close\r\n\r\nabc"]).await;
         let dir=tempfile::tempdir().unwrap();let parent=dir.path().join("blocked");fs::write(&parent,b"keep").unwrap();
-        let file=Download {url,hash:"a9993e364706816aba3e25717850c26c9cd0d89d".into(),path:parent.join("file.jar"),phase:"Test".into()};
+        let file=Download { size: None,url,hash:"a9993e364706816aba3e25717850c26c9cd0d89d".into(),path:parent.join("file.jar"),phase:"Test".into()};
         assert!(fetch(&reqwest::Client::new(),&file).await.is_err());assert_eq!(fs::read(parent).unwrap(),b"keep");
         assert!(!file.path.exists());server.abort();
     }

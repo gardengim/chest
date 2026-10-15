@@ -547,5 +547,16 @@
   "Finishing modpack preparation": "Modパックの準備を完了中",
   "{phase} · {verified} of {total} files verified": "{phase} · {total}ファイル中{verified}ファイルを検証済み",
   "Preparing modpack files · {current}/{total}": "Modパックのファイルを準備中 · {current}/{total}",
-  "Invalid Microsoft application ID": "MicrosoftアプリケーションIDが正しくありません"
+  "Invalid Microsoft application ID": "MicrosoftアプリケーションIDが正しくありません",
+  "Wait for the current operation to finish.": "現在の操作が完了するまでお待ちください。",
+  "Check storage": "ストレージを確認",
+  "Clear image cache": "画像キャッシュを消去",
+  "Shared game files": "共有ゲームファイル",
+  "Image cache": "画像キャッシュ",
+  "Other files": "その他のファイル",
+  "Storage scan is incomplete.": "ストレージの確認が完了していません。",
+  "Clear image cache?": "画像キャッシュを消去しますか？",
+  "Wait for file operations to finish before closing Chest.": "ファイル操作が完了してからChestを閉じてください。",
+  "Close Chest?": "Chestを閉じますか？",
+  "Installations will stop. Running games will remain open.": "インストールは停止します。実行中のゲームは開いたままになります。"
 }

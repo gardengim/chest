@@ -209,7 +209,7 @@ test('instance resource cards expose direct actions, overflow menus, rename and 
   await expect(page.locator('.world-list')).toHaveCSS('grid-template-columns',/\d/);
   await world.getByRole('button',{name:'Play',exact:true}).click();
   expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='launch_resource').args)).toEqual({id:'source',kind:'world',item:'Survival'});
-  const action=world.getByRole('button',{name:'Back up',exact:true});await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.4)');
+  const action=world.getByRole('button',{name:'Back up',exact:true});await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.8)');
   await world.getByRole('button',{name:'More actions',exact:true}).click();await page.getByRole('menuitem',{name:'Rename',exact:true}).click();
   const rename=page.getByRole('dialog',{name:'Rename',exact:true});await rename.getByLabel('Name',{exact:true}).fill('New world name');await rename.getByRole('button',{name:'Save',exact:true}).click();
   await expect(page.getByRole('heading',{name:'New world name',exact:true})).toBeVisible();

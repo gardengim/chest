@@ -14,14 +14,20 @@ import tempfile
 import threading
 import time
 import uuid
+import hashlib
+import platform
+import shutil
+import statistics
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--executable', required=True, type=Path)
 parser.add_argument('--instances', type=int, default=0)
 parser.add_argument('--samples', type=int, default=3)
 parser.add_argument('--output', type=Path)
+parser.add_argument('--idle-seconds', type=int, default=0)
+parser.add_argument('--keep-profile', action='store_true')
 args = parser.parse_args()
-if not 0 <= args.instances <= 1000 or not 1 <= args.samples <= 30:
+if not 0 <= args.instances <= 1000 or not 1 <= args.samples <= 30 or not 0 <= args.idle_seconds <= 3600:
     parser.error('Use 0–1000 instances and 1–30 samples')
 executable = args.executable.resolve(strict=True)
 profile = Path(tempfile.mkdtemp(prefix='chest-native-startup-')).resolve()
@@ -31,7 +37,7 @@ config = dict(instances=[dict(id=str(uuid.uuid4()), name=f'World {n:04}', versio
 # marker by first launching with the empty directory.
 env = {**os.environ, 'CHEST_TEST_PROFILE': str(profile), 'CHEST_STARTUP_TRACE': '1'}
 
-def launch():
+def launch(measure_idle=True):
     events = queue.Queue()
     started = time.perf_counter()
     process = subprocess.Popen([str(executable)], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, bufsize=1)
@@ -45,20 +51,52 @@ def launch():
     try:
         deadline = started + 30
         while True:
-            when, line = events.get(timeout=max(.01, deadline - time.perf_counter()))
+            try:
+                when, line = events.get(timeout=max(.01, deadline - time.perf_counter()))
+            except queue.Empty as error:
+                raise TimeoutError(f'No library-ready trace: {diagnostics[-10:]}') from error
             if line is None:
                 raise RuntimeError(f'App exited before readiness: {diagnostics[-10:]}')
             if line.startswith('CHEST_STARTUP '):
                 stage = json.loads(line[len('CHEST_STARTUP '):])
                 stages.append(stage)
                 if stage['stage'] == 'library-rendered':
-                    return dict(processToLibraryMs=(when-started)*1000, stages=stages)
+                    if process.poll() is not None:
+                        raise RuntimeError('App exited at readiness')
+                    result = dict(processToLibraryMs=(when-started)*1000, stages=stages)
+                    if args.idle_seconds and measure_idle:
+                        time.sleep(5)  # Exclude immediate post-readiness initialization.
+                        if platform.system() == 'Windows':
+                            raise RuntimeError('Idle process sampling currently requires macOS/Linux; startup sampling remains portable')
+                        def sample():
+                            if process.poll() is not None:
+                                raise RuntimeError('App exited during sampling')
+                            fields = subprocess.check_output(['ps','-p',str(process.pid),'-o','rss=,time='],text=True).split()
+                            cpu = fields[1]
+                            days = 0
+                            if '-' in cpu:
+                                day, cpu = cpu.split('-',1); days = int(day)
+                            pieces = [float(piece) for piece in cpu.split(':')]
+                            seconds = sum(value*60**index for index,value in enumerate(reversed(pieces))) + days*86400
+                            rss = int(fields[0])
+                            if rss <= 0: raise RuntimeError('Invalid process RSS sample')
+                            return dict(rssKiB=rss,cpuSeconds=seconds)
+                        readings = [sample()]
+                        idle_start = time.perf_counter()
+                        for _ in range(args.idle_seconds):
+                            time.sleep(1);readings.append(sample())
+                        duration = time.perf_counter()-idle_start
+                        result['idle'] = dict(seconds=duration,settleSeconds=5,meanRssMiB=statistics.mean(row['rssKiB'] for row in readings)/1024,
+                            peakRssMiB=max(row['rssKiB'] for row in readings)/1024,
+                            cpuPercent=100*(readings[-1]['cpuSeconds']-readings[0]['cpuSeconds'])/duration,
+                            processTreeComplete=False,boundary='Owned main process only; excludes WebView/GPU/network subprocesses and game JVM',samples=readings)
+                    return result
             else:
                 diagnostics.append(line)
             if time.perf_counter() >= deadline:
                 raise TimeoutError(f'No library-ready trace: {diagnostics[-10:]}')
     finally:
-        process.terminate()
+        if process.poll() is None: process.terminate()
         try:
             process.wait(timeout=5)
         except subprocess.TimeoutExpired:
@@ -67,13 +105,18 @@ def launch():
         reader.join(timeout=2)
         process.stderr.close()
 
-if args.instances:
-    launch()  # Creates isolated WebKit/profile identity; not a populated sample.
-    (profile/'config.json').write_text(json.dumps(config))
-samples = [launch() for _ in range(args.samples)]
-result = dict(executable=str(executable), profile=str(profile), instances=args.instances, samples=samples,
-              medianProcessToLibraryMs=sorted(sample['processToLibraryMs'] for sample in samples)[len(samples)//2],
-              boundary='Parent Popen to native receipt of library-rendered IPC after two animation frames; no Finder/LaunchServices; test-profile isolation enabled')
-if args.output:
-    args.output.write_text(json.dumps(result, indent=2)+'\n')
-print(json.dumps(result, indent=2))
+try:
+    if args.instances:
+        launch(measure_idle=False)  # Rust initializes the empty isolated profile before adding fixtures.
+        (profile/'config.json').write_text(json.dumps(config))
+    samples = [launch() for _ in range(args.samples)]
+    result = dict(executable=str(executable), executableSha256=hashlib.sha256(executable.read_bytes()).hexdigest(),
+        platform=platform.platform(), profile=str(profile), profileRetained=args.keep_profile, instances=args.instances,
+        samples=samples,medianProcessToLibraryMs=statistics.median(sample['processToLibraryMs'] for sample in samples),
+        boundary='Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only')
+    if args.output:
+        if args.output.resolve().is_relative_to(profile): raise ValueError('Output must be outside the test profile')
+        args.output.write_text(json.dumps(result, indent=2)+'\n')
+    print(json.dumps(result, indent=2))
+finally:
+    if not args.keep_profile: shutil.rmtree(profile)

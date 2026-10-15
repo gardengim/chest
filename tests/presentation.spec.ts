@@ -82,6 +82,7 @@ test('page extraction preserves library choices, creation draft, settings draft,
   await page.getByLabel('Memory (MB)').fill('6144');
   await page.getByLabel('Java executable').fill('/draft/java');
   await page.getByRole('button',{name:'Chest home'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Save',exact:true}).click();
   await expect(page.getByLabel('Search instances')).toHaveValue('world');
   await expect(page.locator('.instance-grid')).toHaveClass(/library-list/);
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
@@ -131,13 +132,15 @@ test('pending form submissions remain disabled after leaving and returning to th
   await page.evaluate(()=>(window as any).__finishCreate());
   await expect(page.locator('.instance-hero')).toContainText('Pending world');
   await page.getByRole('button',{name:'Settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
+  await page.getByLabel('Memory (MB)').fill('6144');
   await page.getByRole('button',{name:'Save',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saving…',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Chest home'}).click();
-  await page.getByRole('button',{name:'Settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Saving…',exact:true})).toBeDisabled();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('button',{name:'Saving…',exact:true})).toBeDisabled();
   await page.evaluate(()=>(window as any).__finishSettings());
-  await expect(page.getByRole('button',{name:'Save',exact:true})).toBeEnabled();
+  await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Save',exact:true})).toBeDisabled();
 });
 
 test('inventory controls align and discovery tabs support the same keyboard navigation',async({page})=>{

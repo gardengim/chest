@@ -547,5 +547,16 @@
   "Finishing modpack preparation": "正在完成整合包准备",
   "{phase} · {verified} of {total} files verified": "{phase} · 已验证 {verified} 个文件，共 {total} 个",
   "Preparing modpack files · {current}/{total}": "正在准备整合包文件 · {current}/{total}",
-  "Invalid Microsoft application ID": "Microsoft 应用程序 ID 无效"
+  "Invalid Microsoft application ID": "Microsoft 应用程序 ID 无效",
+  "Wait for the current operation to finish.": "请等待当前操作完成。",
+  "Check storage": "检查存储空间",
+  "Clear image cache": "清除图片缓存",
+  "Shared game files": "共享游戏文件",
+  "Image cache": "图片缓存",
+  "Other files": "其他文件",
+  "Storage scan is incomplete.": "存储空间扫描未完成。",
+  "Clear image cache?": "清除图片缓存？",
+  "Wait for file operations to finish before closing Chest.": "请等待文件操作完成后再关闭 Chest。",
+  "Close Chest?": "关闭 Chest？",
+  "Installations will stop. Running games will remain open.": "安装将停止，正在运行的游戏将保持运行。"
 }

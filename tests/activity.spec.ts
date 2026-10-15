@@ -31,6 +31,7 @@ test('native events keep selection, halo, and progress separate; keyboard expose
   expect(progress!.x+progress!.width).toBeLessThan(tab!.x+tab!.width);
   expect(progress!.y).toBeGreaterThan(art!.y);
   expect(progress!.y+progress!.height).toBeLessThan(art!.y+art!.height);
+  await expect.poll(()=>page.evaluate(()=>(window as any).__fileScans)).toBe(1);
   const scans=await page.evaluate(()=>(window as any).__fileScans);
   await page.evaluate(async()=>{
     for(let i=0;i<5;i++){

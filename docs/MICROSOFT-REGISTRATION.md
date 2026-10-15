@@ -54,7 +54,7 @@ Prepare these form answers:
 Suggested justification, for owner review:
 
 > Chest is an open-source desktop launcher for Minecraft Java Edition on Windows,
-> macOS and Linux. It manages separate Vanilla, Fabric and Quilt instances and
+> macOS and Linux. It manages separate Vanilla, Fabric, Quilt, Forge and NeoForge instances and
 > their mods, resource packs and shaders. We request Java Edition game service
 > API access to authenticate users, verify game ownership and obtain their player
 > profiles before launching the game. Sign-in uses the system browser with OAuth
@@ -70,9 +70,14 @@ request or EULA acknowledgement has been submitted automatically.
 
 ## 3. Configure and validate
 
-Enter the client ID in Chest under Settings → Settings → Microsoft application
-setup, then save. `CHEST_CLIENT_ID` supplies an initial value only for fresh
-configurations; setting it does not replace an existing saved ID.
+Chest defaults to public client ID `2a46389b-7bf0-4854-95b8-0e808d0ac054` for
+fresh configurations and existing empty IDs. On October 14 the owner reported
+successful sign-in using this ID; refresh, entitlement and platform acceptance
+still need their own test records.
+
+For development overrides, use Settings → Development → Microsoft application
+setup, then save. Explicit nonempty saved IDs take precedence. `CHEST_CLIENT_ID`
+overrides the built-in default only when no nonempty saved ID exists.
 
 After approval, use an isolated profile and an owning account to verify browser
 sign-in, Xbox/XSTS exchange, Minecraft ownership/profile retrieval, launch,
@@ -80,10 +85,10 @@ refresh after restarting Chest, account switching and sign-out. A Microsoft
 registration alone does not prove Minecraft access. Keep tokens, passwords and
 credential-store contents out of logs and issue reports.
 
-For public releases, wire the approved **public client ID** into release defaults
-so ordinary users need not register their own app. That integration remains
-pending until Chest's own registration exists; never substitute another
-launcher's client ID.
+Public releases include Chest's public client ID, so ordinary users do not need
+to register their own application. `scripts/check-auth-config.mjs` rejects missing
+or placeholder defaults during validation and release packaging. It checks
+configuration, not provider approval or successful live authentication.
 
 ## Sources
 

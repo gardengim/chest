@@ -3,6 +3,7 @@ import {scriptCommand} from './package-runner.mjs';
 const run=scriptCommand;
 const commands=[
   run('check:release'),
+  ['node',['scripts/check-auth-config.mjs']],
   run('test:scripts'),
   run('check'),
   run('build'),
@@ -10,7 +11,7 @@ const commands=[
   ['cargo',['test','--locked','--manifest-path','core/Cargo.toml']],
   ['cargo',['clippy','--locked','--manifest-path','core/Cargo.toml','--all-targets','--','-D','warnings']],
   ['cargo',['check','--locked','--manifest-path','src-tauri/Cargo.toml']],
-  ['cargo',['test','--locked','--manifest-path','src-tauri/Cargo.toml','--lib','shortcuts']],
+  ['cargo',['test','--locked','--manifest-path','src-tauri/Cargo.toml','--lib']],
   run('test'),
 ];
 for(const [command,args] of commands){const result=spawnSync(command,args,{stdio:'inherit'});if(result.error)throw result.error;if(result.status!==0)process.exit(result.status ?? 1);}

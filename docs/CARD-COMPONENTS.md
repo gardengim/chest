@@ -16,6 +16,13 @@ All gallery and list cards use `Card.svelte`: instance library, instance chooser
 
 Grid/container CSS variables can control descendant cards: `--card-min`, `--card-gap`, `--card-column-width`, `--card-height`, `--card-padding`, `--card-media-ratio`, `--card-icon-size`, and `--card-body-min`. Catalog pagination measures the same shared minimum and gap variables as its grid; keep overrides on the catalog-results container so its measurement probe inherits them too.
 
-The card owns borders, pixel bevels, typography, media defaults, list presentation, body spacing, action alignment, and action-button styling. Action buttons use a 40% black background with blur and an edge bevel, retaining shared hover/press/focus/disabled feedback. The card gradient now retains image detail through the lower body as well. The old 80% fill over an almost opaque lower gradient appeared opaque; do not add a solid backing layer or full-surface shadow. Regression coverage changes the background behind a button and compares its painted output, rather than checking only CSS alpha. Do not add resource-only action styling or screenshot-only shell overrides. Optional `.secondary-action` controls move out of the visible action row in narrow card bodies; expose those operations in the card's existing overflow menu.
+The card owns borders, pixel bevels, typography, media defaults, list presentation, body spacing, action alignment, and action-button styling. Action buttons use an 80% black background, overlay foreground colors and blur and an edge bevel, retaining shared hover/press/focus/disabled feedback. The card gradient now retains image detail through the lower body as well. An opaque lower backing layer can make translucent actions appear opaque; do not add a solid backing layer or full-surface shadow. Regression coverage changes the background behind a button and compares its painted output, rather than checking only CSS alpha. Do not add resource-only action styling or screenshot-only shell overrides. Optional `.secondary-action` controls move out of the visible action row in narrow card bodies; expose those operations in the card's existing overflow menu.
 
 Coverage checks shared geometry across card kinds, grid-controlled dimensions, artwork fallback and failure recovery, dark/blurred action buttons, screenshot previews, responsive layouts, chooser dialogs, and catalog pagination.
+
+Local screenshot card media uses display/DPR-bucketed PNG thumbnails (256/512/1024),
+while header backgrounds request 1024px derivatives. Full originals load only for
+explicit preview/open. Derivatives never replace originals. Native decoding is
+bounded and serialized for shared cache ownership; the derivative cache is limited
+to 128 MiB/256 images. Its limits are separate from mounted/decoded WebView memory.
+Instance collections render at most 24 cards; full collections use shared pagination.

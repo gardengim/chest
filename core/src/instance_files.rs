@@ -34,9 +34,12 @@ pub(crate) fn names(game:&Path,kind:&str)->Result<Vec<String>>{
         if ty.is_symlink(){continue;}
         let valid=if kind=="saves"{ty.is_dir() && entry.path().join("level.dat").is_file()}else{ty.is_file() && name.to_ascii_lowercase().ends_with(".png")};
         if valid{names.push(name);}
-        if names.len()>=1000{break;}
     }
-    names.sort();if kind=="screenshots"{names.reverse();}Ok(names)
+    if kind == "screenshots" {
+        names.sort_by_cached_key(|name| (std::cmp::Reverse(fs::metadata(directory.join(name))
+            .and_then(|meta| meta.modified()).ok()), std::cmp::Reverse(name.clone())));
+    } else { names.sort(); }
+    Ok(names)
 }
 pub(crate) fn servers(game:&Path)->Result<Vec<Server>> {
         let file=game.join("servers.dat");
@@ -97,7 +100,8 @@ impl Core {
         if !name.to_ascii_lowercase().ends_with(".png"){bail!("Expected a PNG screenshot");}
         let path=self.instance_file(id,"screenshots",name)?;
         let mut bytes=Vec::new();fs::File::open(path)?.take(16*1024*1024+1).read_to_end(&mut bytes)?;
-        if bytes.len()>16*1024*1024 || !bytes.starts_with(b"\x89PNG\r\n\x1a\n"){bail!("Invalid or oversized screenshot");}
+        if bytes.len()>16*1024*1024 {bail!("Invalid or oversized screenshot");}
+        crate::screenshot_images::validate_screenshot(&bytes)?;
         Ok(format!("data:image/png;base64,{}",base64::engine::general_purpose::STANDARD.encode(bytes)))
     }
     pub fn shared_datapacks(&self)->Result<()>{let path=self.store.root.join("datapacks");fs::create_dir_all(&path)?;open::that(path)?;Ok(())}
@@ -127,6 +131,16 @@ impl Core {
 }
 #[cfg(test)]mod tests{
     use super::*;
+    #[test]
+    fn collections_include_every_file_beyond_the_previous_limit() {
+        let directory=tempfile::tempdir().unwrap();
+        fs::create_dir(directory.path().join("screenshots")).unwrap();
+        for number in (0..1005).rev() { fs::write(directory.path().join("screenshots").join(format!("{number:04}.png")),[]).unwrap(); }
+        let files=names(directory.path(),"screenshots").unwrap();
+        assert_eq!(files.len(),1005);
+        assert!(files.contains(&"1004.png".into()));
+        assert_eq!(files,names(directory.path(),"screenshots").unwrap());
+    }
     #[test]fn global_screenshots_list_pngs_without_loading_images(){
         let d=tempfile::tempdir().unwrap();let core=Core::new(d.path().into(), |_|{}, |_|{}).unwrap();
         let instance=core.store.create("Photos".into(),"1.21.4".into(),"grass".into()).unwrap();let game=core.instance_folder(&instance.id).unwrap();

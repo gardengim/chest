@@ -94,7 +94,7 @@ async fn main() -> Result<()> {
     let path = temp.path().join("base.json");
     install::fetch(
         &core.client,
-        &metadata::Download {
+        &metadata::Download { size: None,
             url: vanilla.url.clone(),
             hash: vanilla.sha1.clone(),
             path: path.clone(),

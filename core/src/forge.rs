@@ -186,7 +186,7 @@ pub async fn prepare(core: &Core, instance: &Instance, job: &Job, base: Value) -
     ));
     install::fetch(
         &core.client,
-        &metadata::Download {
+        &metadata::Download { size: None,
             url,
             hash,
             path: path.clone(),

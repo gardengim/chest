@@ -1,4 +1,6 @@
 <script lang="ts">
+  import UnsavedChangesDialog from './UnsavedChangesDialog.svelte';
+  import {trimLogs} from './log-retention';
   import {layoutOffset,moveToIndex,movedEnough} from './reorder';
   import DirectionIcon from './DirectionIcon.svelte';
   import CopyButton from './CopyButton.svelte';
@@ -54,7 +56,10 @@
   let settingsDraft=$state<SettingsFormState>({pending:false,clientId:'',javaPath:'',memory:4096});
   let settingsTab=$state<SettingsTab>('Accounts');
   let settingsBaseline=$state<SettingsValues|null>(null);
-  let leaveSettings=$state<{page:string}|{tab:SettingsTab}|null>(null);
+  type ExitAction='close'|'quit'|'restart';
+  let leaveSettings=$state<{page:string}|{tab:SettingsTab}|{exit:ExitAction}|null>(null);
+  let exitBlocked=$state(false);
+  let exitConfirmation=$state<ExitAction|null>(null);
   const settingsValues=$derived<SettingsValues>({memory:settingsDraft.memory,javaPath:settingsDraft.javaPath,locale:$locale,
     autoUpdateChecks:$autoUpdateChecks,doubleClickLaunch:$doubleClickLaunch,reduceMotion:$reduceMotion,
     defaultInstanceLocation:$defaultInstanceLocation,scheme:$currentScheme,mode:$appearanceMode});
@@ -93,7 +98,8 @@
     if(save && !await saveSettings())return;
     const next=leaveSettings;leaveSettings=null;
     if(!next)return;
-    if('tab' in next)chooseSettingsTab(next.tab,true);else select(next.page,true);
+    if('exit' in next)await finishExit(next.exit);
+    else if('tab' in next)chooseSettingsTab(next.tab,true);else select(next.page,true);
   }
   $effect(()=>{if(!loading && destination==='profile' && settingsTab==='Settings' && !settingsBaseline)beginSettingsSession();});
   let confirm=$state<{kind:'delete'|'stop';id:string;name:string}|null>(null);
@@ -318,7 +324,7 @@
   const creationChanged=$derived(creation.name!=='' || creation.method!=='Custom' ||
     creation.version!==(versions[0]?.id || '') || creation.loader!=='vanilla' || creation.loaderVersion!=='' ||
     creation.parent!=='' || !!creation.pack || !!creation.archive || creation.files.length>0 || creation.catalog.length>0);
-  let leaveCreation=$state<string|null>(null);
+  let leaveCreation=$state<string|{exit:ExitAction}|null>(null);
   let resourceLink=$state<ResourceLink|null>(null);
   function openResource(id:string,tab:'Worlds'|'Servers',item:string){select(id);if(destination===id){selectedTabs[id]=tab;resourceLink={id,tab,item,key:Date.now()};}}
   function select(id:string,completed=false) {
@@ -404,7 +410,26 @@
   async function signIn(){signingIn=true;await perform(async()=>{await api.signIn();await reload();});signingIn=false;}
   function cancelDialog(event:Event){event.preventDefault();if(signingIn)void perform(()=>api.cancelSignIn());else confirm=null;}
   async function handleIntent(){if(!native)return;await perform(async()=>{const intent=await api.takeIntent();if(!intent)return;const instance=config.instances.find(i=>i.id===intent.id);if(!instance)return;select(instance.id);if(destination===instance.id && intent.launch && instance.installed && !ui(instance).busy)await action(instance);});}
+  async function finishExit(action:ExitAction,confirmed=false){
+    if(busy || signingIn || settingsDraft.pending || creation.pending || ['downloading','installing'].includes($appUpdate.phase)){
+      exitBlocked=true;return;
+    }
+    if(!confirmed && action!=='restart' && Object.values(activities).some(activity=>['running','starting','installing','paused','pausing'].includes(activity.status))){
+      exitConfirmation=action;return;
+    }
+    endSettingsSession();
+    await perform(()=>action==='restart'?api.restartUpdatedApp():api.completeExit(action));
+  }
+  function requestExit(action:ExitAction){
+    if(settingsBaseline && (settingsDirty || settingsDraft.pending)){leaveSettings={exit:action};return;}
+    if(destination==='create' && (creationChanged || creation.pending)){leaveCreation={exit:action};return;}
+    void finishExit(action);
+  }
   function handleDesktopMenu(action:DesktopMenuAction){
+    if(action==='close' || action==='quit' || action==='restart'){
+      if(!document.querySelector('dialog[open]') || action==='restart')requestExit(action);
+      return;
+    }
     if(loading || document.querySelector('dialog[open]'))return;
     switch(action){
       case 'settings':case 'about':select('profile');if(destination==='profile')chooseSettingsTab(action==='about'?'About':'Settings');break;
@@ -420,6 +445,7 @@
     function flushLogs(){
       logTimer=undefined;
       for(const [id,lines] of pendingLogs)if(instancesById.has(id))logs[id]=[...(logs[id] || []),...lines].slice(-2000);
+      trimLogs(logs,[...pendingLogs.keys()]);
       pendingLogs.clear();
     }
     function queueLog(log:{id:string;line:string}){
@@ -582,28 +608,36 @@
 {/if}
 
 {#if leaveCreation}
-  <dialog class="modal" aria-labelledby="leave-creation-title" use:showDialog oncancel={event=>{event.preventDefault();leaveCreation=null;}}>
-    <h2 id="leave-creation-title">{$t(creation.pending?'Creating your instance…':'Discard draft?')}</h2>
-    <p>{$t(creation.pending?'Wait for creation to finish before leaving.':'Unsaved choices will be lost.')}</p>
-    <div class="form-actions"><Button onclick={()=>leaveCreation=null}>{$t("Cancel")}</Button><Button tone="danger" disabled={creation.pending} onclick={()=>{const next=leaveCreation!;leaveCreation=null;creation={pending:false,method:'Custom',name:'',version:versions[0]?.id || '',loader:'vanilla',loaderVersion:'',parent:'',pack:null,archive:null,files:[],catalog:[]};select(next,true);}}>{$t("Discard")}</Button></div>
-  </dialog>
+  <UnsavedChangesDialog title={creation.pending?'Creating your instance…':'Discard draft?'} description={creation.pending?'Wait for creation to finish before leaving.':'Unsaved choices will be lost.'}
+    pending={creation.pending} oncancel={()=>leaveCreation=null} ondiscard={()=>{
+      const next=leaveCreation!;leaveCreation=null;
+      creation={pending:false,method:'Custom',name:'',version:versions[0]?.id || '',loader:'vanilla',loaderVersion:'',parent:'',pack:null,archive:null,files:[],catalog:[]};
+      if(typeof next==='string')select(next,true);else void finishExit(next.exit);
+    }}/>
 {/if}
-
 {#if leaveSettings}
-  <dialog class="modal" aria-labelledby="leave-settings-title" use:showDialog oncancel={event=>{event.preventDefault();if(!settingsDraft.pending)leaveSettings=null;}}>
-    <h2 id="leave-settings-title">{$t('Save settings changes?')}</h2>
-    {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
-    <div class="form-actions">
-      <Button disabled={settingsDraft.pending} onclick={()=>leaveSettings=null}>{$t('Cancel')}</Button>
-      <Button tone="danger" disabled={settingsDraft.pending} onclick={()=>finishSettingsNavigation(false)}>{$t('Discard')}</Button>
-      <Button tone="accent" disabled={settingsDraft.pending} onclick={()=>finishSettingsNavigation(true)}>{$t(settingsDraft.pending?'Saving…':'Save')}</Button>
-    </div>
-  </dialog>
+  <UnsavedChangesDialog title="Save settings changes?" {error} pending={settingsDraft.pending} lockCancel
+    oncancel={()=>leaveSettings=null} ondiscard={()=>finishSettingsNavigation(false)} onsave={()=>finishSettingsNavigation(true)}/>
 {/if}
 
 {#if appUpdateDialog}
   <dialog class="modal" aria-label={$t('Chest updates')} use:showDialog oncancel={event=>{event.preventDefault();appUpdateDialog=false;}}>
     <div class="section-heading"><h2>{$t('Chest updates')}</h2><Button class="dialog-close" aria-label={$t('Close updater')} onclick={()=>appUpdateDialog=false}><Icon name="close" size={18}/></Button></div>
     <AppUpdater heading={false}/>
+  </dialog>
+{/if}
+
+{#if exitBlocked}
+  <dialog class="modal" aria-labelledby="exit-blocked-title" use:showDialog oncancel={event=>{event.preventDefault();exitBlocked=false;}}>
+    <h2 id="exit-blocked-title">{$t('Wait for the current operation to finish.')}</h2>
+    <Button onclick={()=>exitBlocked=false}>{$t('Cancel')}</Button>
+  </dialog>
+{/if}
+
+{#if exitConfirmation}
+  <dialog class="modal" aria-labelledby="exit-confirmation-title" use:showDialog oncancel={event=>{event.preventDefault();exitConfirmation=null;}}>
+    <h2 id="exit-confirmation-title">{$t(exitConfirmation==='quit'?'Quit Chest':'Close Chest?')}</h2>
+    <p>{$t('Installations will stop. Running games will remain open.')}</p>
+    <div class="form-actions"><Button onclick={()=>exitConfirmation=null}>{$t('Cancel')}</Button><Button tone="danger" onclick={()=>{const action=exitConfirmation!;exitConfirmation=null;void finishExit(action,true);}}>{$t(exitConfirmation==='quit'?'Quit Chest':'Close')}</Button></div>
   </dialog>
 {/if}

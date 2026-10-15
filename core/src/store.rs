@@ -72,7 +72,7 @@ impl Default for Config {
             launch_settings: Default::default(),
             accounts: vec![],
             active_account: None,
-            client_id: std::env::var("CHEST_CLIENT_ID").unwrap_or_default(),
+            client_id: client_id(""),
             java_path: String::new(),
             memory_mb: 4096,
         }
@@ -118,6 +118,13 @@ pub fn validate(instance: &Instance) -> Result<()> {
     }
     Ok(())
 }
+// Public application identifier, not a credential. Explicit saved IDs take precedence.
+pub const DEFAULT_CLIENT_ID: &str = "2a46389b-7bf0-4854-95b8-0e808d0ac054";
+fn client_id(saved: &str) -> String {
+    if !saved.trim().is_empty() { return saved.trim().into(); }
+    std::env::var("CHEST_CLIENT_ID").ok().filter(|id| !id.trim().is_empty())
+        .unwrap_or_else(|| DEFAULT_CLIENT_ID.into()).trim().into()
+}
 impl Store {
     pub fn new(root: PathBuf) -> Result<Self> {
         Self::new_scoped(root, None)
@@ -127,12 +134,13 @@ impl Store {
     pub fn new_scoped(root: PathBuf, credential_scope: Option<String>) -> Result<Self> {
         fs::create_dir_all(&root)?;
         let file = root.join("config.json");
-        let config = if file.exists() {
+        let mut config: Config = if file.exists() {
             serde_json::from_slice(&fs::read(file)?)
                 .context("Cannot read Chest settings; original file was left unchanged")?
         } else {
             Config::default()
         };
+        config.client_id = client_id(&config.client_id);
         Ok(Self {
             root,
             credential_scope,
@@ -146,6 +154,7 @@ impl Store {
         let mut guard = self.config.lock().unwrap();
         let mut next = guard.clone();
         edit(&mut next)?;
+        next.client_id = client_id(&next.client_id);
         let tmp = self.root.join("config.json.tmp");
         fs::write(&tmp, serde_json::to_vec_pretty(&next)?)?;
         fs::rename(tmp, self.root.join("config.json"))?;
@@ -409,6 +418,19 @@ mod tests {
         assert_eq!(reopened.loader_version, "0.16.9");
         instance.loader_version = "../unsafe".into();
         assert!(s.save(instance).is_err());
+    }
+    #[test]
+    fn default_application_id_migrates_empty_config_and_preserves_explicit_ids() {
+        let directory = tempfile::tempdir().unwrap();
+        let mut config = Config::default();
+        config.client_id.clear();
+        fs::write(directory.path().join("config.json"), serde_json::to_vec(&config).unwrap()).unwrap();
+        assert!(!Store::new(directory.path().into()).unwrap().config().client_id.is_empty());
+        config.client_id = "custom-public-id".into();
+        fs::write(directory.path().join("config.json"), serde_json::to_vec(&config).unwrap()).unwrap();
+        let store = Store::new(directory.path().into()).unwrap();
+        assert_eq!(store.config().client_id, "custom-public-id");
+        assert!(!store.change(|config| { config.client_id.clear(); Ok(()) }).unwrap().client_id.is_empty());
     }
     #[test]
     fn does_not_replace_corrupt_config() {

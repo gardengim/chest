@@ -1,6 +1,7 @@
 import {writable,get} from 'svelte/store';
 import {Channel,invoke} from '@tauri-apps/api/core';
 import {native} from './api';
+import {emit} from '@tauri-apps/api/event';
 import {autoUpdateChecks} from './preferences';
 export interface UpdateInfo {current_version:string;development:boolean;test_profile?:boolean;version:string|null;notes:string|null;}
 interface Progress {downloaded:number;total:number|null;installing:boolean;}
@@ -27,5 +28,5 @@ export async function installUpdate(){
   catch(error){appUpdate.update(s=>({...s,phase:'error',error:String(error)}));}
 }
 export async function restartUpdatedApp(){
-  try{await invoke('restart_updated_app');}catch(error){appUpdate.update(s=>({...s,error:String(error)}));}
+  try{await emit('desktop-menu','restart');}catch(error){appUpdate.update(s=>({...s,error:String(error)}));}
 }

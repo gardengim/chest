@@ -67,6 +67,10 @@ function previewCatalog(query:CatalogQuery):CatalogPage {
   return {projects:projects.slice(query.offset,query.offset+20),total:projects.length};
 }
 export const api = {
+  restartUpdatedApp:()=>call<void>('restart_updated_app'),
+  storageUsage:()=>call<{instance_bytes:number;shared_bytes:number;cache_bytes:number;clearable_bytes:number;other_bytes:number;complete:boolean}>('get_storage_usage'),
+  clearImageCache:()=>call<number>('clear_image_cache'),
+  completeExit:(action:string)=>call<void>('complete_exit',{action}),
   importColorScheme:()=>call<{name:string;source:string}|null>('import_color_scheme'),
   exportColorScheme:(source:string)=>call<boolean>('export_color_scheme',{source}),
   renameResource:(id:string,kind:'world'|'server',item:string,name:string)=>call<void>('rename_resource',{id,kind,item,name}),
@@ -87,6 +91,7 @@ export const api = {
   instanceFiles:(id:string)=>call<import('./types').InstanceFiles>('get_instance_files',{id}),
   openInstanceFile:(id:string,kind:string,name:string)=>call<void>('open_instance_file',{id,kind,name}),
   screenshotImage:(id:string,name:string)=>call<string>('get_screenshot_image',{id,name}),
+  screenshotThumbnail:(id:string,name:string,edge=512)=>call<string>('get_screenshot_image',{id,name,edge}),
   sharedDatapacks:()=>call<void>('open_shared_datapacks'),
   applyDatapacks:(id:string,world:string)=>call<number>('apply_shared_datapacks',{id,world}),
   shortcut:(id:string)=>call<string>('create_instance_shortcut',{id}),

@@ -4,6 +4,7 @@
   import {showDialog} from './dialog';
   import ColorSchemeSettings from './ColorSchemeSettings.svelte';
   import AppUpdater from './AppUpdater.svelte';
+  import StorageUsage from './StorageUsage.svelte';
   import { t } from './i18n';
   import Select from './Select.svelte';
   import { languages,locale,autoUpdateChecks,doubleClickLaunch,reduceMotion,defaultInstanceLocation } from './preferences';
@@ -110,6 +111,7 @@
         <div class="settings-field-row"><label>{$t('Shared data packs')}<input readonly value={launcherInfo?.data_path ? `${launcherInfo.data_path}/datapacks` : ''}/></label><Button disabled={!native} onclick={()=>perform(()=>api.sharedDatapacks())}>{$t('Open folder')}</Button></div>
         <div class="settings-field-row"><label>{$t('Default instance folder')}<input bind:value={$defaultInstanceLocation} placeholder={$t('Automatic')}/></label><Button disabled={!native} aria-label={$t('Choose instance folder')} onclick={()=>perform(async()=>{const path=await api.chooseLocation();if(path)$defaultInstanceLocation=path;})}>{$t('Browse')}</Button><Button disabled={!$defaultInstanceLocation} onclick={()=>$defaultInstanceLocation=''}>{$t('Reset')}</Button></div>
         <div class="settings-field-row"><label>{$t('Chest data folder')}<input readonly value={launcherInfo?.data_path || ''}/></label><Button disabled={!native} onclick={()=>perform(()=>api.dataFolder())}>{$t('Open folder')}</Button></div>
+        <StorageUsage/>
         {#if infoError}<p class="inline-error" role="alert">{infoError}</p><Button onclick={loadInfo}>{$t('Retry')}</Button>{/if}
       </section>
       <AppUpdater headingLabel="Updates">

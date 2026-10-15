@@ -19,6 +19,7 @@ pub struct Manifest {
 }
 #[derive(Clone, Debug)]
 pub struct Download {
+    pub size: Option<u64>,
     pub url: String,
     pub hash: String,
     pub path: PathBuf,
@@ -103,7 +104,7 @@ pub fn download(v: &Value, path: PathBuf, phase: &str) -> Result<Download> {
     if !url.starts_with("https://") {
         bail!("Download URL must use HTTPS");
     }
-    Ok(Download {
+    Ok(Download { size: v["size"].as_u64(),
         url,
         hash: text(v, "sha1")?.into(),
         path,

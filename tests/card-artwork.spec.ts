@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jJ9kAAAAASUVORK5CYII=';
 async function fixture(page:import('@playwright/test').Page){
   await page.addInitScript(png=>{
-    const w=window as any;w.isTauri=true;w.__calls=[];w.__screenshots=[];w.__screenshotLoads=[];
+    const w=window as any;w.isTauri=true;w.__calls=[];w.__screenshots=[];w.__screenshotLoads=[];w.__screenshotRequests=[];
     const instances=[{id:'instance',name:'Adventure',version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true}];
     const config={instances,accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096,server_bookmarks:[{id:'server',name:'Friends',address:'example.test',instance_id:'instance',expected_version:'',expected_loader:null}]};
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
@@ -15,7 +15,7 @@ async function fixture(page:import('@playwright/test').Page){
       if(name==='get_worlds')return {worlds:[{instance_id:'instance',folder:'Survival',name:'Survival',version:'1.21.4',data_version:null,last_played:null}],unavailable:[]};
       if(name==='get_world_icon'||name==='get_server_icon')return png;
       if(name==='get_screenshots')return {screenshots:[{instance_id:'instance',name:'image.png',modified:1}],unavailable:[]};
-      if(name==='get_screenshot_image'){w.__screenshotLoads.push(args.name);return png;}
+      if(name==='get_screenshot_image'){w.__screenshotLoads.push(args.name);w.__screenshotRequests.push(args);return png;}
       if(name==='get_instance_files')return {worlds:['Survival'],servers:[{name:'Friends',ip:'example.test',icon:png}],screenshots:['image.png']};
       if(name==='get_instance_worlds')return [{instance_id:'instance',folder:'Survival',name:'Survival',version:'1.21.4',data_version:null,last_played:null}];
       if(name==='get_content')return [{name:'example.jar',kind:'mods',enabled:true}];
@@ -49,10 +49,10 @@ test('instance cards and header share a mixed background pool, lazily load frame
   await expect(page.locator('.instance-hero h1 img,.instance-hero h1 svg')).toHaveCount(0);
   await expect(page.locator('.instance-hero .instance-art img')).toHaveCount(1);
   await expect(page.locator('.instance-scene .instance-backdrop img')).toHaveCount(2);
-  expect(await page.evaluate(()=>(window as any).__screenshotLoads)).toEqual(['shot-19.png']);
+  expect(await page.evaluate(()=>(window as any).__screenshotRequests.map((request:any)=>request.edge))).toEqual([512,1024]);
   await page.clock.runFor(8100);
   await expect(page.locator('.instance-scene .instance-backdrop img.visible')).toHaveAttribute('src',png);
-  expect(await page.evaluate(()=>(window as any).__screenshotLoads)).toEqual(['shot-19.png','shot-0.png']);
+  expect(await page.evaluate(()=>(window as any).__screenshotLoads)).toEqual(['shot-19.png','shot-19.png','shot-0.png']);
 });
 
 test('cards use blurred icons when backgrounds are missing, but preserve real backgrounds and recover from failures',async({page})=>{
@@ -110,6 +110,8 @@ test('all card kinds share their shell and media dimensions while grids can cont
   await expect(cards[0].locator('.card-status svg')).toHaveCount(0);
   await expect(cards[0].locator('.instance-brief')).toHaveCSS('display','flex');
   await expect(cards[3]).toHaveAttribute('data-media','image');
+  await cards[3].scrollIntoViewIfNeeded();
+  await expect(cards[3].locator('.shared-card-art img')).toBeVisible();
   expect(await cards[3].locator('.shared-card-art img').evaluate(node=>getComputedStyle(node).objectFit)).toBe('cover');
   await cards[3].screenshot({path:testInfo.outputPath('screenshot-card.png')});
   await cards[0].screenshot({path:testInfo.outputPath('instance-card.png')});
@@ -134,7 +136,7 @@ test('world, server and installed-content card actions share translucent dark ba
     expect(warm.equals(cool),'The painted button must transmit changes behind it').toBe(false);
     await button.evaluate(node=>(node.closest('.shared-card-body') as HTMLElement).style.removeProperty('background'));
     for(const action of await actions.all()){
-      await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.4)');
+      await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.8)');
       expect(await action.evaluate(node=>getComputedStyle(node).backdropFilter)).toContain('blur(');
       expect(await action.evaluate(node=>getComputedStyle(node,'::before').content)).toBe('none');
       expect(await action.evaluate(node=>getComputedStyle(node,'::after').content)).toBe('none');

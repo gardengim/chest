@@ -18,7 +18,7 @@ for(const count of [100,500,1000])test(`${count}-instance library loads and filt
       return null;
     }};
   },count);
-  const started=Date.now();await page.goto('/');await expect(page.locator('.instance-card')).toHaveCount(count);
+  const started=Date.now();await page.goto('/');await expect(page.locator('.instance-card')).toHaveCount(Math.min(count,24));
   const loadMs=Date.now()-started;expect(loadMs).toBeLessThan(5000);
   const filterStart=Date.now();await page.getByLabel('Search instances').fill('World 0000');await expect(page.locator('.instance-card')).toHaveCount(1);
   const filterMs=Date.now()-filterStart;expect(filterMs).toBeLessThan(2000);

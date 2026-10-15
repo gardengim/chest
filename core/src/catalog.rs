@@ -607,7 +607,7 @@ pub async fn install(
             if target.join(&f.name).is_file() { continue; }
             install::fetch(
                 &core.client,
-                &Download {
+                &Download { size: None,
                     path: stage.join(&f.name),
                     url: f.url.clone(),
                     hash: f.hash.clone(),

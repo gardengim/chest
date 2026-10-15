@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from './Icon.svelte';
   import CardGrid from './CardGrid.svelte';
   import Toolbar from './Toolbar.svelte';
   import HomeShelf from './HomeShelf.svelte';
@@ -27,6 +28,12 @@
   $effect(()=>{if(screenshots!==undefined)return;instances.map(instance=>instance.id).join(',');untrack(()=>{void refresh();});});
   $effect(()=>{page=Math.min(page,pages-1);});
   onMount(()=>{if(screenshots!==undefined)return;const update=()=>{void refresh();};window.addEventListener('focus',update);return()=>window.removeEventListener('focus',update);});
+  async function choose(screenshot:LibraryScreenshot,thumbnail:string){
+    error='';
+    const preview={screenshot,source:thumbnail};selected=preview;
+    try{const image=await api.screenshotImage(screenshot.instance_id,screenshot.name);if(selected?.screenshot===screenshot)selected={screenshot,source:image};}
+    catch(reason){if(selected?.screenshot===screenshot)error=String(reason);}
+  }
   async function open(){if(!selected)return;try{await api.openInstanceFile(selected.screenshot.instance_id,'screenshots',selected.screenshot.name);}catch(reason){error=String(reason);}}
 </script>
 {#if shelf}<HomeShelf section="screenshots" {full} count={entries.length} moreContent={entries.length>pageSize} {onviewall}>
@@ -39,12 +46,12 @@
 {#if library.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read screenshots from {names}',{names:library.unavailable.join(', ')})}</p>{/if}
 {#if loading && !shown.length}<p role="status">{$t('Loading…')}</p>{:else if !shown.length}<p class="muted">{$t('No screenshots')}</p>{/if}
 <CardGrid class="screenshots-grid">{#each shown as screenshot (`${screenshot.instance_id}:${screenshot.name}`)}
-  <ScreenshotTile {screenshot} owner={instances.find(instance=>instance.id===screenshot.instance_id)} instance={instances.find(instance=>instance.id===screenshot.instance_id)?.name || $t('Unknown')} onopen={source=>selected={screenshot,source}}/>
+  <ScreenshotTile {screenshot} owner={instances.find(instance=>instance.id===screenshot.instance_id)} instance={instances.find(instance=>instance.id===screenshot.instance_id)?.name || $t('Unknown')} onopen={source=>choose(screenshot,source)}/>
 {/each}</CardGrid>
 {#if full && entries.length}<Pagination label={$t('{name} pages',{name:$t('Screenshots')})} {page} {pages} disabled={loading} onchange={value=>page=value}/>{/if}
 {/snippet}
 {#if selected}<dialog class="modal screenshot-preview" use:showDialog aria-label={selected.screenshot.name} oncancel={event=>{event.preventDefault();selected=null;}}>
-  <div class="section-heading"><h2>{selected.screenshot.name}</h2><Button class="dialog-close" aria-label={$t('Close')} onclick={()=>selected=null}>×</Button></div>
+  <div class="section-heading"><h2>{selected.screenshot.name}</h2><Button class="dialog-close" aria-label={$t('Close')} onclick={()=>selected=null}><Icon name="close" size={18}/></Button></div>
   {#if instances.find(instance=>instance.id===selected!.screenshot.instance_id)}<p><InstanceName instance={instances.find(instance=>instance.id===selected!.screenshot.instance_id)!}/></p>{/if}
   <img src={selected.source} alt={selected.screenshot.name}/>
   {#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}

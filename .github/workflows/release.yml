@@ -43,6 +43,7 @@ jobs:
       - name: Validate release version
         shell: bash
         run: node scripts/check-release-version.mjs "${GITHUB_REF_NAME}"
+      - run: node scripts/check-auth-config.mjs
       - run: npm run test:scripts
       - run: npm run check
       - uses: tauri-apps/tauri-action@v1

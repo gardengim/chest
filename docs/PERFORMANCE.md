@@ -66,3 +66,26 @@ unused visibility observation is skipped, and local gallery metadata reads use t
 blocking pool. Browser library workloads remain within their existing smoke budgets.
 See the [UI/performance audit](audits/2026-10-13-ui-performance.md) for implementation,
 coverage and native measurement limits.
+
+## Finalization remediation — October 14, 2026
+
+Instance shelves/pages render a maximum of 24 cards with explicit View all/pagination;
+filtering still searches the entire library. `scripts/measure-startup.mjs --instances`
+accepts 1–1000 and records diagnostic JS heap/DOM counts after filtering. Browser
+fixtures remain synthetic IPC, not native resource measurements.
+
+`scripts/measure-native-startup.py` waits for readiness and rejects dead/zero-RSS
+samples. Outputs/logs are outside fresh profiles, owned profiles are cleaned unless
+`--keep-profile` is set, and artifact SHA/platform/sample boundaries are recorded.
+Use `--idle-seconds 30` for short sampling or `--idle-seconds 3600` for a one-hour
+main-process sample on macOS/Linux. These samples explicitly exclude separate
+WebView/GPU/network processes and JVMs; complete-app attribution and Windows resource
+sampling remain platform acceptance work. Startup sampling itself is portable.
+
+PNG-only derivatives bound local card/background image work. The native decoder
+allows up to 36 million pixels, 8192 per dimension, 16 MiB encoded input and 128 MiB
+decoder allocation. Derivative disk retention is 128 MiB/256 files. These are
+individual workload/cache limits, not total application RSS guarantees. The image
+cache is optional for display; an unwritable cache does not modify originals.
+Native and live frontend log strings each have their own conservative 16 MiB global
+retention budget in addition to per-instance line limits.

@@ -14,7 +14,7 @@ async fn main() -> Result<()> {
     let path = dir.path().join("version.json");
     install::fetch(
         &core.client,
-        &Download {
+        &Download { size: None,
             url: version.url.clone(),
             hash: version.sha1.clone(),
             path: path.clone(),

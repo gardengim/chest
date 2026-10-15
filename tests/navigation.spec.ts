@@ -89,9 +89,11 @@ test('accounts and defaults use connected inventory tabs with keyboard navigatio
   await accounts.focus();await page.keyboard.press('ArrowRight');
   await expect(settings).toBeFocused();
   await expect(settings).toHaveAttribute('aria-selected','true');
-  await expect(page.getByRole('tabpanel',{name:'Settings',exact:true})).toContainText('Default settings');
+  await expect(page.getByRole('tabpanel',{name:'Settings',exact:true})).toContainText('Default instance settings');
   await page.getByLabel('Memory (MB)').fill('6144');
   await page.keyboard.press('Tab');
-  await accounts.click();await settings.click();
+  await accounts.click();
+  await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click();
+  await expect(settings).toHaveAttribute('aria-selected','true');
   await expect(page.getByLabel('Memory (MB)')).toHaveValue('6144');
 });

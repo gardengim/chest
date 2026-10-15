@@ -1,4 +1,5 @@
 mod updater;
+mod lifecycle;
 mod startup;
 mod shortcuts;
 mod color_schemes;
@@ -21,6 +22,7 @@ fn ui_text(app:&tauri::AppHandle,key:&str)->String {
     #[cfg(not(desktop))]
     {let _=app;key.to_string()}
 }
+static IMAGE_READS: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(2);
 type App<'a> = State<'a, Arc<Core>>;
 fn err(e: impl std::fmt::Display) -> String {
     format!("{e}")
@@ -55,8 +57,13 @@ async fn get_servers(core:App<'_>)->Result<chest_core::instance_files::ServerLib
 #[tauri::command]
 fn open_instance_file(core:App<'_>,id:String,kind:String,name:String)->Result<(),String>{core.open_instance_file(&id,&kind,&name).map_err(err)}
 #[tauri::command]
-async fn get_screenshot_image(core:App<'_>,id:String,name:String)->Result<String,String>{
-    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.screenshot_image(&id,&name)).await.map_err(err)?.map_err(err)
+async fn get_screenshot_image(core:App<'_>,id:String,name:String,edge:Option<u32>)->Result<String,String>{
+    let core=core.inner().clone();
+    let permit = IMAGE_READS.acquire().await.map_err(err)?;
+    tokio::task::spawn_blocking(move || {
+        let _permit = permit;
+        match edge { Some(edge) => core.screenshot_thumbnail(&id,&name,edge), None => core.screenshot_image(&id,&name) }
+    }).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
 async fn get_world_icon(core:App<'_>,id:String,name:String)->Result<Option<String>,String>{
@@ -107,6 +114,14 @@ fn get_config(core: App<'_>) -> Config {
 #[tauri::command]
 fn get_launcher_info(core: App<'_>, app: tauri::AppHandle) -> serde_json::Value {
     serde_json::json!({"version":app.package_info().version.to_string(),"platform":std::env::consts::OS,"architecture":std::env::consts::ARCH,"data_path":core.store.root.to_string_lossy(),"test_profile":core.store.is_test_profile()})
+}
+#[tauri::command]
+async fn get_storage_usage(core:App<'_>)->Result<chest_core::storage::StorageUsage,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move || core.storage_usage()).await.map_err(err)
+}
+#[tauri::command]
+async fn clear_image_cache(core:App<'_>)->Result<u64,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move || core.clear_image_cache()).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
 fn open_data_folder(core: App<'_>) -> Result<(), String> {
@@ -379,12 +394,14 @@ fn open_instance_folder(core: App<'_>, id: String) -> Result<(), String> {
     core.open_folder(&id).map_err(err)
 }
 #[tauri::command]
-fn duplicate_instance(core: App<'_>, id: String) -> Result<Instance, String> {
-    core.duplicate(&id).map_err(err)
+async fn duplicate_instance(core: App<'_>, id: String) -> Result<Instance, String> {
+    let core = core.inner().clone();
+    tokio::task::spawn_blocking(move || core.duplicate(&id)).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
-fn remove_instance(core: App<'_>, id: String) -> Result<Config, String> {
-    core.remove(&id).map_err(err)
+async fn remove_instance(core: App<'_>, id: String) -> Result<Config, String> {
+    let core = core.inner().clone();
+    tokio::task::spawn_blocking(move || core.remove(&id)).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
 fn acknowledge(core: App<'_>, id: String) -> Result<(), String> {
@@ -489,7 +506,7 @@ async fn import_instance(app: tauri::AppHandle, core: App<'_>) -> Result<Option<
 }
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut builder=tauri::Builder::default().manage(startup::Trace::new()).manage(shortcuts::Pending(std::sync::Mutex::new(shortcuts::parse(&std::env::args().collect::<Vec<_>>()))));
+    let mut builder=tauri::Builder::default().manage(startup::Trace::new()).manage(lifecycle::ExitPermission::default()).manage(shortcuts::Pending(std::sync::Mutex::new(shortcuts::parse(&std::env::args().collect::<Vec<_>>()))));
     // Test profiles remain isolated from the normal application and its process handoff.
     if std::env::var_os("CHEST_TEST_PROFILE").is_none() {
         builder=builder.plugin(tauri_plugin_single_instance::init(|app,args,_cwd|{
@@ -501,11 +518,12 @@ pub fn run() {
             if let Some(window)=app.get_webview_window("main"){let _=window.show();let _=window.set_focus();}
         }));
     }
-    builder
+    let result = builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(updater::UpdaterState::default())
         .setup(|app| {
+            let setup = (|| -> Result<(), Box<dyn std::error::Error>> {
             app.state::<startup::Trace>().mark("setup");
             let activity = app.handle().clone();
             let logs = app.handle().clone();
@@ -553,8 +571,25 @@ pub fn run() {
             menu::install(app)?;
             app.state::<startup::Trace>().mark("window-built");
             Ok(())
+            })();
+            if let Err(error) = setup {
+                eprintln!("Chest startup failed: {error}");
+                if !app.state::<startup::Trace>().enabled() {
+                    app.dialog().message(format!("{error}\n\nYour existing files were left unchanged."))
+                        .title("Chest could not start").blocking_show();
+                }
+                app.state::<lifecycle::ExitPermission>().0.store(true, Ordering::Release);
+                app.handle().exit(1);
+            }
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if lifecycle::request(window.app_handle(), "close") { api.prevent_close(); }
+            }
         })
         .invoke_handler(tauri::generate_handler![
+            lifecycle::complete_exit,
             menu::set_menu_labels,
             startup::report_startup_ready,
             updater::get_app_update_info,
@@ -581,6 +616,8 @@ pub fn run() {
             get_screenshot_image,
             open_shared_datapacks,
             apply_shared_datapacks,
+            get_storage_usage,
+            clear_image_cache,
             get_config,
             get_launch_settings,
             save_launch_settings,
@@ -643,6 +680,13 @@ pub fn run() {
             export_instance,
             import_instance
         ])
-        .run(tauri::generate_context!())
-        .expect("Chest could not start");
+        .build(tauri::generate_context!());
+    match result {
+        Ok(app) => app.run(|app, event| {
+            if let tauri::RunEvent::ExitRequested { api, code, .. } = event {
+                if code.is_none() && lifecycle::request(app, "quit") { api.prevent_exit(); }
+            }
+        }),
+        Err(error) => { eprintln!("Chest could not start: {error}"); std::process::exit(1); }
+    }
 }
