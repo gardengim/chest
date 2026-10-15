@@ -364,7 +364,14 @@ fn pause_install(core: App<'_>, id: String, paused: bool) -> Result<(), String> 
 #[tauri::command]
 async fn rename_resource(core:App<'_>,id:String,kind:String,item:String,name:String)->Result<(),String>{let core=core.inner().clone();tokio::task::spawn_blocking(move||core.rename_resource(&id,&kind,&item,&name)).await.map_err(err)?.map_err(err)}
 #[tauri::command]
-fn launch_resource(core:App<'_>,id:String,kind:String,item:String)->Result<(),String>{core.launch_resource(id,&kind,item).map_err(err)}
+async fn launch_resource(
+    core: App<'_>,
+    id: String,
+    kind: String,
+    item: String,
+) -> Result<(), String> {
+    core.launch_resource(id, &kind, item).map_err(err)
+}
 #[tauri::command]
 async fn launch_instance(core: App<'_>, id: String) -> Result<(), String> {
     core.launch(id).map_err(err)

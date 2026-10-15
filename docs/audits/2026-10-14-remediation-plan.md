@@ -2,8 +2,11 @@
 
 Planning baseline: audit of `f25d523`, report committed in `c0092c8`.
 See [findings and measurements](2026-10-14-finalization.md).
-Status: implementation is authorized and underway; this document retains the agreed
-task breakdown. Verification and any remaining external gates are recorded separately.
+Status: the main remediation implementation is pushed; subsequent UI and launch-crash
+fixes are local, with staging/push blocked by approval-review usage availability.
+This document retains
+the agreed task breakdown; [results and remaining gates](2026-10-14-remediation.md)
+distinguish implemented work from uncompleted platform/human verification.
 
 ## Outcomes and boundaries
 

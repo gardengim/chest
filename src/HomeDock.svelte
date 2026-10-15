@@ -126,7 +126,13 @@
 </script>
 <svelte:window onresize={()=>end(undefined,true)} onpointermove={move} onpointerup={event=>end(event)} onpointercancel={event=>end(event,true)} onpointerdown={event=>{suppressClick=false;if(expanded && event.target instanceof Node && !root?.contains(event.target))expanded=false;}} onkeydown={event=>{if(event.key==='Escape'){if(menu){menu=null;focusDock();}else if(drag)end(undefined,true);else if(expanded){expanded=false;focusDock();}}}}/>
 <div class="home-dock-position" data-position={$homeDockPosition} class:vertical>
-  <div class="home-dock-anchor" style:position={drag?'fixed':undefined} style:width={drag?'max-content':undefined} style:left={drag?`${dragLeft}px`:undefined} style:top={drag?`${dragTop}px`:undefined} style:max-width={drag?`${drag.bounds.width}px`:undefined} style:max-height={drag?`${drag.bounds.height}px`:undefined}>
+  <div class="home-dock-anchor"
+    style:position={drag && showTargets?'fixed':undefined}
+    style:width={drag && showTargets?'max-content':undefined}
+    style:left={drag && showTargets?`${dragLeft}px`:undefined}
+    style:top={drag && showTargets?`${dragTop}px`:undefined}
+    style:max-width={drag && showTargets?`${drag.bounds.width}px`:undefined}
+    style:max-height={drag && showTargets?`${drag.bounds.height}px`:undefined}>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions (The navigation landmark offers a context menu through both pointer and keyboard.) -->
     <nav class="home-dock" class:vertical bind:this={root} use:measureSize={'dock'} tabindex="-1" aria-label={$t('Home sections')} oncontextmenu={context} onkeydown={contextKeys}>
       <div class="dock-group visible-tools" class:inactive={!sections.length && !showTargets} class:empty-visible={!sections.length && showTargets} class:drop-empty={!sections.length && drop?.group==='visible'} role="group" aria-label={$t('Visible sections')} data-home-drop="visible">

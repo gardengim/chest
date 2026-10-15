@@ -27,6 +27,47 @@ impl Core{
 }
 #[cfg(test)]mod tests{
     use super::*;
+    fn installed_instance() -> (tempfile::TempDir, Arc<Core>, String) {
+        let root = tempfile::tempdir().unwrap();
+        let core = Arc::new(Core::new(root.path().into(), |_| {}, |_| {}).unwrap());
+        let instance = core.store.create("Launch test".into(), "1.21.4".into(), "grass".into()).unwrap();
+        core.store.installed(&instance.id).unwrap();
+        let game = core.instance_folder(&instance.id).unwrap();
+        std::fs::create_dir_all(game.join("saves/Survival")).unwrap();
+        std::fs::write(
+            game.join("servers.dat"),
+            fastnbt::to_bytes(&serde_json::json!({"servers":[{"name":"Test server","ip":"example.test"}]})).unwrap(),
+        ).unwrap();
+        (root, core, instance.id)
+    }
+
+    #[test]
+    fn launch_without_runtime_returns_error_without_reserving_a_job() {
+        let (_root, core, id) = installed_instance();
+        assert!(core.launch(id.clone()).unwrap_err().to_string().contains("async runtime"));
+        for (kind, item) in [("world", "Survival"), ("server", "example.test")] {
+            let error = core.launch_resource(id.clone(), kind, item.into()).unwrap_err();
+            assert!(error.to_string().contains("async runtime"));
+            assert!(!core.busy(&id));
+            assert!(core.activities().is_empty());
+        }
+    }
+
+    #[tokio::test]
+    async fn world_and_server_launch_run_on_the_runtime_and_report_preparation_errors() {
+        let (_root, core, id) = installed_instance();
+        for (kind, item) in [("world", "Survival"), ("server", "example.test")] {
+            core.launch_resource(id.clone(), kind, item.into()).unwrap();
+            tokio::time::timeout(std::time::Duration::from_secs(2), async {
+                while core.busy(&id) {
+                    tokio::task::yield_now().await;
+                }
+            }).await.unwrap();
+            assert!(core.activities().iter().any(|activity| activity.id == id && activity.status == "launch_failed"));
+            assert!(!core.logs(&id).is_empty());
+        }
+    }
+
     #[test]fn direct_launch_arguments_are_temporary_and_preserve_the_target(){
         let modern=serde_json::json!({"arguments":{"game":[{"value":["--quickPlaySingleplayer","${quickPlaySingleplayer}"]},{"value":["--quickPlayMultiplayer","${quickPlayMultiplayer}"]}]}});
         assert_eq!(arguments(&modern,&ResourceTarget::World("My world".into())).unwrap(),["--quickPlaySingleplayer","My world"]);

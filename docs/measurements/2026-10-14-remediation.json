@@ -1,0 +1,1171 @@
+{
+  "date": "2026-10-14 America/Los_Angeles",
+  "inventory": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "hardware": "Apple M5",
+    "node": "v26.11.1",
+    "rust": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "chrome": "Google Chrome 155.0.8059.40",
+    "sourceCommit": "73a6863a97fe94472917aae2ac7520c56f9a4ad9",
+    "artifactSourceCommit": "a7fb491e371b53b97b9dad80351a842ba20e5ce2",
+    "sizes": {
+      "app": {
+        "logicalBytes": 13032258,
+        "files": 3
+      },
+      "frontend": {
+        "logicalBytes": 2054428,
+        "files": 35
+      }
+    },
+    "executable": {
+      "bytes": 12783904,
+      "sha256": "e6f60ca5fdad573585329fb56167bb880c4132316e7ac135673dfb1c63898d2b"
+    },
+    "hardwareMemoryBytes": 17179869184
+  },
+  "native": {
+    "empty": {
+      "executable": "/Users/jeongwonkim/Projects/chest/src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "executableSha256": "e6f60ca5fdad573585329fb56167bb880c4132316e7ac135673dfb1c63898d2b",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "profile": "/private/var/folders/n4/m3c_m83j6ks3kfw7qfq2ydzm0000gn/T/chest-native-startup-l54n0_ax",
+      "profileRetained": false,
+      "instances": 0,
+      "samples": [
+        {
+          "processToLibraryMs": 2810.695666936226,
+          "stages": [
+            {
+              "elapsed_ms": 771.9240000000001,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 980.796625,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 1516.052417,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 2766.6982089999997,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1263.8969590188935,
+          "stages": [
+            {
+              "elapsed_ms": 264.20325,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 545.735208,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 796.845,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1244.456167,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1300.76133296825,
+          "stages": [
+            {
+              "elapsed_ms": 323.828833,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 584.5946250000001,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 793.1592079999999,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1287.077708,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 1300.76133296825,
+      "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+    },
+    "populated1000": {
+      "executable": "/Users/jeongwonkim/Projects/chest/src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "executableSha256": "e6f60ca5fdad573585329fb56167bb880c4132316e7ac135673dfb1c63898d2b",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "profile": "/private/var/folders/n4/m3c_m83j6ks3kfw7qfq2ydzm0000gn/T/chest-native-startup-eye4hm8z",
+      "profileRetained": false,
+      "instances": 1000,
+      "samples": [
+        {
+          "processToLibraryMs": 1695.3559590037912,
+          "stages": [
+            {
+              "elapsed_ms": 249.912125,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 509.375166,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 723.467416,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1604.301375,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1637.1656659757718,
+          "stages": [
+            {
+              "elapsed_ms": 242.102584,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 491.296667,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 735.05825,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1602.476417,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1582.2000000625849,
+          "stages": [
+            {
+              "elapsed_ms": 248.081583,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 514.1627920000001,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 735.668458,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1532.119333,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 1637.1656659757718,
+      "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+    },
+    "idle": {
+      "executable": "/Users/jeongwonkim/Projects/chest/src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "executableSha256": "e6f60ca5fdad573585329fb56167bb880c4132316e7ac135673dfb1c63898d2b",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "profile": "/private/var/folders/n4/m3c_m83j6ks3kfw7qfq2ydzm0000gn/T/chest-native-startup-ug86_dyp",
+      "profileRetained": false,
+      "instances": 0,
+      "samples": [
+        {
+          "processToLibraryMs": 1917.739582946524,
+          "stages": [
+            {
+              "elapsed_ms": 381.54679200000004,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 632.7088749999999,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 1019.5464169999999,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1893.168667,
+              "stage": "library-rendered"
+            }
+          ],
+          "idle": {
+            "seconds": 30.531817625043914,
+            "settleSeconds": 5,
+            "meanRssMiB": 70.76310483870968,
+            "peakRssMiB": 95.859375,
+            "cpuPercent": 0.06550543516804873,
+            "processTreeComplete": false,
+            "boundary": "Owned main process only; excludes WebView/GPU/network subprocesses and game JVM",
+            "samples": [
+              {
+                "rssKiB": 98160,
+                "cpuSeconds": 1.2
+              },
+              {
+                "rssKiB": 95552,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 93328,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 90080,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 89040,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 89536,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 89760,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 89424,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 69712,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 67264,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 66672,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 67216,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 66352,
+                "cpuSeconds": 1.21
+              },
+              {
+                "rssKiB": 70368,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 70368,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 69712,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 65872,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 65760,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 65760,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 64720,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 64672,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 63008,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 62944,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 62784,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 63824,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 65296,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 63904,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 63840,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 63824,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 63776,
+                "cpuSeconds": 1.22
+              },
+              {
+                "rssKiB": 63776,
+                "cpuSeconds": 1.22
+              }
+            ]
+          }
+        }
+      ],
+      "medianProcessToLibraryMs": 1917.739582946524,
+      "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+    },
+    "rejectedProfile": {
+      "executable": "/Users/jeongwonkim/Projects/chest/src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "exitCode": 1,
+      "sentinelPreserved": true,
+      "directoryUnchanged": true,
+      "stderr": "CHEST_STARTUP {\"elapsed_ms\":200.300084,\"stage\":\"setup\"}\nChest startup failed: Test profile directory must be empty or already marked as a Chest test profile\n"
+    },
+    "malformedConfig": {
+      "exitCode": 1,
+      "configPreserved": true,
+      "stderr": "CHEST_STARTUP {\"elapsed_ms\":236.02300000000002,\"stage\":\"setup\"}\nChest startup failed: Cannot read Chest settings; original file was left unchanged\n"
+    },
+    "imageWorkload": {
+      "librarySha256": "235bd035cc8f27832542c97e1a768e8534ec8c560b76ec87f7d4916e9c9c0730",
+      "samples": [
+        {
+          "width": 3840,
+          "height": 2160,
+          "edge": 256,
+          "originalBytes": 718657,
+          "dataUrlBytes": 39318,
+          "generationMs": 122.999334,
+          "cacheHitMs": 0.274333
+        },
+        {
+          "width": 3840,
+          "height": 2160,
+          "edge": 512,
+          "originalBytes": 718657,
+          "dataUrlBytes": 100230,
+          "generationMs": 130.225666,
+          "cacheHitMs": 0.329584
+        },
+        {
+          "width": 3840,
+          "height": 2160,
+          "edge": 1024,
+          "originalBytes": 718657,
+          "dataUrlBytes": 214182,
+          "generationMs": 139.76529100000002,
+          "cacheHitMs": 0.39608299999999996
+        },
+        {
+          "width": 7680,
+          "height": 4320,
+          "edge": 256,
+          "originalBytes": 2862805,
+          "dataUrlBytes": 43342,
+          "generationMs": 435.26570799999996,
+          "cacheHitMs": 0.24850000000000003
+        },
+        {
+          "width": 7680,
+          "height": 4320,
+          "edge": 512,
+          "originalBytes": 2862805,
+          "dataUrlBytes": 157342,
+          "generationMs": 434.028667,
+          "cacheHitMs": 0.270417
+        },
+        {
+          "width": 7680,
+          "height": 4320,
+          "edge": 1024,
+          "originalBytes": 2862805,
+          "dataUrlBytes": 402070,
+          "generationMs": 357.464958,
+          "cacheHitMs": 0.48225
+        }
+      ],
+      "peakProcessRssBytes": 150781952,
+      "originalsBytewisePreserved": true,
+      "boundary": "One sample per size/bucket. Release core library, synthetic RGB PNGs in owned temporary directory. Includes fixture creation and encoding; excludes WebView/GPU/game. Process peak is not application total memory.",
+      "oversizedFixture": "Initial 8K high-frequency pattern exceeded 16 MiB encoded input limit and returned Invalid or oversized screenshot. Benchmark unwrap failed; supported-size fixture was rerun successfully."
+    }
+  },
+  "browser": {
+    "100": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 100,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 166,
+      "medianFilterMs": 16.899999976158142,
+      "measurements": [
+        {
+          "libraryReadyMs": 287.8000000715256,
+          "filterMs": 41.39999997615814,
+          "libraryHeapBytes": 4919108,
+          "libraryDomNodes": 956,
+          "heapBytes": 5517112,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 166,
+          "filterMs": 16.899999976158142,
+          "libraryHeapBytes": 5515092,
+          "libraryDomNodes": 956,
+          "heapBytes": 5510476,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 173.60000002384186,
+          "filterMs": 17.600000023841858,
+          "libraryHeapBytes": 4776720,
+          "libraryDomNodes": 956,
+          "heapBytes": 5522628,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 155.69999992847443,
+          "filterMs": 17,
+          "libraryHeapBytes": 4719172,
+          "libraryDomNodes": 954,
+          "heapBytes": 5518720,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 181.89999997615814,
+          "filterMs": 15.200000047683716,
+          "libraryHeapBytes": 4775180,
+          "libraryDomNodes": 956,
+          "heapBytes": 5559460,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 162.29999995231628,
+          "filterMs": 16.299999952316284,
+          "libraryHeapBytes": 5166524,
+          "libraryDomNodes": 956,
+          "heapBytes": 5515716,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 159.80000007152557,
+          "filterMs": 15.899999976158142,
+          "libraryHeapBytes": 4782160,
+          "libraryDomNodes": 956,
+          "heapBytes": 5527020,
+          "domNodes": 689
+        }
+      ]
+    },
+    "500": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 500,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 228,
+      "medianFilterMs": 23.5,
+      "measurements": [
+        {
+          "libraryReadyMs": 291.3000000715256,
+          "filterMs": 30.200000047683716,
+          "libraryHeapBytes": 11381004,
+          "libraryDomNodes": 2956,
+          "heapBytes": 11140688,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 235.60000002384186,
+          "filterMs": 23.5,
+          "libraryHeapBytes": 10407468,
+          "libraryDomNodes": 2954,
+          "heapBytes": 11137140,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 215.5,
+          "filterMs": 28.5,
+          "libraryHeapBytes": 9702016,
+          "libraryDomNodes": 2956,
+          "heapBytes": 11139176,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 232.70000004768372,
+          "filterMs": 29.399999976158142,
+          "libraryHeapBytes": 9815820,
+          "libraryDomNodes": 2956,
+          "heapBytes": 11137204,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 209.10000002384186,
+          "filterMs": 22.800000071525574,
+          "libraryHeapBytes": 9702048,
+          "libraryDomNodes": 2954,
+          "heapBytes": 11170016,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 228,
+          "filterMs": 21.100000023841858,
+          "libraryHeapBytes": 9702576,
+          "libraryDomNodes": 2954,
+          "heapBytes": 11140912,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 210.89999997615814,
+          "filterMs": 21.200000047683716,
+          "libraryHeapBytes": 9694596,
+          "libraryDomNodes": 2954,
+          "heapBytes": 11170300,
+          "domNodes": 2689
+        }
+      ]
+    },
+    "1000": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 1000,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 293.5,
+      "medianFilterMs": 28,
+      "measurements": [
+        {
+          "libraryReadyMs": 331.6999999284744,
+          "filterMs": 25.300000071525574,
+          "libraryHeapBytes": 15918108,
+          "libraryDomNodes": 5456,
+          "heapBytes": 17997968,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 269.10000002384186,
+          "filterMs": 34.799999952316284,
+          "libraryHeapBytes": 15803124,
+          "libraryDomNodes": 4376,
+          "heapBytes": 18030376,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 293.5,
+          "filterMs": 28,
+          "libraryHeapBytes": 15928608,
+          "libraryDomNodes": 5456,
+          "heapBytes": 18031572,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 401.90000009536743,
+          "filterMs": 25.40000009536743,
+          "libraryHeapBytes": 15905104,
+          "libraryDomNodes": 5456,
+          "heapBytes": 17994160,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 287.40000009536743,
+          "filterMs": 33.89999997615814,
+          "libraryHeapBytes": 15793336,
+          "libraryDomNodes": 4376,
+          "heapBytes": 17992564,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 313.6999999284744,
+          "filterMs": 23,
+          "libraryHeapBytes": 15905644,
+          "libraryDomNodes": 5456,
+          "heapBytes": 18012280,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 285.60000002384186,
+          "filterMs": 66.60000002384186,
+          "libraryHeapBytes": 15801448,
+          "libraryDomNodes": 4376,
+          "heapBytes": 17995684,
+          "domNodes": 5189
+        }
+      ]
+    }
+  },
+  "validation": {
+    "localBrowserTests": 173,
+    "localCoreTests": 93,
+    "nativeLibraryTests": 3,
+    "scriptTests": 16,
+    "svelteErrors": 0,
+    "svelteWarnings": 0,
+    "strictCoreClippy": "passed",
+    "licenseCheck": "passed",
+    "finalResponsiveCardTests": 14
+  },
+  "limitations": [
+    "Unsigned macOS arm64 bundle only; no release installer/signing/notarization or signed update A to B.",
+    "Synthetic production-browser IPC; no real images, downloads, games or native filesystem latency.",
+    "Native profile synthetic and disposable; observed sequential launches are not controlled cold-start trials.",
+    "Native CPU/RSS samples cover only owned main process, excluding WebKit/GPU/network processes and JVM.",
+    "Bare executable readiness failures excluded; bundled executable used successfully. Historical bare-executable startup is not directly comparable.",
+    "User reports successful Microsoft sign-in; remaining live auth lifecycle acceptance is not independently verified.",
+    "One-hour and populated-image resource tests, screen readers, target-platform manual acceptance remain open."
+  ],
+  "verificationSourceCommit": "10aced09aeffcd1b47e773244aa7979f3582766f",
+  "finalCandidate": {
+    "sourceCommit": "10aced09aeffcd1b47e773244aa7979f3582766f",
+    "executableSha256": "f2f77183dde4ff26082ccbf3a4f92c953ddaf56266b793d24760b6be8067267c",
+    "executableBytes": 12783904,
+    "appLogicalBytes": 13032258,
+    "frontendLogicalBytes": 2054427,
+    "signature": "Linker ad-hoc; no TeamIdentifier or sealed resources; no distribution signing/notarization"
+  },
+  "finalNative": {
+    "empty": {
+      "executable": "/Users/jeongwonkim/Projects/chest/src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "executableSha256": "f2f77183dde4ff26082ccbf3a4f92c953ddaf56266b793d24760b6be8067267c",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "profile": "/private/var/folders/n4/m3c_m83j6ks3kfw7qfq2ydzm0000gn/T/chest-native-startup-dl4eru08",
+      "profileRetained": false,
+      "instances": 0,
+      "samples": [
+        {
+          "processToLibraryMs": 2947.5528340553865,
+          "stages": [
+            {
+              "elapsed_ms": 559.901208,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 830.623416,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 1422.605791,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 2594.1308329999997,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1342.3645419534296,
+          "stages": [
+            {
+              "elapsed_ms": 268.058333,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 537.2234169999999,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 749.909625,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1295.88475,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1229.80779199861,
+          "stages": [
+            {
+              "elapsed_ms": 243.129458,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 504.742166,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 710.084666,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1201.2408750000002,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 1342.3645419534296,
+      "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+    },
+    "populated1000": {
+      "executable": "/Users/jeongwonkim/Projects/chest/src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "executableSha256": "f2f77183dde4ff26082ccbf3a4f92c953ddaf56266b793d24760b6be8067267c",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "profile": "/private/var/folders/n4/m3c_m83j6ks3kfw7qfq2ydzm0000gn/T/chest-native-startup-45k92xlh",
+      "profileRetained": false,
+      "instances": 1000,
+      "samples": [
+        {
+          "processToLibraryMs": 1770.1236669672653,
+          "stages": [
+            {
+              "elapsed_ms": 394.40579199999996,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 659.116042,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 877.704417,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1754.1960840000002,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1462.8067500889301,
+          "stages": [
+            {
+              "elapsed_ms": 216.096667,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 492.319292,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 694.2046670000001,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1446.633084,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 1636.257208068855,
+          "stages": [
+            {
+              "elapsed_ms": 247.499541,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 508.03579099999996,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 751.6955829999999,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1609.5869579999999,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 1636.257208068855,
+      "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+    },
+    "idle": {
+      "executable": "/Users/jeongwonkim/Projects/chest/src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "executableSha256": "f2f77183dde4ff26082ccbf3a4f92c953ddaf56266b793d24760b6be8067267c",
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "profile": "/private/var/folders/n4/m3c_m83j6ks3kfw7qfq2ydzm0000gn/T/chest-native-startup-8mon4hnd",
+      "profileRetained": false,
+      "instances": 0,
+      "samples": [
+        {
+          "processToLibraryMs": 1376.6167499125004,
+          "stages": [
+            {
+              "elapsed_ms": 201.291375,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 457.116959,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 643.929459,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 1349.176584,
+              "stage": "library-rendered"
+            }
+          ],
+          "idle": {
+            "seconds": 30.539914999972098,
+            "settleSeconds": 5,
+            "meanRssMiB": 78.1179435483871,
+            "peakRssMiB": 103.203125,
+            "cpuPercent": 0.06548806701006958,
+            "processTreeComplete": false,
+            "boundary": "Owned main process only; excludes WebView/GPU/network subprocesses and game JVM",
+            "samples": [
+              {
+                "rssKiB": 105680,
+                "cpuSeconds": 0.66
+              },
+              {
+                "rssKiB": 105504,
+                "cpuSeconds": 0.66
+              },
+              {
+                "rssKiB": 88400,
+                "cpuSeconds": 0.66
+              },
+              {
+                "rssKiB": 85776,
+                "cpuSeconds": 0.66
+              },
+              {
+                "rssKiB": 82832,
+                "cpuSeconds": 0.66
+              },
+              {
+                "rssKiB": 79408,
+                "cpuSeconds": 0.66
+              },
+              {
+                "rssKiB": 75296,
+                "cpuSeconds": 0.66
+              },
+              {
+                "rssKiB": 77872,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76768,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76288,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76224,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 79376,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 79376,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 79376,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 78432,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 78464,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 78432,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 77264,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76816,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76816,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76832,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 75296,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 75296,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76704,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76704,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 77600,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 76640,
+                "cpuSeconds": 0.67
+              },
+              {
+                "rssKiB": 77232,
+                "cpuSeconds": 0.68
+              },
+              {
+                "rssKiB": 77232,
+                "cpuSeconds": 0.68
+              },
+              {
+                "rssKiB": 76992,
+                "cpuSeconds": 0.68
+              },
+              {
+                "rssKiB": 78848,
+                "cpuSeconds": 0.68
+              }
+            ]
+          }
+        }
+      ],
+      "medianProcessToLibraryMs": 1376.6167499125004,
+      "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+    }
+  },
+  "finalBrowser": {
+    "100": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 100,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 227,
+      "medianFilterMs": 22.40000009536743,
+      "measurements": [
+        {
+          "libraryReadyMs": 355.39999997615814,
+          "filterMs": 39.40000009536743,
+          "libraryHeapBytes": 4819572,
+          "libraryDomNodes": 956,
+          "heapBytes": 5529340,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 212.29999995231628,
+          "filterMs": 22.299999952316284,
+          "libraryHeapBytes": 4757932,
+          "libraryDomNodes": 956,
+          "heapBytes": 5520480,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 186.69999992847443,
+          "filterMs": 22.699999928474426,
+          "libraryHeapBytes": 4775292,
+          "libraryDomNodes": 956,
+          "heapBytes": 5561268,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 210.70000004768372,
+          "filterMs": 37.700000047683716,
+          "libraryHeapBytes": 5681280,
+          "libraryDomNodes": 956,
+          "heapBytes": 5522352,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 249.10000002384186,
+          "filterMs": 17.600000023841858,
+          "libraryHeapBytes": 4759336,
+          "libraryDomNodes": 956,
+          "heapBytes": 5552940,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 227,
+          "filterMs": 22.40000009536743,
+          "libraryHeapBytes": 4680112,
+          "libraryDomNodes": 956,
+          "heapBytes": 5515128,
+          "domNodes": 689
+        },
+        {
+          "libraryReadyMs": 338,
+          "filterMs": 20.59999990463257,
+          "libraryHeapBytes": 4867240,
+          "libraryDomNodes": 956,
+          "heapBytes": 5558164,
+          "domNodes": 689
+        }
+      ]
+    },
+    "500": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 500,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 291.39999997615814,
+      "medianFilterMs": 37.10000002384186,
+      "measurements": [
+        {
+          "libraryReadyMs": 602.2000000476837,
+          "filterMs": 42.59999990463257,
+          "libraryHeapBytes": 10777220,
+          "libraryDomNodes": 2956,
+          "heapBytes": 11134124,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 304.8000000715256,
+          "filterMs": 93.20000004768372,
+          "libraryHeapBytes": 9701872,
+          "libraryDomNodes": 2954,
+          "heapBytes": 11133416,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 285.60000002384186,
+          "filterMs": 38.60000002384186,
+          "libraryHeapBytes": 9814728,
+          "libraryDomNodes": 2956,
+          "heapBytes": 11130716,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 288.7999999523163,
+          "filterMs": 37.10000002384186,
+          "libraryHeapBytes": 9694392,
+          "libraryDomNodes": 2954,
+          "heapBytes": 11159660,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 291.39999997615814,
+          "filterMs": 27.600000023841858,
+          "libraryHeapBytes": 9740904,
+          "libraryDomNodes": 2954,
+          "heapBytes": 11126028,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 283.10000002384186,
+          "filterMs": 28.5,
+          "libraryHeapBytes": 9793088,
+          "libraryDomNodes": 2956,
+          "heapBytes": 11123592,
+          "domNodes": 2689
+        },
+        {
+          "libraryReadyMs": 317.5,
+          "filterMs": 29.199999928474426,
+          "libraryHeapBytes": 9740936,
+          "libraryDomNodes": 2956,
+          "heapBytes": 11125620,
+          "domNodes": 2689
+        }
+      ]
+    },
+    "1000": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 1000,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 361.7000000476837,
+      "medianFilterMs": 33.39999997615814,
+      "measurements": [
+        {
+          "libraryReadyMs": 412.7000000476837,
+          "filterMs": 68,
+          "libraryHeapBytes": 15797972,
+          "libraryDomNodes": 5454,
+          "heapBytes": 17995548,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 361.7000000476837,
+          "filterMs": 33.299999952316284,
+          "libraryHeapBytes": 15965852,
+          "libraryDomNodes": 5456,
+          "heapBytes": 18000472,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 332.2999999523163,
+          "filterMs": 28.300000071525574,
+          "libraryHeapBytes": 15919276,
+          "libraryDomNodes": 5456,
+          "heapBytes": 18019312,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 343.2000000476837,
+          "filterMs": 76.20000004768372,
+          "libraryHeapBytes": 15793972,
+          "libraryDomNodes": 4376,
+          "heapBytes": 18024660,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 350.2000000476837,
+          "filterMs": 33.39999997615814,
+          "libraryHeapBytes": 15916620,
+          "libraryDomNodes": 5456,
+          "heapBytes": 17993768,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 419.3000000715256,
+          "filterMs": 27.800000071525574,
+          "libraryHeapBytes": 15924132,
+          "libraryDomNodes": 5456,
+          "heapBytes": 18028720,
+          "domNodes": 5189
+        },
+        {
+          "libraryReadyMs": 364.60000002384186,
+          "filterMs": 39.800000071525574,
+          "libraryHeapBytes": 15926656,
+          "libraryDomNodes": 5456,
+          "heapBytes": 17999332,
+          "domNodes": 5189
+        }
+      ]
+    }
+  }
+}

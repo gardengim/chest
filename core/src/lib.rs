@@ -352,10 +352,12 @@ impl Core {
         if !self.store.instance(&id)?.installed {
             bail!("Install this instance first");
         }
+        let runtime = tokio::runtime::Handle::try_current()
+            .context("Launch Minecraft from an async runtime")?;
         let job = self.reserve(&id, "game")?;
         self.activity(Activity::new(&id, "starting", None, "Preparing Minecraft"));
         let core = self.clone();
-        tokio::spawn(async move {
+        runtime.spawn(async move {
             let result = run_game(core.clone(), id.clone(), job.clone(),target).await;
             let _operation = core.operation_lock.lock().unwrap();
             core.jobs.lock().unwrap().remove(&id);

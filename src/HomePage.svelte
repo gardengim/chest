@@ -46,26 +46,36 @@
     };
     const schedule=()=>{if(!frame)frame=requestAnimationFrame(update);};
     const interrupt=()=>jumpTarget=null;
-    scroller?.addEventListener('scroll',schedule,{passive:true});scroller?.addEventListener('scrollend',interrupt);
+    scroller?.addEventListener('scroll',schedule,{passive:true});
     scroller?.addEventListener('wheel',interrupt,{passive:true});scroller?.addEventListener('touchstart',interrupt,{passive:true});scroller?.addEventListener('keydown',interrupt);
-    const observer=new ResizeObserver(schedule);observer.observe(root);schedule();
-    return()=>{cancel();observer.disconnect();cancelAnimationFrame(frame);scroller?.removeEventListener('scroll',schedule);scroller?.removeEventListener('scrollend',interrupt);scroller?.removeEventListener('wheel',interrupt);scroller?.removeEventListener('touchstart',interrupt);scroller?.removeEventListener('keydown',interrupt);};
+    window.addEventListener('pointerdown',interrupt,{passive:true});
+    const observer=new ResizeObserver(()=>{
+      // Lazy shelves above the chosen section can change height after scrolling.
+      if(jumpTarget)alignSection(jumpTarget);
+      schedule();
+    });
+    observer.observe(root);schedule();
+    return()=>{cancel();observer.disconnect();cancelAnimationFrame(frame);scroller?.removeEventListener('scroll',schedule);scroller?.removeEventListener('wheel',interrupt);scroller?.removeEventListener('touchstart',interrupt);scroller?.removeEventListener('keydown',interrupt);window.removeEventListener('pointerdown',interrupt);};
   });
   $effect(()=>{if(page){active=page;scroller?.scrollTo({top:0,behavior:'instant'});}else if(active && !$homeShelves.includes(active))active=$homeShelves[0] || null;});
-  async function choose(section:HomeSection,visible:boolean){
-    if(!visible){onnavigate(section);await tick();scroller?.focus({preventScroll:true});return;}
-    onnavigate('home');await tick();
+  function alignSection(section:HomeSection,smooth=false){
     const node=root.querySelector<HTMLElement>(`[data-home-section="${section}"]`);
-    if(!node || !scroller)return;
+    if(!node || !scroller){jumpTarget=null;return;}
     const rect=node.getBoundingClientRect(),bounds=scroller.getBoundingClientRect();
     const top=bounds.top+24,bottom=bounds.bottom-88;
     let target=scroller.scrollTop;
     if(rect.height>bottom-top || rect.top<top)target+=rect.top-top;
     else if(rect.bottom>bottom)target+=rect.bottom-bottom;
     target=Math.max(0,Math.min(target,scroller.scrollHeight-scroller.clientHeight));
-    active=section;jumpTarget=Math.abs(target-scroller.scrollTop)>1?section:null;
-    scroller.scrollTo({top:target,behavior:$presentation.motion?'smooth':'instant'});
-    node.focus({preventScroll:true});
+    active=section;
+    scroller.scrollTo({top:target,behavior:smooth && $presentation.motion?'smooth':'instant'});
+    return node;
+  }
+  async function choose(section:HomeSection,visible:boolean){
+    if(!visible){onnavigate(section);await tick();scroller?.focus({preventScroll:true});return;}
+    onnavigate('home');await tick();
+    jumpTarget=section;
+    alignSection(section,true)?.focus({preventScroll:true});
   }
 </script>
 <div class="home-page" bind:this={root}>
@@ -92,7 +102,7 @@
 {#snippet failed()}<p role="alert">{$t('Could not load page')} <Button onclick={()=>window.location.reload()}>{$t('Retry')}</Button></p>{/snippet}
 <style>
   .empty-chest{display:block;width:8rem;height:8rem;margin:0 auto 1.71428571rem;filter:grayscale(1);opacity:.5}
-  .home-page{padding-bottom:4.57142857rem}
+  .home-page{padding-bottom:calc(var(--control-height) + 4rem)}
   .home-section{margin-top:2.85714286rem;outline:none;min-width:0}
   .home-section:first-of-type{margin-top:1.71428571rem}
   .home-page :global(.news-section > h2),.home-page :global(.explore-title h2){font-size:1.42857143rem;letter-spacing:0}

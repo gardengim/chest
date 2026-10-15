@@ -317,6 +317,7 @@ main::-webkit-scrollbar, .instance-rail::-webkit-scrollbar { display: none; }
 }
 
 .count {
+  display: inline-block;
   font-size: 0.78571429rem;
   padding: 0.21428571rem 0.42857143rem;
   margin-left: 0.57142857rem;

@@ -48,7 +48,30 @@ test('pointer dragging reveals hidden tools, adds shelves, and reorders the home
   await page.mouse.move(start.x+20,start.y+20);await page.mouse.down();await page.mouse.move(end.x+end.width-2,end.y+20,{steps:10});await page.mouse.up();
   await expect(visible.getByRole('button').last()).toHaveAttribute('data-section','instances');
   await dock.getByRole('button',{name:'Instances',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>{
+    const main=document.querySelector('main')!.getBoundingClientRect();
+    const shelf=document.querySelector('[data-home-section="instances"]')!.getBoundingClientRect();
+    return shelf.top>=main.top-1 && shelf.bottom<=main.bottom-88+1;
+  })).toBe(true);
+  await page.locator('main').evaluate(node=>node.dispatchEvent(new Event('scrollend')));
   await expect(visible.getByRole('button',{name:'Instances',exact:true})).toHaveAttribute('aria-current','location');
+});
+
+test('a short final shelf fits above the floating dock in a narrow viewport',async({page})=>{
+  await page.setViewportSize({width:320,height:640});
+  await page.addInitScript(()=>localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',homeShelves:['explore','instances']})));
+  await page.goto('/');
+  const dock=page.getByRole('navigation',{name:'Home sections'});
+  await dock.getByRole('button',{name:'Instances',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>{
+    const main=document.querySelector('main')!.getBoundingClientRect();
+    const shelf=document.querySelector('[data-home-section="instances"]')!.getBoundingClientRect();
+    return shelf.top>=main.top-1 && shelf.bottom<=main.bottom-88+1;
+  })).toBe(true);
+  await expect(dock.getByRole('button',{name:'Instances',exact:true})).toHaveAttribute('aria-current','location');
+  await page.mouse.move(180,120);await page.mouse.wheel(0,-10000);
+  await expect.poll(()=>page.locator('main').evaluate(node=>node.scrollTop)).toBe(0);
+  await expect(dock.getByRole('button',{name:'Instances',exact:true})).not.toHaveAttribute('aria-current','location');
 });
 
 test('home navigation is accessible, respects reduced motion, and only scrolls its panel',async({page})=>{

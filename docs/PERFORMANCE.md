@@ -81,6 +81,9 @@ Use `--idle-seconds 30` for short sampling or `--idle-seconds 3600` for a one-ho
 main-process sample on macOS/Linux. These samples explicitly exclude separate
 WebView/GPU/network processes and JVMs; complete-app attribution and Windows resource
 sampling remain platform acceptance work. Startup sampling itself is portable.
+On macOS pass the executable inside `Chest.app/Contents/MacOS/chest`; the bundle
+context matters for AppKit/WebView startup. A raw target executable that never
+reports readiness is a rejected sample, not a zero-cost startup.
 
 PNG-only derivatives bound local card/background image work. The native decoder
 allows up to 36 million pixels, 8192 per dimension, 16 MiB encoded input and 128 MiB
@@ -89,3 +92,7 @@ individual workload/cache limits, not total application RSS guarantees. The imag
 cache is optional for display; an unwritable cache does not modify originals.
 Native and live frontend log strings each have their own conservative 16 MiB global
 retention budget in addition to per-instance line limits.
+
+See the [remediation results](audits/2026-10-14-remediation.md) and
+[raw measurement record](measurements/2026-10-14-remediation.json) for candidate
+measurements and remaining human verification gates.
