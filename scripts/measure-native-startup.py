@@ -3,6 +3,7 @@
 
 No real account/config is read. Each sample terminates only its own subprocess.
 Results include process creation/dynamic loading, but not Finder/LaunchServices.
+On macOS use Chest.app/Contents/MacOS/chest so AppKit has its bundle context.
 """
 import argparse
 import json
@@ -54,7 +55,7 @@ def launch(measure_idle=True):
             try:
                 when, line = events.get(timeout=max(.01, deadline - time.perf_counter()))
             except queue.Empty as error:
-                raise TimeoutError(f'No library-ready trace: {diagnostics[-10:]}') from error
+                raise TimeoutError(f'No library-ready trace; stages={stages}, diagnostics={diagnostics[-10:]}') from error
             if line is None:
                 raise RuntimeError(f'App exited before readiness: {diagnostics[-10:]}')
             if line.startswith('CHEST_STARTUP '):
@@ -94,7 +95,7 @@ def launch(measure_idle=True):
             else:
                 diagnostics.append(line)
             if time.perf_counter() >= deadline:
-                raise TimeoutError(f'No library-ready trace: {diagnostics[-10:]}')
+                raise TimeoutError(f'No library-ready trace; stages={stages}, diagnostics={diagnostics[-10:]}')
     finally:
         if process.poll() is None: process.terminate()
         try:
