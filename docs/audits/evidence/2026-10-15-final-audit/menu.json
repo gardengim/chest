@@ -1,0 +1,20 @@
+{
+  "menu": {
+    "x": 228,
+    "y": 284,
+    "width": 224,
+    "height": 289
+  },
+  "position": {
+    "left": "228px",
+    "top": "284px"
+  },
+  "shelf": {
+    "x": 98.5,
+    "y": 162.796875,
+    "width": 1017,
+    "height": 244
+  },
+  "focused": true,
+  "hitAtMenuCenter": true
+}

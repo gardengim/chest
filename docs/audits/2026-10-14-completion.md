@@ -289,3 +289,7 @@ No consolidation, tagging or publication follows automatically from this handoff
 ### Subsequent UI refinements — October 15
 
 The [RTL and instance settings report](2026-10-15-rtl-settings.md) records the newer application revision `b91e552`, its local build identity, all seven requested refinements, final validation and the remaining human checks. It supersedes earlier UI build identities for this round of owner verification. Existing confirmed authentication and game-launch results remain applicable; this follow-up does not authorize release consolidation.
+
+### Final pre-release audit — October 15
+
+The [final performance/accessibility/maintainability audit](2026-10-15-final-release-audit.md) verified the latest three-platform check and found additional icon-memory and minimum-WebView blockers, with four further focused corrections. Application code remains unchanged during that review. This newer hold supersedes any inference that earlier automated completion alone authorizes a release build or publication. Existing owner-confirmed sign-in and game-launch results are preserved.

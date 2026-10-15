@@ -1,0 +1,6 @@
+{
+  "applicationSource": "b91e552be74a4c8882a4c358a77a75d8f709b4e8",
+  "checkoutSource": "d75cfde95ff50089bd16bbc92b829b648da19de3",
+  "applicationChangesDuringAudit": false,
+  "fixtures": "Disposable synthetic profiles, files and browser IPC mocks; no normal accounts or worlds used"
+}

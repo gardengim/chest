@@ -1,0 +1,100 @@
+import {test,expect,type Page} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import {writeFile} from 'node:fs/promises';
+async function fixture(page:Page,count=1000){
+ await page.addInitScript(count=>{
+  const w=window as any;w.isTauri=true;
+  localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',reduceMotion:true,homeShelves:['worlds','servers']}));
+  const instance={id:'audit',name:'Audit instance',version:'26.3',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true};
+  w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string)=>{
+   if(name==='get_config')return {instances:[instance],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
+   if(name==='get_versions')return [{id:'26.3',type:'release'}];
+   if(name==='get_instance_icons')return {};
+   if(name==='get_catalog_sources')return {modrinth:true,curseforge:false};
+   if(name==='search_catalog')return {projects:[],total:0};
+   if(name==='get_worlds')return {worlds:Array.from({length:count},(_,i)=>({instance_id:'audit',folder:'World '+i,name:'World '+i,version:'26.3',data_version:1,last_played:1})),unavailable:[]};
+   if(name==='get_servers')return {servers:Array.from({length:count},(_,i)=>({instance_id:'audit',name:'Server '+i,address:'host'+i+'.example',icon:null})),unavailable:[]};
+   if(name==='get_content')return Array.from({length:count},(_,i)=>({name:'mod-'+i+'.jar',kind:'mods',enabled:true}));
+   if(name==='get_instance_files')return {worlds:['World 0'],servers:[{name:'Example server',ip:'localhost:25565'}],screenshots:[]};
+   if(name==='get_instance_worlds')return [{instance_id:'audit',folder:'World 0',name:'World 0',version:'26.3',data_version:1,last_played:1}];
+   if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,graphics_api:'default',account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+   if(name==='get_instance_news')return {articles:[],unavailable:[]};
+   if(name==='get_instance_folder')return '/synthetic/audit/game';
+   if(name==='take_instance_intent')return null;
+   return [];
+  }};
+ },count);
+ await page.goto('/');
+}
+
+test('large resource collections diagnostic',async({page})=>{
+ await fixture(page);
+ const session=await page.context().newCDPSession(page);
+ const metrics=async(label:string)=>{
+  await session.send('HeapProfiler.collectGarbage');
+  return {label,dom:await page.locator('*').count(),cards:await page.locator('.launcher-card').count(),heapBytes:(await session.send('Runtime.getHeapUsage')).usedSize};
+ };
+ const started=performance.now();await expect(page.locator('.world-list .launcher-card')).toHaveCount(1000);
+ const results:any[]=[{...await metrics('home-worlds'),readyMs:performance.now()-started}];
+ await page.locator('[data-home-section=servers]').scrollIntoViewIfNeeded();await expect(page.locator('.server-list .launcher-card')).toHaveCount(1000);
+ results.push(await metrics('home-worlds-and-servers'));
+ await page.locator('.rail [data-instance-id=audit] button').click();await page.getByRole('tab',{name:'Contents',exact:true}).click();
+ await expect(page.locator('.content-entry')).toHaveCount(1000);results.push(await metrics('instance-mods'));
+ const start=performance.now();await page.getByLabel('Search content',{exact:true}).fill('mod-999.jar');await expect(page.locator('.content-entry')).toHaveCount(1);
+ results.push({...await metrics('filtered-mods'),filterMs:performance.now()-start});
+ await writeFile((process.env.CHEST_AUDIT_OUTPUT || '/tmp')+'/chest-final-audit-resource-ui.json',JSON.stringify(results,null,2));
+});
+
+test('home world context menu geometry diagnostic',async({page},info)=>{
+ await fixture(page,3);const card=page.locator('.world-list .launcher-card').first();await card.click({button:'right'});
+ const menu=page.getByRole('menu');await expect(menu).toBeAttached();
+ const result=await menu.evaluate(node=>{const box=node.getBoundingClientRect(),style=getComputedStyle(node),body=node.closest('.shelf-body')!.getBoundingClientRect();return {menu:{x:box.x,y:box.y,width:box.width,height:box.height},position:{left:style.left,top:style.top},shelf:{x:body.x,y:body.y,width:body.width,height:body.height},focused:node.contains(document.activeElement),hitAtMenuCenter:node.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2))};});
+ await writeFile((process.env.CHEST_AUDIT_OUTPUT || '/tmp')+'/chest-final-audit-menu.json',JSON.stringify(result,null,2));
+ await page.screenshot({path:info.outputPath('world-context-menu.png')});
+});
+
+test('keyboard and motion accessibility diagnostic',async({page})=>{
+ await fixture(page,3);await page.locator('.rail [data-instance-id=audit] button').click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
+ const results={settings:(await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations};
+ await writeFile((process.env.CHEST_AUDIT_OUTPUT || '/tmp')+'/chest-final-audit-accessibility.json',JSON.stringify(results,null,2));
+});
+
+test('resource page accessibility diagnostic',async({page})=>{
+ await fixture(page,3);
+ const results:Record<string,unknown>={};
+ for(const name of ['Home','Worlds','Servers','Contents']){
+  if(name!=='Home'){
+   if(name==='Worlds')await page.locator('.rail [data-instance-id=audit] button').click();
+   await page.getByRole('tab',{name,exact:true}).click();
+  }
+  results[name]=(await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()).violations;
+ }
+ await writeFile((process.env.CHEST_AUDIT_OUTPUT || '/tmp')+'/chest-final-audit-resource-accessibility.json',JSON.stringify(results,null,2));
+});
+
+test('missing popover and loader failure accessibility diagnostics',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(()=>{
+  Object.defineProperty(HTMLElement.prototype,'showPopover',{value:undefined,configurable:true});
+  Object.defineProperty(HTMLElement.prototype,'hidePopover',{value:undefined,configurable:true});
+ });
+ await page.goto('/');await page.getByRole('button',{name:'Create instance',exact:true}).click();
+ await page.getByLabel('Mod loader',{exact:true}).click();
+ await expect.poll(()=>errors.some(error=>error.includes('Popover'))).toBe(true);
+ await writeFile((process.env.CHEST_AUDIT_OUTPUT || '/tmp')+'/chest-final-audit-compatibility.json',JSON.stringify({showPopover:false,errors},null,2));
+});
+
+test('asynchronous loader failures announcement diagnostic',async({page})=>{
+ await fixture(page,3);
+ await page.evaluate(()=>{
+  const w=window as any,previous=w.__TAURI_INTERNALS__.invoke;
+  w.__TAURI_INTERNALS__.invoke=async(name:string,args:any)=>{
+   if(name==='get_loader_versions' || name==='get_fabric_versions')throw new Error('Synthetic loader failure');
+   return previous(name,args);
+  };
+ });
+ await page.getByRole('button',{name:'Create instance',exact:true}).click();
+ await page.getByLabel('Mod loader',{exact:true}).selectOption('fabric');
+ const error=page.locator('.inline-error').filter({hasText:'Synthetic loader failure'});await expect(error).toBeVisible();
+ await writeFile((process.env.CHEST_AUDIT_OUTPUT || '/tmp')+'/chest-final-audit-loader-announcement.json',JSON.stringify(await error.evaluate(node=>({role:node.getAttribute('role'),live:node.getAttribute('aria-live'),liveAncestor:!!node.closest('[role=alert],[role=status],[aria-live]')})),null,2));
+});

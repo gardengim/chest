@@ -1,0 +1,20 @@
+use chest_core::Core;
+use std::{fs,time::Instant};
+fn main()->anyhow::Result<()> {
+ let root=std::env::temp_dir().join(format!("chest-final-icons-{}",std::process::id()));
+ struct Cleanup(std::path::PathBuf);impl Drop for Cleanup{fn drop(&mut self){let _=fs::remove_dir_all(&self.0);}}
+ let _cleanup=Cleanup(root.clone());
+ let core=Core::new_scoped(root,Some("final-audit-icons".into()), |_|{}, |_|{})?;
+ // A valid tiny PNG plus trailing bytes, still below the current per-file limit.
+ use base64::Engine;
+ let mut bytes=base64::engine::general_purpose::STANDARD.decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII=")?;
+ bytes.resize(1024*1024,0);
+ for n in 0..100 {
+  let instance=core.store.create(format!("Icon {n}"),"26.3".into(),"grass".into())?;
+  fs::write(core.instance_folder(&instance.id)?.join("icon.png"),&bytes)?;
+ }
+ let start=Instant::now();let icons=core.instance_icons();
+ let encoded:usize=icons.values().map(String::len).sum();
+ println!("{}",serde_json::json!({"instances":100,"perIconSourceBytes":bytes.len(),"returnedIcons":icons.len(),"encodedStringBytes":encoded,"projectedUtf16Bytes":encoded*2,"elapsedMs":start.elapsed().as_secs_f64()*1000.}));
+ Ok(())
+}

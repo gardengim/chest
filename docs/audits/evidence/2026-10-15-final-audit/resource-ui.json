@@ -1,0 +1,28 @@
+[
+  {
+    "label": "home-worlds",
+    "dom": 27155,
+    "cards": 2000,
+    "heapBytes": 112848580,
+    "readyMs": 701.2290000000002
+  },
+  {
+    "label": "home-worlds-and-servers",
+    "dom": 27155,
+    "cards": 2000,
+    "heapBytes": 113456040
+  },
+  {
+    "label": "instance-mods",
+    "dom": 8118,
+    "cards": 1000,
+    "heapBytes": 70372980
+  },
+  {
+    "label": "filtered-mods",
+    "dom": 124,
+    "cards": 1,
+    "heapBytes": 31296760,
+    "filterMs": 167.0675000000001
+  }
+]
