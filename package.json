@@ -15,6 +15,7 @@
     "check:release": "node scripts/check-release-version.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
     "verify": "node scripts/verify.mjs",
+    "audit:candidate": "node scripts/audit-candidate.mjs",
     "licenses": "node scripts/generate-licenses.mjs",
     "check:licenses": "node scripts/check-licenses.mjs"
   },

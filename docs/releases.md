@@ -62,3 +62,29 @@ modified copy is rejected; the original file is never changed):
 ```sh
 cargo run --locked --manifest-path core/Cargo.toml --example verify_updater -- src-tauri/updater.pub src-tauri/target/release/bundle/macos/Chest.app.tar.gz
 ```
+
+## Verification candidates before release
+
+Use the [candidate verification SOP](audit-sop.md) and its single
+`npm run audit:candidate` entry point for sequential local validation and verified
+CI evidence collection.
+
+Run the manual **Build verification candidates** workflow on the chosen commit.
+It builds macOS arm64/x64, Windows x64 and Linux x64 installers and uploads
+14-day Actions artifacts, including `candidate-inventory.json` with source commit,
+file sizes and SHA-256 hashes. It does not create a tag, release, updater manifest
+or distribution signatures. This is suitable for the human acceptance gate, not
+public distribution. Record the downloaded artifact hash in the acceptance record.
+
+For automated native startup acceptance, run **Measure packaged native startup**
+with that candidate run ID and exact commit. It verifies installer hashes, unpacks
+payloads without installing into the host profile, then measures three empty and
+three 1,000-instance launches in disposable profiles on native macOS arm64, Windows
+x64 and Linux x64 runners. Linux uses Xvfb. This does not establish gameplay,
+minimum OS versions, macOS Intel hardware acceptance, or distribution trust.
+
+Run local GUI startup measurements with an unlocked desktop and record window
+visibility. A locked or occluded WebView may not paint, so a window-built trace
+without library-rendered is a rejected sample, not a valid zero-resource result.
+The automated workflow supplies dedicated GUI sessions; human verification still
+needs the actual unlocked device and normal launch path.
