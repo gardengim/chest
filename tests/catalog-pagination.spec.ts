@@ -4,6 +4,9 @@ test('gallery requests complete rows at every width and pagination neither skips
   await page.addInitScript(()=>{
     const w=window as any;w.isTauri=true;
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return {instances:[],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_instance_icons')return {};
       if(name==='get_versions')return [{id:'26.3',type:'release'}];
@@ -19,21 +22,20 @@ test('gallery requests complete rows at every width and pagination neither skips
   for(const width of [1150,1450,900]){
     await page.setViewportSize({width,height:900});
     await expect.poll(()=>page.locator('.catalog-card').count()).toBeGreaterThanOrEqual(20);
-    await expect.poll(async()=>{
-      const count=await page.locator('.catalog-card').count();
-      const columns=await page.locator('.catalog-grid').evaluate(node=>getComputedStyle(node).gridTemplateColumns.split(' ').length);
-      return count%columns;
-    }).toBe(0);
-    const query=await page.evaluate(()=>(window as any).__query);
-    await expect(page.locator('.catalog-card')).toHaveCount(query.limit);
+    await expect.poll(()=>page.evaluate(()=>{
+      const count=document.querySelectorAll('.catalog-card').length;
+      const grid=document.querySelector('.catalog-grid');
+      const columns=grid?getComputedStyle(grid).gridTemplateColumns.split(' ').length:0;
+      return count>0 && count===(window as any).__query.limit && count%columns===0;
+    })).toBe(true);
   }
   const query=await page.evaluate(()=>(window as any).__query);
-  await page.locator('.catalog-pagination').getByRole('button',{name:'Next',exact:true}).click();
+  await page.locator('.catalog-results > .pagination').getByRole('button',{name:'Next',exact:true}).click();
   await expect(page.locator('.catalog-card').first()).toContainText('Project '+query.limit);
   expect(await page.evaluate(()=>(window as any).__query.offset)).toBe(query.limit);
-  await page.locator('.catalog-pagination').getByRole('button',{name:'Previous',exact:true}).click();
+  await page.locator('.catalog-results > .pagination').getByRole('button',{name:'Previous',exact:true}).click();
   await expect(page.locator('.catalog-card').first()).toContainText('Project 0');
-  await page.getByRole('group',{name:'Project layout'}).getByRole('button',{name:'List',exact:true}).click();
+  await page.getByRole('radiogroup',{name:'Project layout'}).getByRole('radio',{name:'List',exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>(window as any).__query.limit)).toBe(20);
   await expect(page.locator('.catalog-card')).toHaveCount(20);
 });

@@ -1,0 +1,21 @@
+# Card views
+
+All gallery and list cards use `Card.svelte`: instance library, instance chooser, catalog/modpack discovery, installed and staged content, Home and instance worlds/servers, and Home and instance screenshots. ScreenshotTile manages screenshot loading and preview activation; it does not define another card shell or media geometry. Selected-pack headings and project-detail dialogs are detail views rather than collection cards.
+
+`CardGrid.svelte` owns responsive columns, gaps, and shelf carousel sizing. There are no per-feature grid dimension rules. Grids can configure `minimum`, `gap`, `columnWidth` and `fill` (`auto-fill` or `auto-fit`), or inherit sizing variables from their container. Gallery columns fill the available width; list layout uses one column. A horizontal HomeShelf automatically switches gallery grids to carousel columns.
+
+## Card configuration
+
+- Content: `title`, `badge`, default body snippet, optional `actions` and `art` snippets. Optional `.card-description` paragraphs receive shared description spacing and line clamping; arbitrary body content retains its own layout. Use a non-interactive card when its actions contain buttons, avoiding nested buttons.
+- Artwork: `icon`, `background`, `instanceId`, `backgroundFromIcon`, and lazy `artworkKey`/`loadIcon`. Missing backgrounds use an available real icon as a blurred backdrop. Missing or broken icons render no substitute artwork; the shared media geometry stays consistent.
+- Media: `media="icon" | "image" | "none"`, `imageFit="cover" | "contain"`, optional `mediaRatio`. Screenshots use image media with the same default ratio and body spacing as icon cards; the full image remains available in the preview dialog.
+- Dimensions: optional CSS-length `width`, `height`, `minHeight`, `maxHeight`, `padding`, `iconSize`, and `bodyMinHeight`. These are overrides, not fixed dimensions imposed by the component. Normally leave width/height unset and let the grid stretch each card to its cell.
+- Background: `backgroundOpacity` is configurable; worlds use a darker thumbnail backdrop.
+- Instance backgrounds: cards and instance headers consume the same `instance-backgrounds.ts` pool, combining provider gallery URLs and local screenshot references from `get_instance_backgrounds`. Only the current/previous frames are resolved; local PNGs reuse the bounded screenshot artwork cache. Focus refreshes discover new screenshots, and failure of either source does not hide the other. The instance header uses one large icon with a plain text title; references elsewhere retain inline instance icons.
+- Behavior: `interactive`, `disabled`, gallery/list `layout`, and standard forwarded HTML attributes/events.
+
+Grid/container CSS variables can control descendant cards: `--card-min`, `--card-gap`, `--card-column-width`, `--card-height`, `--card-padding`, `--card-media-ratio`, `--card-icon-size`, and `--card-body-min`. Catalog pagination measures the same shared minimum and gap variables as its grid; keep overrides on the catalog-results container so its measurement probe inherits them too.
+
+The card owns borders, pixel bevels, typography, media defaults, list presentation, body spacing, action alignment, and action-button styling. Action buttons use a 40% black background with blur and an edge bevel, retaining shared hover/press/focus/disabled feedback. The card gradient now retains image detail through the lower body as well. The old 80% fill over an almost opaque lower gradient appeared opaque; do not add a solid backing layer or full-surface shadow. Regression coverage changes the background behind a button and compares its painted output, rather than checking only CSS alpha. Do not add resource-only action styling or screenshot-only shell overrides. Optional `.secondary-action` controls move out of the visible action row in narrow card bodies; expose those operations in the card's existing overflow menu.
+
+Coverage checks shared geometry across card kinds, grid-controlled dimensions, artwork fallback and failure recovery, dark/blurred action buttons, screenshot previews, responsive layouts, chooser dialogs, and catalog pagination.

@@ -1,4 +1,5 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
+import {defaultLaunchSettings, type LaunchSettings} from './types';
 import { listen } from '@tauri-apps/api/event';
 import type { Activity, Account, DebugLaunch, SidebarGroup, Config, Content, Instance, Loader, Version, CatalogPage, CatalogQuery, CatalogRelease, CatalogSource, CatalogKind, CreationRequest, ArchivePreview } from './types';
 export const native = isTauri();
@@ -10,6 +11,18 @@ async function call<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
   if (native) return invoke<T>(name,args);
   const config=read();let result:unknown;
   switch(name) {
+    case 'get_instance_worlds': result=[];break;
+    case 'get_account_skin': result=null;break;
+    case 'get_world_icon': case 'get_server_icon': result=null;break;
+    case 'get_screenshots': result={screenshots:[],unavailable:[]};break;
+    case 'get_servers': result={servers:[],unavailable:[]};break;
+    case 'get_worlds': result={worlds:[],unavailable:[]};break;
+    case 'save_server_bookmark': {const b=args.bookmark as import('./types').ServerBookmark;const bookmarks=config.server_bookmarks ||= [];const index=bookmarks.findIndex(item=>item.id===b.id);if(index<0)bookmarks.push({...b,id:crypto.randomUUID()});else bookmarks[index]=b;result=write(config);break;}
+    case 'remove_server_bookmark': config.server_bookmarks=config.server_bookmarks?.filter(b=>b.id!==args.id);result=write(config);break;
+    case 'get_instance_files': result={worlds:[],screenshots:[],servers:[]};break;
+    case 'take_instance_intent': result=null;break;
+    case 'get_launch_settings': result={...defaultLaunchSettings(),...(config as Config & {launch_settings?:Record<string,LaunchSettings>}).launch_settings?.[String(args.id)]};break;
+    case 'save_launch_settings': {const c=config as Config & {launch_settings?:Record<string,LaunchSettings>};c.launch_settings ??={};c.launch_settings[String(args.id)]=args.settings as LaunchSettings;write(c);break;}
     case 'get_instance_folder': result=null;break;
     case 'get_debug_launch': result={available:false,enabled:false};break;
     case 'get_config': result={...config,instances:config.instances.map(i=>({...i,loader:i.loader || 'vanilla',loader_version:i.loader_version || ''}))}; break;
@@ -18,7 +31,9 @@ async function call<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
     case 'get_news': result=[];break;
     case 'get_instance_news': result={articles:[],unavailable:[]};break;
     case 'get_versions': result=[{id:'26.3',type:'release'},{id:'1.21.4',type:'release'},{id:'1.20.1',type:'release'}];break;
+    case 'get_loader_versions': result=args.version==='1.21.4'?(args.loader==='forge'?['54.1.0','54.0.0']:args.loader==='neoforge'?['21.4.100','21.4.90']:[]):[];break;
     case 'get_quilt_versions': result=['0.24.0','0.23.1'];break;
+    case 'get_catalog_description': result={format:'markdown',body:''};break;
     case 'get_catalog_sources': result={modrinth:true,curseforge:false};break;
     case 'search_catalog': result=previewCatalog(args.query as CatalogQuery);break;
     case 'get_creation_releases': case 'get_modpack_releases': case 'get_catalog_releases': result=[{id:'preview-release',name:'Example compatible release',published:'2026-01-01'}];break;
@@ -37,9 +52,9 @@ async function call<T>(name:string,args:Record<string,unknown>={}):Promise<T> {
     case 'reorder_instances': {const ids=args.ids as string[];config.instances.sort((a,b)=>(ids.includes(a.id)?ids.indexOf(a.id):Infinity)-(ids.includes(b.id)?ids.indexOf(b.id):Infinity));result=write(config);break;}
     case 'save_instance': { const instance=args.instance as Instance;config.instances=config.instances.map(i=>i.id===instance.id?{...instance,playtime_seconds:i.playtime_seconds || 0,installed:i.installed && i.version===instance.version && (i.loader || 'vanilla')===instance.loader && (i.loader_version || '')===instance.loader_version}:i);result=write(config);break; }
     case 'save_settings': config.client_id=String(args.clientId).trim();config.java_path=String(args.javaPath).trim();config.memory_mb=Number(args.memoryMb);result=write(config);break;
-    case 'remove_instance': config.instances=config.instances.filter(i=>i.id!==args.id);config.sidebar_groups=config.sidebar_groups?.map(g=>({...g,ids:g.ids.filter(id=>id!==args.id)})).filter(g=>g.ids.length);result=write(config);break;
+    case 'remove_instance': for(const b of config.server_bookmarks || [])if(b.instance_id===args.id)b.instance_id=null;config.instances=config.instances.filter(i=>i.id!==args.id);config.sidebar_groups=config.sidebar_groups?.map(g=>({...g,ids:g.ids.filter(id=>id!==args.id)})).filter(g=>g.ids.length);result=write(config);break;
     case 'duplicate_instance': {const old=config.instances.find(i=>i.id===args.id)!;const instance={...old,id:crypto.randomUUID(),name:`${old.name} copy`,installed:false,playtime_seconds:0};config.instances.push(instance);write(config);result=instance;break;}
-    case 'get_instance_screenshots': case 'get_logs': case 'get_content': result=[];break;
+    case 'get_instance_backgrounds': case 'get_logs': case 'get_content': result=[];break;
     case 'acknowledge':result=null;break;
     default: throw new Error('This action needs the Chest desktop app. Browser preview only saves instance settings.');
   }
@@ -52,13 +67,42 @@ function previewCatalog(query:CatalogQuery):CatalogPage {
   return {projects:projects.slice(query.offset,query.offset+20),total:projects.length};
 }
 export const api = {
+  importColorScheme:()=>call<{name:string;source:string}|null>('import_color_scheme'),
+  exportColorScheme:(source:string)=>call<boolean>('export_color_scheme',{source}),
+  renameResource:(id:string,kind:'world'|'server',item:string,name:string)=>call<void>('rename_resource',{id,kind,item,name}),
+  launchResource:(id:string,kind:'world'|'server',item:string)=>call<void>('launch_resource',{id,kind,item}),
+  accountSkin:(id:string)=>call<string|null>('get_account_skin',{id}),
+  worldIcon:(id:string,name:string)=>call<string|null>('get_world_icon',{id,name}),
+  serverIcon:(id:string)=>call<string|null>('get_server_icon',{id}),
+  screenshotLibrary:()=>call<import('./types').ScreenshotLibrary>('get_screenshots'),
+  servers:()=>call<import('./types').ServerLibrary>('get_servers'),
+  worlds:()=>call<import('./types').WorldLibrary>('get_worlds'),
+  instanceWorlds:(id:string)=>call<import('./types').WorldEntry[]>('get_instance_worlds',{id}),
+  worldInfo:(id:string,name:string)=>call<import('./types').WorldEntry>('get_world_info',{id,name}),
+  copyWorld:(id:string,name:string,target:string)=>call<string>('copy_world',{id,name,target}),
+  backupWorld:(id:string,name:string)=>call<boolean>('backup_world',{id,name}),
+  saveServerBookmark:(bookmark:import('./types').ServerBookmark)=>call<Config>('save_server_bookmark',{bookmark}),
+  removeServerBookmark:(id:string)=>call<Config>('remove_server_bookmark',{id}),
+  addBookmarkedServer:(bookmark:string,id:string)=>call<boolean>('add_bookmarked_server',{bookmark,id}),
+  instanceFiles:(id:string)=>call<import('./types').InstanceFiles>('get_instance_files',{id}),
+  openInstanceFile:(id:string,kind:string,name:string)=>call<void>('open_instance_file',{id,kind,name}),
+  screenshotImage:(id:string,name:string)=>call<string>('get_screenshot_image',{id,name}),
+  sharedDatapacks:()=>call<void>('open_shared_datapacks'),
+  applyDatapacks:(id:string,world:string)=>call<number>('apply_shared_datapacks',{id,world}),
+  shortcut:(id:string)=>call<string>('create_instance_shortcut',{id}),
+  takeIntent:()=>call<{id:string;launch:boolean}|null>('take_instance_intent'),
+  launchSettings:(id:string)=>call<LaunchSettings>('get_launch_settings',{id}),
+  saveLaunchSettings:(id:string,settings:LaunchSettings)=>call<void>('save_launch_settings',{id,settings}),
+  projectLink:(link:string)=>call<void>('open_launcher_link',{link}),
   debugLaunch:()=>call<DebugLaunch | null>('get_debug_launch'),
   debugOffline:(enabled:boolean)=>call<DebugLaunch>('set_debug_offline',{enabled}),
+  reportStartupReady:()=>call<void>('report_startup_ready'),
   config:()=>call<Config>('get_config'), activities:()=>call<Activity[]>('get_activities'), versions:()=>call<Version[]>('get_versions'),
   news:()=>call<import('./types').NewsArticle[]>('get_news'),
   instanceNews:(id:string)=>call<import('./types').InstanceNews>('get_instance_news',{id}),
   openNews:(url:string)=>call<void>('open_news',{url}),
   fabricVersions:(version:string)=>call<string[]>('get_fabric_versions',{version}),
+  loaderVersions:(version:string,loader:Loader)=>loader==='fabric'?api.fabricVersions(version):loader==='quilt'?api.quiltVersions(version):call<string[]>('get_loader_versions',{version,loader}),
   quiltVersions:(version:string)=>call<string[]>('get_quilt_versions',{version}),
   catalogSources:()=>call<{modrinth:boolean;curseforge:boolean}>('get_catalog_sources'),
   searchCatalog:(query:CatalogQuery)=>call<CatalogPage>('search_catalog',{query}),
@@ -67,7 +111,9 @@ export const api = {
   packReleases:(source:CatalogSource,project:string,game:string,loader:string)=>call<CatalogRelease[]>('get_modpack_releases',{source,project,game,loader}),
   installPack:(source:CatalogSource,project:string,version:string,name:string)=>call<Instance>('install_modpack',{source,project,version,name}),
   openProject:(source:CatalogSource,url:string)=>call<void>('open_project',{source,url}),
-  screenshots:(id:string)=>call<string[]>('get_instance_screenshots',{id}),
+  projectDescription:(source:CatalogSource,project:string)=>call<import('./types').ProjectDescription>('get_catalog_description',{source,project}),
+  openDescriptionLink:(url:string)=>call<void>('open_description_link',{url}),
+  backgrounds:(id:string)=>call<import('./types').InstanceBackground[]>('get_instance_backgrounds',{id}),
   icons:()=>call<Record<string,string>>('get_instance_icons'),
   creationReleases:(source:CatalogSource,project:string,game:string,loader:string,kind:CatalogKind)=>call<CatalogRelease[]>('get_creation_releases',{source,project,game,loader,kind}),
   createWizard:(request:CreationRequest)=>call<Instance>('create_wizard',{request}),
@@ -97,6 +143,10 @@ export const api = {
 export async function subscribe(activity:(a:Activity)=>void,log:(l:{id:string;line:string})=>void) {
   if (!native) return ()=>{};
   const a=await listen<Activity>('activity',e=>activity(e.payload));
-  const b=await listen<{id:string;line:string}>('log',e=>log(e.payload));
-  return ()=>{a();b();};
+  try{
+    const b=await listen<{id:string;line:string}>('log',e=>log(e.payload));
+    return ()=>{a();b();};
+  }catch(error){a();throw error;}
 }
+
+export async function subscribeIntent(onintent:()=>void){if(!native)return ()=>{};return listen('instance-intent',onintent);}

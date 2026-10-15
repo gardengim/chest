@@ -1,0 +1,156 @@
+{
+  "environment": {
+    "os": "macOS 27.0.1",
+    "architecture": "arm64",
+    "build": "Release packaged .app, local ad-hoc signature",
+    "accounts": "none",
+    "artwork": "default icons, no screenshots",
+    "metadata": "real public endpoints, not mocked"
+  },
+  "cases": {
+    "empty": {
+      "executable": "src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "profile": "<disposable isolated profile>",
+      "instances": 0,
+      "samples": [
+        {
+          "processToLibraryMs": 1016.1091660265811,
+          "stages": [
+            {
+              "elapsed_ms": 153.1105,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 243.574084,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 437.96208399999995,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 776.532042,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 381.14379200851545,
+          "stages": [
+            {
+              "elapsed_ms": 70.858542,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 156.4475,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 238.00095800000003,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 375.984792,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 381.8383750040084,
+          "stages": [
+            {
+              "elapsed_ms": 66.70070799999999,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 155.13537499999998,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 238.420917,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 376.50120799999996,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 381.8383750040084,
+      "boundary": "Parent Popen to native receipt of library-rendered IPC after two animation frames; no Finder/LaunchServices; test-profile isolation enabled"
+    },
+    "100_instances": {
+      "executable": "src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+      "profile": "<disposable isolated profile>",
+      "instances": 100,
+      "samples": [
+        {
+          "processToLibraryMs": 464.018416008912,
+          "stages": [
+            {
+              "elapsed_ms": 68.911458,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 157.55883300000002,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 239.2635,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 458.96495799999997,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 405.9196669841185,
+          "stages": [
+            {
+              "elapsed_ms": 68.97158300000001,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 155.151541,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 230.18725,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 400.65091600000005,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 409.6176250022836,
+          "stages": [
+            {
+              "elapsed_ms": 77.347542,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 162.745417,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 239.003625,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 403.6445,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 409.6176250022836,
+      "boundary": "Parent Popen to native receipt of library-rendered IPC after two animation frames; no Finder/LaunchServices; test-profile isolation enabled"
+    }
+  }
+}

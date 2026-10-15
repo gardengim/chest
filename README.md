@@ -15,6 +15,17 @@ npm ci
 npm run tauri dev
 ```
 
+Bun is also supported for local development (Node.js remains required by the tooling):
+
+```sh
+bun install --frozen-lockfile
+bun run tauri dev
+bun run verify
+```
+
+CI and release builds use `npm ci` as the canonical dependency installation. Keep
+`bun.lock` in sync with `package.json`; either runner can execute the same scripts.
+
 For signed installer builds, follow [release setup](docs/releases.md). Windows needs the MSVC toolchain and WebView2. macOS needs Xcode Command Line Tools. Linux needs GTK 3, WebKitGTK 4.1, and a working Secret Service credential store.
 
 For the browser UI only, run `npm run dev`. This mode saves example instance settings in localStorage and explicitly refuses download, authentication, and launch operations.
@@ -26,10 +37,15 @@ Chest manages local Minecraft Java instances, content, accounts, and launches. T
 [PLAN.md](PLAN.md) tracks the release milestones in dependency order.
 
 - Vanilla release versions from 1.19 onward, including yearly version names, plus
-  Fabric and Quilt. Forge, NeoForge, snapshots, and Bedrock are outside this baseline.
+  Fabric, Quilt and Forge. NeoForge supports stable 1.20.2–1.21.x releases.
+  Legacy Forge, NeoForge year-based versions, snapshots and Bedrock are outside this baseline.
+  See [loader installation and validation](docs/LOADERS.md).
 - One-page creation with Custom, Modpacks, and Import sources; optional names, locations,
   local content, and compatible catalog content. Explore pack selection opens creation.
   Explicit Create queues installation; selecting a pack does not install it.
+- Customizable Home shelves with horizontal instance/world/server galleries. Drag dock
+  icons to reorder shelves; expand More to open hidden tools or drag them onto Home.
+  Shelf visibility and order persist locally. News and Explore retain their existing UI.
 - Library and Explore gallery/list views, flat sidebar groups, shared instance action
   menus on sidebar tabs and cards, and instance Overview, Content, Versions, Settings,
   and Log tabs. Switching sidebar destinations resets the instance tab to Overview.
@@ -40,12 +56,41 @@ Chest manages local Minecraft Java instances, content, accounts, and launches. T
   instance location, multiple Microsoft accounts, and OS credential-store refresh tokens.
 - Background installation with pause/resume/retry, independent running instances, logs,
   playtime, and activity indicators. Stop and deletion require confirmation.
-- Dark theme, English/Korean, reduced motion, configurable double-click launch and startup
+- Global world search, ZIP backups and safe copies between instances; server bookmarks
+  with preferred instances and version/loader warnings. [Details](docs/WORLDS-AND-SERVERS.md).
+- Dark theme, English/Korean/Spanish/Japanese, reduced motion, configurable double-click launch and startup
   update checks. News includes official Minecraft articles and installed-pack/loader updates.
 - Signed app updates from GitHub with explicit installation and restart controls.
 
 Implementation and automated coverage do not establish packaged-app or gameplay
 acceptance. See [VALIDATION.md](VALIDATION.md) for the current evidence and remaining gates.
+
+## Home and icons
+
+The sidebar contains Home, instance tabs/groups, Create, and Settings. Home's bottom
+dock provides Instances, News, Explore, Worlds, and Servers, even when a section is
+hidden from Home. Expand **More** to see hidden tools; clicking one opens its full page.
+Drag a tool into or out of the visible group to add/remove a shelf. Drag within the
+visible group to reorder Home. Keyboard equivalents: **Alt+Left/Right** to reorder,
+**Alt+Down** to hide, and **Alt+Up** to add a hidden tool. **Escape** cancels a drag or
+collapses More. Hover/focus hints appear above the dock. All motion respects the
+system and launcher reduced-motion preferences.
+
+Symbolic icons keep their original smooth SVG assets in `src/icons/` (indexed by `src/symbols.ts`). The
+shared renderer converts each symbol to a cached 24×24 pixel grid when first used,
+then draws hard-edged geometry with neutral contrast ink independent of theme text colors. It does not allocate a
+canvas or color observer per icon. Chest artwork, Minecraft blocks, project logos,
+instance artwork, and screenshots retain their original rendering. Prototypes A/B
+remain under `prototypes/` for reference and are excluded from release bundles.
+
+## Color schemes
+
+Open **Settings → Settings → Appearance** to import a JSON or CSS palette, preview it,
+apply/export it, or restore Chest's default scheme. Preview is temporary until applied;
+Cancel, Escape or leaving the panel restores the saved scheme. Desktop uses native
+Open/Save dialogs. Pixel bevels, black structural frames, icon geometry and artwork
+remain protected. Background customization is separate and not yet implemented.
+See [the color scheme format and palette roles](docs/COLOR-SCHEMES.md).
 
 ## Catalog setup
 
@@ -57,9 +102,11 @@ Provider references: [Modrinth API](https://docs.modrinth.com/api/), [CurseForge
 
 ## Microsoft setup
 
+See the [registration and Minecraft API approval guide](docs/MICROSOFT-REGISTRATION.md) for the exact settings and review form.
+
 Chest has no bundled Microsoft application ID. Register Chest as a public desktop client supporting **personal Microsoft accounts**. Configure the loopback redirect `http://localhost/callback`; Chest supplies an ephemeral local port. Use authorization code + PKCE and no client secret. Requested scopes: `XboxLive.signin offline_access`.
 
-Enter the application's client ID in Accounts & settings → Settings → Microsoft application setup, then save defaults. `CHEST_CLIENT_ID` can supply the initial ID when creating a fresh configuration.
+Enter the application's client ID in Settings → Settings → Microsoft application setup, then save defaults. `CHEST_CLIENT_ID` can supply the initial ID when creating a fresh configuration.
 
 Microsoft/Xbox/Minecraft must authorize the application to use the relevant services. A valid UUID by itself does not establish service access. Errors are surfaced without borrowing another launcher's identity. An owning account is required to play. Real sign-in and launch need to be tested with Chest's registration; they are not claimed as verified in this package.
 
@@ -138,3 +185,41 @@ Packaged testing can use an [isolated test profile](docs/TEST-PROFILES.md) witho
 The bundled Minecraft icon belongs to Mojang/Microsoft; its source and checksum are recorded in [public/minecraft-icon-source.txt](public/minecraft-icon-source.txt). Chest is an independent project and is not affiliated with Mojang or Microsoft.
 
 For Windows clone, build and isolated testing commands, see [Windows testing](docs/WINDOWS.md).
+
+## License and launcher features
+
+Chest is [MIT licensed](LICENSE). Settings → About includes project links and bundled
+third-party license notices, including build dependencies. Run `npm run licenses`
+after changing dependencies (fetch Cargo sources first with `cargo fetch --locked
+--manifest-path src-tauri/Cargo.toml`). `npm run check:licenses` checks lockfile coverage.
+Packages missing their own license file display clearly labeled standard texts from
+[SPDX](https://github.com/spdx/license-list-data); original package notices are preserved when supplied.
+Minecraft artwork retains its [Mojang/Microsoft attribution](public/minecraft-icon-source.txt).
+
+Instance Settings includes per-instance accounts, window size/fullscreen, Java and game
+arguments, environment variables, before-launch/after-exit commands, and opening Log
+on launch. Each argument takes one line; the first line of a command is its executable.
+Commands run without a shell in the game folder, with a 30-second timeout. Environment
+values and commands are stored locally in config.json and are excluded from archives.
+Local duplicates retain these settings. Removing an account requires selecting another
+account for any instance pinned to it.
+
+For Minecraft 26.2 and later, **Graphics API** can follow the in-game setting or prefer
+OpenGL/Vulkan. Chest passes the selection at launch without rewriting game options or
+installing a renderer mod. Vulkan is experimental; on macOS Minecraft uses MoltenVK.
+Iris shader packs require OpenGL, and rendering mods/resource packs may need compatibility
+updates. Older versions retain the in-game setting. See the
+[Minecraft 26.2 release notes](https://feedback.minecraft.net/hc/en-us/articles/46690753273997-Minecraft-Java-Edition-26-2).
+
+Worlds, Servers, and Screenshots tabs appear when corresponding local files exist.
+Saved servers are read from servers.dat; screenshots can be previewed or opened.
+Settings → Storage opens the shared data-pack directory. Place ZIP packs there, then
+use Add data packs on a world. Existing world packs are preserved; Minecraft controls
+whether a data pack is enabled.
+
+Create shortcut is available in an instance's settings and context menu in installed
+release builds. It creates a desktop .lnk (Windows), .app (macOS), or .desktop (Linux)
+that opens Chest and launches that installed instance. Existing shortcuts are never
+replaced. Shortcuts reference the installed executable; recreate them if it moves.
+An uninstalled instance opens its page instead. Development/test profiles cannot create
+shortcuts. On Linux, your desktop may require marking a launcher as trusted.

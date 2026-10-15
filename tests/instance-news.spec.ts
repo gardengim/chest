@@ -5,6 +5,9 @@ test('news combines sources, scopes updates to installed instances, and retries 
     const w=window as any;w.isTauri=true;w.__checks=[];let failed=true;
     const instances=['A','B','Draft'].map(id=>({id,name:id,version:'26.3',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:id!=='Draft'}));
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return {instances,accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_versions')return [{id:'26.3',type:'release'}];
       if(name==='get_instance_icons')return {};
@@ -47,6 +50,9 @@ test('instance updates survive a failed official news feed',async({page})=>{
     const w=window as any;w.isTauri=true;
     const instance={id:'A',name:'A',version:'26.3',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true};
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return {instances:[instance],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_versions')return [{id:'26.3',type:'release'}];
       if(name==='get_instance_icons')return {};

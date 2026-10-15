@@ -40,3 +40,29 @@ platform. Record hardware, build, memory and disk; compare before/after on the s
 Do not infer memory stability or native smoothness from mocked browser tests. Add tighter
 budgets only after representative device measurements; virtualization may be appropriate
 if real large libraries exceed them.
+
+## Weekend resource audit
+
+Startup JS fell 20.5%, bundled license notices 74.8%, and the local production executable 37.3%. Backdrop work, log updates, scrollbar reads and news scheduling now have explicit bounds. These are asset/workload improvements; native CPU/RSS reductions have not been measured.
+
+See the [audit findings, completed tasks and measurements](audits/2026-10-11.md) for scope and limitations.
+
+## Startup continuation — October 12, 2026
+
+Overlapped critical local initialization, deferred optional artwork/network work,
+and split unselected pages out of the startup bundle. Main JS is 35.6% smaller.
+Production-browser fixtures verify that optional requests can remain unresolved
+without blocking library navigation, and newer activity events beat the initial
+snapshot. See the [startup audit and raw measurements](audits/2026-10-12-startup.md) for verification,
+benchmark methodology and native measurement limits.
+
+## Shared UI continuation — October 13, 2026
+
+Removed progress-triggered instance file scans: a five-progress-event regression
+reproduced six total scans before the fix and one afterward; status transitions still
+refresh files. Screenshot artwork now shares pending work and has a 16 MiB retained
+string budget in addition to the 64-entry limit. Shelf measurements are batched,
+unused visibility observation is skipped, and local gallery metadata reads use the
+blocking pool. Browser library workloads remain within their existing smoke budgets.
+See the [UI/performance audit](audits/2026-10-13-ui-performance.md) for implementation,
+coverage and native measurement limits.

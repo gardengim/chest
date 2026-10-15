@@ -1,8 +1,20 @@
+pub mod artwork;
+pub mod backgrounds;
+mod account_skins;
+mod resource_launch;
+mod resource_edit;
 mod archive;
+pub mod instance_files;
+pub mod worlds;
+pub mod server_bookmarks;
+pub mod launch_settings;
 pub mod creation;
 pub mod auth;
 pub mod catalog;
+pub mod catalog_description;
 pub mod fabric;
+pub mod forge;
+pub mod loaders;
 pub mod install;
 pub mod metadata;
 pub mod news;
@@ -143,12 +155,16 @@ impl Core {
         self.debug_offline.store(enabled, Ordering::Relaxed);
         Ok(self.debug_launch())
     }
+    #[cfg(test)]
     async fn launch_session(&self) -> Result<auth::Session> {
+        self.launch_session_for(None).await
+    }
+    async fn launch_session_for(&self, account: Option<&str>) -> Result<auth::Session> {
         if self.debug_launch().enabled {
             return Ok(auth::debug_session());
         }
         let _auth = self.auth_lock.acquire().await?;
-        auth::refresh(&self.store, &self.client).await
+        auth::refresh_for(&self.store, &self.client, account).await
     }
     pub fn activity(&self, a: Activity) {
         self.activities
@@ -331,7 +347,8 @@ impl Core {
         }
         Ok(())
     }
-    pub fn launch(self: &Arc<Self>, id: String) -> Result<()> {
+    pub fn launch(self: &Arc<Self>, id: String) -> Result<()> {self.launch_target(id,None)}
+    pub(crate) fn launch_target(self:&Arc<Self>,id:String,target:Option<resource_launch::ResourceTarget>)->Result<()>{
         if !self.store.instance(&id)?.installed {
             bail!("Install this instance first");
         }
@@ -339,7 +356,7 @@ impl Core {
         self.activity(Activity::new(&id, "starting", None, "Preparing Minecraft"));
         let core = self.clone();
         tokio::spawn(async move {
-            let result = run_game(core.clone(), id.clone(), job.clone()).await;
+            let result = run_game(core.clone(), id.clone(), job.clone(),target).await;
             let _operation = core.operation_lock.lock().unwrap();
             core.jobs.lock().unwrap().remove(&id);
             match result {
@@ -506,6 +523,9 @@ impl Core {
         new.loader = old.loader;
         new.loader_version = old.loader_version;
         self.store.save(new.clone())?;
+        if let Some(settings)=self.store.config().launch_settings.get(id).cloned(){
+            self.store.change(|config|{config.launch_settings.insert(new.id.clone(),settings);Ok(())})?;
+        }
         if let Err(e) = copy_tree(
             &self.store.dir(id)?.join("game"),
             &self.store.dir(&new.id)?.join("game"),
@@ -560,7 +580,7 @@ fn copy_tree(from: &std::path::Path, to: &std::path::Path) -> Result<()> {
     }
     Ok(())
 }
-async fn run_game(core: Arc<Core>, id: String, job: Arc<Job>) -> Result<()> {
+async fn run_game(core: Arc<Core>, id: String, job: Arc<Job>, target:Option<resource_launch::ResourceTarget>) -> Result<()> {
     let instance = core.store.instance(&id)?;
     let meta: Value =
         serde_json::from_slice(&fs::read(if instance.loader != store::Loader::Vanilla {
@@ -571,20 +591,20 @@ async fn run_game(core: Arc<Core>, id: String, job: Arc<Job>) -> Result<()> {
         })?)?;
     if instance.loader != store::Loader::Vanilla
         && metadata::text(&meta, "id")?
-            != format!(
-                "{}-loader-{}-{}",
-                if instance.loader == store::Loader::Quilt {
-                    "quilt"
-                } else {
-                    "fabric"
-                },
-                instance.loader_version,
-                instance.version
-            )
+            != loaders::profile_id(&instance.version, &instance.loader_version, instance.loader)
     {
         bail!("Modloader installation does not match this instance; reinstall from Versions");
     }
-    let session = core.launch_session().await?;
+    if let Some(files) = meta["chestLoaderFiles"].as_array() {
+        for file in files {
+            let path = store::safe_join(&core.store.root.join("libraries"), file.as_str().context("Invalid loader file")?)?;
+            if !path.is_file() { bail!("Modloader installation is missing files; reinstall from Versions"); }
+        }
+    }
+    let settings=core.launch_settings(&id)?;
+    settings.validate(&core.store.config())?;
+    let graphics_arguments = settings.graphics_arguments(&instance.version)?;
+    let session = core.launch_session_for(settings.account_id.as_deref()).await?;
     let _download = core.download_lock.acquire().await?;
     let java = install::java(&core, &meta, &instance.java_path).await?;
     drop(_download);
@@ -669,14 +689,23 @@ async fn run_game(core: Arc<Core>, id: String, job: Arc<Job>) -> Result<()> {
             &vars,
         )?);
     }
+    args.extend(settings.java_args.clone());
     args.push(metadata::text(&meta, "mainClass")?.into());
     args.extend(metadata::expand_arguments(
         &meta["arguments"]["game"],
         &vars,
     )?);
+    args.extend(["--width".into(), settings.width.to_string(), "--height".into(), settings.height.to_string()]);
+    if settings.fullscreen { args.push("--fullscreen".into()); }
+    args.extend(settings.game_args.clone());
+    args.extend(graphics_arguments);
+    if let Some(target)=&target{args.extend(resource_launch::arguments(&meta,target)?);}
+    launch_settings::hook(&settings.before_launch, &game, &settings.environment).await?;
+    if job.cancel.load(Ordering::Relaxed) { return Ok(()); }
     let mut command = tokio::process::Command::new(java);
     command
         .args(args)
+        .envs(&settings.environment)
         .current_dir(&game)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -715,8 +744,9 @@ async fn run_game(core: Arc<Core>, id: String, job: Arc<Job>) -> Result<()> {
     let _ = b.await;
     let lines = core.logs(&id).join("\n");
     fs::write(dir.join("launcher.log"), lines)?;
+    launch_settings::hook(&settings.after_exit, &game, &settings.environment).await?;
     if !status.success() && !job.cancel.load(Ordering::Relaxed) {
-        bail!("Minecraft exited unexpectedly ({status}). Open Console for details.");
+        bail!("Minecraft exited unexpectedly ({status}). Open Log for details.");
     }
     core.log(
         &id,
@@ -756,6 +786,13 @@ fn emit_game_line(core:&Core,id:&str,line:&[u8],oversized:bool,token:&str){
     let line=String::from_utf8_lossy(line);
     let line=line.trim_end_matches('\r');
     if token.is_empty(){core.log(id,line);}else{core.log(id,&line.replace(token,"[redacted]"));}
+}
+
+
+pub fn open_launcher_link(link: &str) -> Result<()> {
+    let path=match link {"github"=>"", "issues"=>"/issues", "releases"=>"/releases", _=>bail!("Unknown project link")};
+    open::that(format!("https://github.com/gardengim/chest{path}"))?;
+    Ok(())
 }
 
 #[cfg(test)]

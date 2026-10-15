@@ -4,6 +4,9 @@ test('Overview shows available versions and news, folder is readonly, and cards 
     const w=window as any;w.isTauri=true;
     const instance={id:'world',name:'World',version:'1.21.4',loader:'fabric',loader_version:'0.16.9',memory_mb:4096,java_path:'',artwork:'grass',installed:true};
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return {instances:[instance],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_versions')return [{id:'26.3',type:'release'},{id:'1.21.4',type:'release'}];
       if(name==='get_fabric_versions')return ['0.16.10','0.16.9'];
@@ -51,7 +54,7 @@ test('Overview shows available versions and news, folder is readonly, and cards 
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByLabel('Instance folder',{exact:true})).toHaveValue('/tmp/World');
   await expect(page.getByLabel('Instance folder',{exact:true})).toHaveAttribute('readonly','');
-  await expect(page.getByRole('heading',{name:'Instance settings'})).toHaveCount(0);
+  await expect(page.getByRole('heading',{name:'Instance settings'})).toBeVisible();
   await expect(page.getByText('Remove this instance and its local files.')).toHaveCount(0);
   await page.getByRole('tab',{name:'Content',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Content',exact:true})).toHaveCount(0);

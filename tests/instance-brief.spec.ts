@@ -12,7 +12,7 @@ test('cards and instance headers share version, loader, and saved playtime summa
   })));
   await page.reload();
   for(const [name,summary] of [
-    ['Modded world','26.3 · Fabric 0.19.5 · 2h 14m played'],
+    ['Modded world','26.3 · Fabric 0.19.5 · 2 h 14 min played'],
     ['Fresh world','1.21.4 · Not played yet'],
     ['Queued pack','Preparing modpack · Not played yet'],
   ]){
@@ -22,8 +22,8 @@ test('cards and instance headers share version, loader, and saved playtime summa
     await expect(page.locator('.instance-hero .instance-brief')).toHaveText(summary);
     await page.getByRole('button',{name:'Chest home',exact:true}).click();
   }
-  await page.getByRole('group',{name:'Library layout'}).getByRole('button',{name:'List',exact:true}).click();
-  await expect(page.locator('.instance-card').first().locator('.instance-brief')).toHaveText('26.3 · Fabric 0.19.5 · 2h 14m played');
+  await page.getByRole('radiogroup',{name:'Library layout'}).getByRole('radio',{name:'List',exact:true}).click();
+  await expect(page.locator('.instance-card').first().locator('.instance-brief')).toHaveText('26.3 · Fabric 0.19.5 · 2 h 14 min played');
   await page.setViewportSize({width:700,height:650});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
 });

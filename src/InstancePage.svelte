@@ -1,5 +1,17 @@
 <script lang="ts">
+  import Toolbar from './Toolbar.svelte';
+  import SettingsGroup from './SettingsGroup.svelte';
+  import DirectionIcon from './DirectionIcon.svelte';
+  import {untrack} from 'svelte';
   import { t } from './i18n';
+  import {activityText} from './activity-text';
+  import InstanceFilesView from './InstanceFiles.svelte';
+  import CopyButton from './CopyButton.svelte';
+  import ContentCollection from './ContentCollection.svelte';
+  import {createLaunchDraft,type LaunchDraft} from './ui-state';
+  import type {ResourceLink} from './resource-navigation';
+  import AccountName from './AccountName.svelte';
+  import LaunchSettings from './LaunchSettings.svelte';
   import News from './News.svelte';
   import Select from './Select.svelte';
   import Button from './Button.svelte';
@@ -12,19 +24,23 @@
   import Icon from './Icon.svelte';
   import { api, native } from './api';
   import { instanceUI, instanceStatus, type InstanceChoice } from './instance-ui';
-  import { loaderLabel, tabs, type Activity, type Account, type Content, type Instance, type Tab, type Version } from './types';
+  import { loaderLabel, tabs, type Activity, type Account, type Config, type Content, type Instance, type InstanceFiles, type Tab, type Version } from './types';
 
-  let { current, editor=$bindable(), active, tab, account, source, versions, content=[], output=[],
-    onchoose, onselectTab, onbrowse, onsave, onacknowledge, ontoggle, onrefresh, onprofile }: {
-    current: Instance; editor: Instance; active?: Activity; tab: Tab; account?: Account;
+  let { resourceLink=null,current, editor=$bindable(), launchDraft=$bindable(createLaunchDraft()), active, tab, account, accounts=[], source, versions, content=[], output=[],
+    onchoose, onselectTab, onbrowse, onsave, onacknowledge, ontoggle, onrefresh, onrefreshContent, instances=[], isBusy=()=>false, onconfig, bookmarks=[], onprofile }: {
+    resourceLink?:ResourceLink|null;onconfig?:(config:Config)=>void;bookmarks?:import('./types').ServerBookmark[];instances?:Instance[];isBusy?:(id:string)=>boolean;current: Instance; editor: Instance; launchDraft?:LaunchDraft; active?: Activity; tab: Tab; account?: Account; accounts?:Account[];
     source?: string; versions: Version[]; content?: Content[]; output?: string[];
     onchoose: (choice:InstanceChoice)=>void; onselectTab: (tab:Tab)=>void;
-    onbrowse: ()=>void; onsave: ()=>void; onacknowledge: ()=>void;
-    ontoggle: (file:Content)=>void; onrefresh: ()=>void; onprofile: ()=>void;
+    onbrowse: (kind:string)=>void; onsave: ()=>void; onacknowledge: ()=>void;
+    ontoggle: (file:Content)=>void; onrefresh: ()=>void; onrefreshContent: ()=>Promise<unknown>; onprofile: ()=>void;
   } = $props();
+  let logSearch=$state('');
+  const logQuery=$derived(logSearch.trim().toLocaleLowerCase());
+  const filteredOutput=$derived(logQuery?output.filter(line=>line.toLocaleLowerCase().includes(logQuery)):output);
   let folderPath=$state('');
   let folderError=$state('');
   const instanceId=$derived(current.id);
+  $effect(()=>{void instanceId;logSearch='';});
   $effect(()=>{
     const id=instanceId;
     let alive=true;
@@ -32,17 +48,29 @@
     void api.folderPath(id).then(path=>{if(alive)folderPath=path || '';}).catch(()=>{if(alive)folderError='Could not read the instance folder path.';});
     return()=>{alive=false;};
   });
+  let files=$state<InstanceFiles>({worlds:[],servers:[],screenshots:[]});
+  let fileError=$state('');let filesId='';
+  let refreshPending=$state(false);
+  async function refreshFiles(){refreshPending=true;fileError='';const id=current.id;try{const value=await api.instanceFiles(id);if(current.id===id)files=value;}catch(e){if(current.id===id)fileError=String(e);}finally{refreshPending=false;}}
+  const activityStatus=$derived(active?.status);
+  $effect(()=>{const id=instanceId;void activityStatus;let alive=true;untrack(()=>{if(filesId!==id){filesId=id;files={worlds:[],servers:[],screenshots:[]};}fileError='';});
+    void api.instanceFiles(id).then(value=>{if(alive)files=value;}).catch(e=>{if(alive)fileError=String(e);});return()=>{alive=false;};});
+  const instanceTabs=$derived([...tabs.slice(0,2),...(files.worlds.length || tab==='Worlds'?['Worlds' as const]:[]),...(files.servers.length || tab==='Servers'?['Servers' as const]:[]),...(files.screenshots.length || tab==='Screenshots'?['Screenshots' as const]:[]),...tabs.slice(2)]);
+  let effectiveAccount=$state<Account|undefined>();
+  $effect(()=>{const id=instanceId;const selected=tab;const all=accounts;let alive=true;
+    void api.launchSettings(id).then(options=>{if(alive)effectiveAccount=options.account_id?all.find(a=>a.id===options.account_id):account;}).catch(()=>{if(alive)effectiveAccount=account;});return()=>{alive=false;};});
   let editLoaderReady=$state(false);
   const currentUI=$derived(instanceUI(current,active));
   const busy=$derived(currentUI.busy);
   const latestRelease=$derived(versions.find(version=>version.type==='release'));
   const newerRelease=$derived(!!latestRelease && versions.findIndex(version=>version.id===current.version)>versions.findIndex(version=>version.id===latestRelease.id));
   let loaderUpdate=$state('');
+  const gameVersion=$derived(current.version),loader=$derived(current.loader),loaderVersion=$derived(current.loader_version);
   $effect(()=>{
-    const instance=current;let alive=true;loaderUpdate='';
-    if(instance.version!=='pending' && instance.loader!=='vanilla'){
-      const request=instance.loader==='fabric'?api.fabricVersions(instance.version):api.quiltVersions(instance.version);
-      void request.then(list=>{const latest=list?.[0];if(alive && latest && list.includes(instance.loader_version) && list.indexOf(instance.loader_version)>0)loaderUpdate=latest;}).catch(()=>{});
+    const version=gameVersion,kind=loader,installed=loaderVersion;let alive=true;loaderUpdate='';
+    if(version!=='pending' && kind!=='vanilla'){
+      const request=api.loaderVersions(version,kind);
+      void request.then(list=>{const latest=list?.[0];if(alive && latest && list.includes(installed) && list.indexOf(installed)>0)loaderUpdate=latest;}).catch(()=>{});
     }
     return()=>{alive=false;};
   });
@@ -57,13 +85,13 @@
   <div>
     <h1>{current.name}</h1>
     <InstanceBrief instance={current}/>
-    <p class="instance-summary">{$t(instanceStatus(current,active))}</p>
+    <p class="instance-summary">{activityText(instanceStatus(current,active),$t)}</p>
   </div>
 </section>
 <div class="instance-toolbar">
   <Button tone="accent" class="install-button" disabled={currentUI.transitional} onclick={()=>onchoose('action')}>
     <span class="button-label">
-      <Icon name={currentUI.icon} size={18}/>{$t(currentUI.label)}</span>
+      <Icon name={currentUI.icon} size={18}/>{$t(currentUI.label,currentUI.labelValues)}</span>
     <span class="button-hover">
       <Icon name={currentUI.actionIcon} size={18}/>{$t(currentUI.actionLabel)}</span>
     {#if currentUI.showProgress}
@@ -71,15 +99,16 @@
       </span>
     {/if}
   </Button>
-  <Tabs options={tabs} value={tab} prefix="instance" label={$t("Instance pages")} onchange={onselectTab}/>
+  <Tabs options={instanceTabs} value={tab} prefix="instance" label={$t("Instance pages")} onchange={onselectTab}/>
 </div>
 <div class="instance-content" id={`instance-panel-${tab}`} role="tabpanel" aria-labelledby={`instance-tab-${tab}`}>
   {#if active && ['crashed','failed','launch_failed'].includes(active.status)}
     <div class="crash-notice">
       <div>
-        <strong>{$t(active.status==='crashed'?'Minecraft stopped unexpectedly.':active.status==='launch_failed'?'Minecraft could not start.':'Installation needs another try.')}</strong>
+        <strong>{$t(active.status==='crashed'?'Minecraft stopped unexpectedly.':active.status==='launch_failed'?'Minecraft could not start.':'Installation failed. Try again.')}</strong>
         <p>{active.phase}</p>
       </div>
+      <CopyButton text={`${$t(active.status==='crashed'?'Minecraft stopped unexpectedly.':active.status==='launch_failed'?'Minecraft could not start.':'Installation failed. Try again.')}\n${active.phase}`}/>
       <Button shape="plain" onclick={()=>onselectTab('Log')}>{$t("Log")}</Button>
       <Button shape="plain" class="icon-button" aria-label={$t("Acknowledge error")} onclick={onacknowledge}>
         <Icon name="close" size={16}/>
@@ -89,21 +118,15 @@
   {#if tab==='Overview'}
     <div class="overview-layout">
       <section class="panel">
-        <div class="panel-heading">
-          <h2>{$t("Instance")}</h2>
-          <Icon name="leaf" size={22}/>
-        </div>
-        <p class="muted">{$t(instanceStatus(current,active))}</p>
-        {#if active && ['installing','paused','pausing'].includes(active.status)}
-          <p class="hint">{$t("Hover or focus to pause or resume.")}</p>
-        {/if}
+        <h2>{$t("Instance")}</h2>
+        {#if fileError}<p class="inline-error" role="alert">{fileError}</p>{/if}
         <dl class="details">
           <div>
             <dt>Minecraft</dt>
             <dd>{$t(current.version==='pending'?'From modpack':current.version)}</dd>
           </div>
           <div>
-            <dt>{$t("Modloader")}</dt>
+            <dt>{$t("Mod loader")}</dt>
             <dd>{$t(current.version==='pending'?'From modpack':current.loader==='vanilla'?'Vanilla':`${loaderLabel(current.loader)} ${current.loader_version}`)}</dd>
           </div>
           <div>
@@ -116,11 +139,11 @@
           </div>
           <div>
             <dt>{$t("Account")}</dt>
-            <dd>{account?.name || $t('Not signed in')}</dd>
+            <dd>{#if effectiveAccount}<AccountName account={effectiveAccount}/>{:else}{$t('Not signed in')}{/if}</dd>
           </div>
         </dl>
-        {#if !account}
-          <Button shape="plain" onclick={onprofile}>{$t("Sign in")} <Icon name="arrow" size={16}/>
+        {#if !effectiveAccount}
+          <Button shape="plain" onclick={onprofile}>{$t("Sign in")} <DirectionIcon direction="right"/>
           </Button>
         {/if}
       </section>
@@ -135,32 +158,11 @@
       <News instances={[current]}/>
       </div>
     </div>
+  {:else if ['Worlds','Servers','Screenshots'].includes(tab)}
+    {#if fileError}<p class="inline-error" role="alert">{fileError}</p>{/if}
+    <InstanceFilesView {refreshPending} onrefresh={refreshFiles} {resourceLink} id={current.id} {tab} {files} {busy} {instances} {isBusy} {onconfig} {bookmarks}/>
   {:else if tab==='Content'}
-    <div class="form-actions">
-      <Button tone="accent" disabled={busy || current.version==='pending'} onclick={onbrowse}>
-        <Icon name="search" size={17}/>{$t("Browse")}</Button>
-    </div>
-    <p class="hint">{$t(current.loader==='vanilla'?'Mods require Fabric or Quilt.':'')}</p>
-    {#if !content.length}
-      <div class="empty">
-        <Icon name="cube" size={35}/>
-        <h3>{$t("No content")}</h3>
-
-      </div>
-    {:else}
-      <div class="panel content-list">
-        {#each content as file}
-          <div>
-            <Icon name="cube"/>
-            <span>{file.name}<small>{$t(({mods:'Mods',resourcepacks:'Resource packs',shaderpacks:'Shaders'} as Record<string,string>)[file.kind] || file.kind)}</small>
-            </span>
-            {#if file.kind==='mods'}
-              <Button disabled={busy} onclick={()=>ontoggle(file)}>{$t(file.enabled?'Disable':'Enable')}</Button>
-            {/if}
-          </div>
-        {/each}
-      </div>
-    {/if}
+    <ContentCollection onrefresh={onrefreshContent} onadd={onbrowse} addDisabled={current.version==='pending'} prefix="instance-content" entries={content.map(file=>({id:`${file.kind}:${file.name}`,name:file.name,kind:file.kind,enabled:file.enabled,toggleable:file.kind==='mods'}))} {busy} ontoggle={entry=>{const file=content.find(file=>`${file.kind}:${file.name}`===entry.id);if(file)ontoggle(file);}}/>
   {:else if tab==='Versions'}
     {#if current.version==='pending'}
       <section class="panel">
@@ -186,35 +188,47 @@
       </section>
     {/if}
   {:else if tab==='Settings'}
-    <form class="panel narrow" onsubmit={e=>{e.preventDefault();void onsave();}}>
-
-      <div class="instance-folder">
-        <label>{$t("Instance folder")}<input class="folder-path" aria-label={$t("Instance folder")} readonly value={folderPath} placeholder={folderError || (native?'Loading…':'Desktop app required')}/></label>
-        <Button type="button" disabled={!native} onclick={()=>onchoose('folder')}><Icon name="folder" size={17}/>{$t("Open folder")}</Button>
-      </div>
-      {#if currentUI.pending}
-        <p class="hint">{$t("Install this modpack before editing or copying.")}</p>
-      {/if}
-      <label>{$t("Name")}<input bind:value={editor.name} required maxlength={120} disabled={busy || currentUI.pending}/>
-      </label>
-      <RuntimeFields bind:memory={editor.memory_mb} bind:javaPath={editor.java_path} disabled={busy || currentUI.pending}/>
-      <div class="form-actions">
-        <Button type="submit" tone="accent" disabled={busy || currentUI.pending}>{$t("Save")}</Button>
-        <Button type="button" disabled={!currentUI.canCopy} onclick={()=>onchoose('duplicate')}>
-          <Icon name="copy" size={16}/>{$t("Duplicate")}</Button>
-        <Button type="button" disabled={!currentUI.canCopy || !native} onclick={()=>onchoose('export')}>{$t("Export")}</Button>
-      </div>
-      <div class="danger-zone">
-
-        <Button type="button" tone="danger" disabled={busy} onclick={()=>onchoose('delete')}>{$t("Delete")}</Button>
-      </div>
-    </form>
-  {:else}
-    <div class="section-heading">
-      <Button onclick={onrefresh}>{$t("Refresh")}</Button>
+    <div class="instance-settings-layout">
+      <form class="panel instance-settings settings-form" aria-label={$t('Instance settings')} onsubmit={e=>{e.preventDefault();void onsave();}}>
+        <h2>{$t('Instance settings')}</h2>
+        {#if currentUI.pending}<p class="hint">{$t('Install this modpack before editing or copying.')}</p>{/if}
+        <SettingsGroup title={$t('General')}>
+          <label>{$t('Name')}<input bind:value={editor.name} required maxlength={120} disabled={busy || currentUI.pending}/></label>
+        </SettingsGroup>
+        <SettingsGroup title={$t('Runtime')}>
+          <RuntimeFields bind:memory={editor.memory_mb} bind:javaPath={editor.java_path} disabled={busy || currentUI.pending}/>
+        </SettingsGroup>
+        <div class="settings-save"><Button type="submit" tone="accent" disabled={busy || currentUI.pending}>{$t('Save')}</Button></div>
+      </form>
+      <LaunchSettings bind:draft={launchDraft} id={current.id} version={current.version} {accounts} busy={busy || currentUI.pending}/>
+      <section class="panel settings-form" aria-label={$t('Files and actions')}>
+        <h2>{$t('Files and actions')}</h2>
+        <div class="settings-input-action">
+          <label>{$t('Instance folder')}<input class="folder-path" aria-label={$t('Instance folder')} readonly value={folderPath} placeholder={folderError || (native?'Loading…':'Desktop app required')}/></label>
+          <Button type="button" disabled={!native} onclick={()=>onchoose('folder')}><Icon name="folder" size={17}/>{$t('Open folder')}</Button>
+        </div>
+        <div class="form-actions settings-file-actions">
+          <Button type="button" disabled={!native} onclick={()=>onchoose('shortcut')}>{$t('Create shortcut')}</Button>
+          <Button type="button" disabled={!currentUI.canCopy} onclick={()=>onchoose('duplicate')}><Icon name="copy" size={16}/>{$t('Duplicate')}</Button>
+          <Button type="button" disabled={!currentUI.canCopy || !native} onclick={()=>onchoose('export')}>{$t('Export')}</Button>
+        </div>
+      </section>
+      <section class="danger-zone settings-delete" aria-label={$t('Delete instance')}>
+        <h2>{$t('Delete instance')}</h2>
+        <Button type="button" tone="danger" disabled={busy} onclick={()=>onchoose('delete')}>{$t('Delete')}</Button>
+      </section>
     </div>
-    <pre class="console">{output.join('\n') || $t('No output')}</pre>
+
+  {:else}
+    <Toolbar searchLabel={$t('Search log')} bind:value={logSearch} items={[
+      {id:'refresh',label:$t('Refresh'),content:refreshLog},
+      ...(filteredOutput.length?[{id:'copy',label:$t('Copy'),priority:20,content:copyLog}]:[])
+    ]}/>
+    <pre class="console">{filteredOutput.join('\n') || $t(output.length?'No results':'No output')}</pre>
   {/if}
 </div>
 
 </div>
+
+{#snippet refreshLog()}<Button onclick={onrefresh}>{$t('Refresh')}</Button>{/snippet}
+{#snippet copyLog()}<CopyButton text={filteredOutput.join('\n')}/>{/snippet}

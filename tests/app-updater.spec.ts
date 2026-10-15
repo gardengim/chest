@@ -5,6 +5,9 @@ test('signed updater UI retries checks, streams progress, persists across naviga
     const w=window as any;w.isTauri=true;let checks=0,installs=0;
     const info={current_version:'0.1.0',development:false,version:null,notes:null};
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return {instances:[],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_instance_icons')return {};
       if(name==='get_versions')return [{id:'26.3',type:'release'}];
@@ -23,7 +26,7 @@ test('signed updater UI retries checks, streams progress, persists across naviga
     }};
   });
   await page.goto('/');
-  await page.getByRole('button',{name:'Accounts and settings',exact:true}).click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   const panel=page.locator('.app-updater');
   await expect(panel.getByRole('alert')).toContainText('Cannot reach release server');
@@ -49,17 +52,21 @@ test('signed updater UI retries checks, streams progress, persists across naviga
 
 test('browser preview does not offer native update installation',async({page})=>{
   await page.goto('/');
-  await page.getByRole('button',{name:'Accounts and settings',exact:true}).click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   const panel=page.locator('.app-updater');
   await expect(panel).toContainText('Desktop app required');
-  await expect(panel.getByRole('button')).toHaveCount(0);
+  await expect(panel.getByRole('button',{name:'Check',exact:true})).toBeDisabled();
+  await expect(panel.getByRole('button',{name:'Update',exact:true})).toHaveCount(0);
 });
 
 test('test profiles can check but cannot replace the app or check automatically',async({page})=>{
   await page.addInitScript(()=>{
     const w=window as any;w.isTauri=true;w.__checks=0;
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       const info={current_version:'0.1.0',development:false,test_profile:true,version:null,notes:null};
       if(name==='get_app_update_info')return info;
       if(name==='check_app_update'){w.__checks++;return {...info,version:'0.2.0'};}
@@ -72,9 +79,9 @@ test('test profiles can check but cannot replace the app or check automatically'
       return [];
     }};
   });
-  await page.goto('/');await page.getByRole('button',{name:'Accounts and settings'}).click();
+  await page.goto('/');await page.getByRole('button',{name:'Settings'}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
-  await expect(page.getByText('App updates are disabled in test profiles.')).toBeVisible();
+  await expect(page.getByText('Installing app updates is disabled in test profiles.')).toBeVisible();
   expect(await page.evaluate(()=>(window as any).__checks)).toBe(0);
   await page.getByRole('button',{name:'Check',exact:true}).last().click();
   await expect(page.getByRole('region',{name:'Chest updates',exact:true}).getByRole('button',{name:'Update',exact:true})).toBeDisabled();

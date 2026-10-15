@@ -15,13 +15,11 @@
         "title": "Chest",
         "width": 1150,
         "height": 800,
-        "minWidth": 700,
-        "minHeight": 580,
         "create": false
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.modrinth.com https://media.forgecdn.net https://mediafilez.forgecdn.net; script-src 'self'"
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; script-src 'self'"
     }
   },
   "bundle": {

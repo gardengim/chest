@@ -15,8 +15,8 @@ test('sidebar left click opens the instance and right click opens its menu, act 
   await page.getByRole('button',{name:'Chest home'}).click();
   await survival.click({button:'right'});
   await expect(page.getByRole('menu',{name:'Survival actions'})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Library 2'})).toBeVisible();
-  await expect(page.getByRole('menuitem',{name:'Play'})).toBeEnabled();
+  await expect(page.getByRole('heading',{name:'Instances 2'})).toBeVisible();
+  await expect(page.getByRole('menuitem',{name:'Launch'})).toBeEnabled();
   await expect(page.getByRole('menuitem',{name:'Open folder'})).toBeDisabled();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('menu')).toHaveCount(0);await expect(survival).toBeFocused();
@@ -38,7 +38,7 @@ test('sidebar left click opens the instance and right click opens its menu, act 
   const bounds=await page.getByRole('menu').boundingBox();expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(700);expect(bounds!.y+bounds!.height).toBeLessThanOrEqual(650);
 });
 
-test('library cards and their icons open the instance menu in gallery and list layouts',async({page})=>{
+test('library cards and their media areas open the instance menu in gallery and list layouts',async({page})=>{
   await page.goto('/');
   await page.evaluate(()=>localStorage.setItem('chest-preview-v1',JSON.stringify({instances:[
     {id:'world',name:'World',version:'26.3',loader:'vanilla',loader_version:'',artwork:'grass',memory_mb:4096,java_path:'',installed:true}
@@ -46,11 +46,11 @@ test('library cards and their icons open the instance menu in gallery and list l
   await page.reload();
   await page.evaluate(()=>document.addEventListener('contextmenu',event=>{(window as any).__contextPrevented=event.defaultPrevented;}));
   const card=page.locator('.instance-card');
-  await card.locator('.card-art img').click({button:'right'});
+  await card.locator('.shared-card-art').click({button:'right'});
   const menu=page.getByRole('menu',{name:'World actions'});
   await expect(menu).toBeVisible();
   expect(await page.evaluate(()=>(window as any).__contextPrevented)).toBe(true);
-  await expect(page.getByRole('heading',{name:'Library 1',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Instances 1',exact:true})).toBeVisible();
   await expect(card).toHaveAttribute('aria-expanded','true');
   await page.keyboard.press('Escape');
   await expect(card).toBeFocused();
@@ -59,7 +59,7 @@ test('library cards and their icons open the instance menu in gallery and list l
   await page.getByRole('menuitem',{name:'Settings',exact:true}).click();
   await expect(page.getByRole('tab',{name:'Settings',exact:true})).toHaveAttribute('aria-selected','true');
   await page.getByRole('button',{name:'Chest home',exact:true}).click();
-  await page.getByRole('group',{name:'Library layout'}).getByRole('button',{name:'List',exact:true}).click();
+  await page.getByRole('radiogroup',{name:'Library layout'}).getByRole('radio',{name:'List',exact:true}).click();
   await card.click({button:'right'});
   await expect(menu).toBeVisible();
   await page.getByRole('menuitem',{name:'Delete',exact:true}).click();

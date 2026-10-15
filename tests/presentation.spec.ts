@@ -1,7 +1,7 @@
 import {finishCreation} from './creation-helpers';
 import { test, expect } from '@playwright/test';
 
-test('project dialogs share overlay colors, restore focus, and clean up; broken artwork falls back and can recover', async ({ page }) => {
+test('project dialogs share overlay colors, restore focus, and clean up; missing project artwork stays absent and instance identity can recover', async ({ page }) => {
   await page.route('**/broken-art.png', route => route.abort());
   await page.addInitScript(() => {
     const w=window as any;w.isTauri=true;
@@ -10,6 +10,9 @@ test('project dialogs share overlay colors, restore focus, and clean up; broken 
     const callbacks=new Map<number,Function>();const listeners=new Map<string,number>();let n=0;
     w.__emit=(payload:any)=>callbacks.get(listeners.get('activity')!)?.({event:'activity',payload});
     w.__TAURI_INTERNALS__={transformCallback:(fn:Function)=>{callbacks.set(++n,fn);return n;},invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='plugin:event|listen'){listeners.set(args.event,args.handler);return n;}
       if(name==='get_config')return {instances:[{id:'world',name:'World',version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:false}],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_activities')return [];
@@ -25,10 +28,10 @@ test('project dialogs share overlay colors, restore focus, and clean up; broken 
   await expect(page.locator('.instance-icon img')).toHaveAttribute('src','/minecraft.png');
   await page.getByRole('tab',{name:'Modpacks',exact:true}).click();
   const card=page.locator('.catalog-card');
-  await expect(card.locator('.catalog-art > svg')).toBeVisible();
+  await expect(card.locator('.shared-card-art > img,.shared-card-art > svg')).toHaveCount(0);
   await card.click();
   await expect(page.locator('#overlays > dialog')).toBeVisible();
-  await expect(page.locator('.project-dialog-icon > svg')).toBeVisible();
+  await expect(page.locator('.project-dialog-icon')).toHaveCount(0);
   const colors=await page.locator('dialog').evaluate(dialog=>({
     background:getComputedStyle(dialog).backgroundColor,
     text:getComputedStyle(dialog.querySelector('h2')!).color,
@@ -67,14 +70,14 @@ test('page extraction preserves library choices, creation draft, settings draft,
   await page.evaluate(()=>localStorage.setItem('chest-preview-v1',JSON.stringify({instances:[{id:'world',name:'World',version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:false}],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096})));
   await page.reload();
   await page.getByLabel('Search instances').fill('world');
-  await page.getByRole('group',{name:'Library layout'}).getByRole('button',{name:'List',exact:true}).click();
+  await page.getByRole('radiogroup',{name:'Library layout'}).getByRole('radio',{name:'List',exact:true}).click();
   await page.getByRole('button',{name:'World: Not installed',exact:true}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await page.getByLabel('Name',{exact:true}).fill('Unsaved world');
   await page.getByLabel('Memory (MB)').fill('8192');
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await page.getByLabel('Instance name').fill('Draft world');
-  await page.getByRole('button',{name:'Accounts and settings'}).click();
+  await page.getByRole('button',{name:'Settings'}).click();
   await page.getByRole('button',{name:'Discard'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await page.getByLabel('Memory (MB)').fill('6144');
   await page.getByLabel('Java executable').fill('/draft/java');
@@ -88,7 +91,7 @@ test('page extraction preserves library choices, creation draft, settings draft,
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByLabel('Name',{exact:true})).toHaveValue('Unsaved world');
   await expect(page.getByLabel('Memory (MB)')).toHaveValue('8192');
-  await page.getByRole('button',{name:'Accounts and settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
+  await page.getByRole('button',{name:'Settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByLabel('Memory (MB)')).toHaveValue('6144');
   await expect(page.getByLabel('Java executable')).toHaveValue('/draft/java');
 });
@@ -98,6 +101,9 @@ test('pending form submissions remain disabled after leaving and returning to th
     const w=window as any;w.isTauri=true;
     const config={instances:[] as any[],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return JSON.parse(JSON.stringify(config));
       if(name==='get_activities')return [];
       if(name==='get_instance_icons')return {};
@@ -120,15 +126,15 @@ test('pending form submissions remain disabled after leaving and returning to th
   await expect(page.getByRole('button',{name:'Creating…',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Chest home'}).click();
   await expect(page.getByRole('button',{name:'Discard'})).toBeDisabled();
-  await page.getByRole('button',{name:'Stay',exact:true}).click();
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await expect(page.getByRole('button',{name:'Creating…',exact:true})).toBeDisabled();
   await page.evaluate(()=>(window as any).__finishCreate());
   await expect(page.locator('.instance-hero')).toContainText('Pending world');
-  await page.getByRole('button',{name:'Accounts and settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
+  await page.getByRole('button',{name:'Settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await page.getByRole('button',{name:'Save',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saving…',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Chest home'}).click();
-  await page.getByRole('button',{name:'Accounts and settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
+  await page.getByRole('button',{name:'Settings'}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByRole('button',{name:'Saving…',exact:true})).toBeDisabled();
   await page.evaluate(()=>(window as any).__finishSettings());
   await expect(page.getByRole('button',{name:'Save',exact:true})).toBeEnabled();
@@ -136,7 +142,8 @@ test('pending form submissions remain disabled after leaving and returning to th
 
 test('inventory controls align and discovery tabs support the same keyboard navigation',async({page})=>{
   await page.goto('/');
-  const bounds=await page.locator('.library-tools > button[data-tone="accent"], .library-tools > .search, .library-tools .view-switch button').evaluateAll(nodes=>nodes.map(node=>({top:node.getBoundingClientRect().top,height:node.getBoundingClientRect().height})));
+  const bounds=await page.locator('.home-library [data-tool="add"] button, .home-library .search-field, .home-library .view-switch .ui-button').evaluateAll(nodes=>nodes.map(node=>({top:node.getBoundingClientRect().top,height:node.getBoundingClientRect().height})));
+  expect(bounds).toHaveLength(4);
   expect(Math.max(...bounds.map(b=>b.top))-Math.min(...bounds.map(b=>b.top))).toBeLessThanOrEqual(1);
   expect(new Set(bounds.map(b=>b.height)).size).toBe(1);
   const types=page.getByRole('tablist',{name:'Content types'});
@@ -154,11 +161,14 @@ test('instance screenshot backgrounds ignore late responses after switching inst
     const w=window as any;w.isTauri=true;
     const instances=['one','two'].map(id=>({id,name:id,version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true}));
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return {instances,accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
-      if(name==='get_instance_screenshots') {
+      if(name==='get_instance_backgrounds') {
         if(args.id==='one')return new Promise(resolve=>w.__oldScreenshots=resolve);
-        return ['/chest.svg'];
+        return [{kind:'provider',url:'/chest.svg'}];
       }
       if(name==='get_activities'||name==='get_logs'||name==='get_content')return [];
       if(name==='get_instance_icons')return {};
@@ -171,7 +181,7 @@ test('instance screenshot backgrounds ignore late responses after switching inst
   await expect.poll(()=>page.evaluate(()=>typeof (window as any).__oldScreenshots)).toBe('function');
   await page.getByRole('button',{name:'two: Ready to play',exact:true}).click();
   await expect(page.locator('.instance-backdrop img.visible')).toHaveAttribute('src','/chest.svg');
-  await page.evaluate(()=>(window as any).__oldScreenshots(['/old.png']));
+  await page.evaluate(()=>(window as any).__oldScreenshots([{kind:'provider',url:'/old.png'}]));
   await expect(page.locator('.instance-backdrop img')).toHaveCount(1);
   await expect(page.locator('.instance-backdrop img.visible')).toHaveAttribute('src','/chest.svg');
 });
@@ -183,10 +193,13 @@ test('sidebar group toggles preserve card and instance backdrop nodes and do not
     const instances=['one','two'].map(id=>({id,name:id,version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true}));
     const config={instances,sidebar_groups:[{name:'Friends',ids:['one','two'],collapsed:true}],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return JSON.parse(JSON.stringify(config));
       if(name==='set_sidebar_groups'){config.sidebar_groups=args.groups;return JSON.parse(JSON.stringify(config));}
       if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
-      if(name==='get_instance_screenshots'){w.__screenshotCalls++;return ['/chest.svg','/chest.svg?frame=2'];}
+      if(name==='get_instance_backgrounds'){w.__screenshotCalls++;return ['/chest.svg','/chest.svg?frame=2'].map(url=>({kind:'provider',url}));}
       if(name==='get_activities'||name==='get_logs'||name==='get_content')return [];
       if(name==='get_instance_icons')return {};
       if(name==='search_catalog')return {projects:[],total:0};

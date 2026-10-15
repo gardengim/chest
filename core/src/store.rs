@@ -14,6 +14,8 @@ pub enum Loader {
     Vanilla,
     Fabric,
     Quilt,
+    Forge,
+    Neoforge,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -48,6 +50,10 @@ pub struct SidebarGroup {
 }
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Config {
+    #[serde(default)]
+    pub server_bookmarks: Vec<crate::server_bookmarks::ServerBookmark>,
+    #[serde(default)]
+    pub launch_settings: std::collections::HashMap<String, crate::launch_settings::LaunchSettings>,
     pub instances: Vec<Instance>,
     #[serde(default)]
     pub sidebar_groups: Vec<SidebarGroup>,
@@ -60,8 +66,10 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            server_bookmarks: vec![],
             instances: vec![],
             sidebar_groups: vec![],
+            launch_settings: Default::default(),
             accounts: vec![],
             active_account: None,
             client_id: std::env::var("CHEST_CLIENT_ID").unwrap_or_default(),
@@ -96,6 +104,7 @@ pub fn validate(instance: &Instance) -> Result<()> {
             bail!("Vanilla has no loader version")
         }
         Loader::Fabric | Loader::Quilt => valid_segment(&instance.loader_version)?,
+        Loader::Forge | Loader::Neoforge => crate::forge::validate_version(&instance.version, &instance.loader_version, instance.loader)?,
         _ => {}
     }
     if instance.name.trim().is_empty() || instance.name.len() > 120 {
@@ -282,6 +291,8 @@ impl Store {
         }
         self.change(|c| {
             c.instances.retain(|i| i.id != id);
+            c.launch_settings.remove(id);
+            for bookmark in &mut c.server_bookmarks { if bookmark.instance_id.as_deref()==Some(id){bookmark.instance_id=None;} }
             for group in &mut c.sidebar_groups { group.ids.retain(|member| member != id); }
             c.sidebar_groups.retain(|group| !group.ids.is_empty());
             Ok(())

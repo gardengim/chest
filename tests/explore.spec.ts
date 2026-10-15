@@ -9,13 +9,13 @@ test('Explore supports search, gallery/list, categories, and source setup withou
   const explore=await page.locator('.home-explore').boundingBox();
   expect(library!.y+library!.height).toBeLessThan(explore!.y);
   await expect(page.locator('.catalog-card')).toHaveCount(6);
-  await page.locator('.home-explore').getByRole('button',{name:'List',exact:true}).click();
+  await page.locator('.home-explore').getByRole('radio',{name:'List',exact:true}).click();
   await expect(page.locator('.catalog-grid')).toHaveClass(/catalog-list/);
   await page.getByLabel('Search projects').fill('sodium');
   await expect(page.locator('.catalog-card')).toHaveCount(1);
   await page.locator('.catalog-card').click();
   await expect(page.getByRole('dialog')).toContainText('Sodium');
-  await expect(page.getByRole('button',{name:'Add',exact:true})).toBeDisabled();
+  await expect(page.getByRole('dialog').getByRole('button',{name:'Add',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Close project'}).click();
   await page.getByLabel('Search projects').fill('');
   await page.getByRole('tab',{name:'Resource packs',exact:true}).click();
@@ -34,6 +34,9 @@ test('native Explore uses the target compatibility, ignores stale searches, and 
     const config={instances:[{id:'fabric',name:'Modded world',version:'1.21.4',loader:'fabric',loader_version:'0.16.10',artwork:'grass',memory_mb:4096,java_path:'',installed:false}],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
     const projects=[{id:'modmenu',title:'Mod Menu',description:'Manage installed mods.',author:'Prospector',icon:null,downloads:1000,url:'https://modrinth.com/mod/modmenu'}];
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return config;
       if(name==='get_activities'||name==='get_content')return [];
       if(name==='get_instance_icons')return {};
@@ -47,7 +50,7 @@ test('native Explore uses the target compatibility, ignores stale searches, and 
   });
   await page.goto('/');await page.getByRole('button',{name:'Modded world: Not installed'}).click();
   await page.getByRole('tab',{name:'Content',exact:true}).click();
-  await page.getByRole('button',{name:'Browse',exact:true}).click();
+  await page.getByRole('button',{name:'Add',exact:true}).click();
   await expect(page.locator('.catalog-card')).toHaveCount(1);
   await expect(page.getByLabel('Target instance')).toHaveValue('fabric');
   await expect(page.getByLabel('Filter Minecraft version')).toBeDisabled();
@@ -76,13 +79,13 @@ test('Quilt loader persists and the library supports list view',async({page})=>{
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await page.getByLabel('Instance name').fill('Quilt world');
   await page.locator('.custom-instance').getByLabel('Minecraft version').selectOption('1.21.4');
-  await page.getByRole('combobox',{name:'Modloader',exact:true}).selectOption('quilt');
+  await page.getByRole('combobox',{name:'Mod loader',exact:true}).selectOption('quilt');
   await expect(page.getByRole('combobox',{name:/^Quilt loader version/})).toHaveValue('0.24.0');
   await finishCreation(page);
   await expect(page.locator('.instance-hero')).toContainText('Quilt 0.24.0');
   await page.reload();await page.getByRole('button',{name:'Quilt world: Not installed'}).click();
   await expect(page.locator('.instance-hero')).toContainText('Quilt 0.24.0');
   await page.getByRole('button',{name:'Chest home'}).click();
-  await page.locator('.home-library').getByRole('button',{name:'List',exact:true}).click();
+  await page.locator('.home-library').getByRole('radio',{name:'List',exact:true}).click();
   await expect(page.locator('.instance-grid')).toHaveClass(/library-list/);
 });

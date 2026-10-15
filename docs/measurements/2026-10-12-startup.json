@@ -1,0 +1,222 @@
+{
+  "environment": "macOS Apple Silicon; local production Vite preview; Google Chrome headless; 7 fresh browser contexts per workload; 100 fixture instances; no native IPC or external network",
+  "before": {
+    "immediate": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 100,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 107.09999996423721,
+      "medianFilterMs": 25.5,
+      "measurements": [
+        {
+          "libraryReadyMs": 168.5,
+          "filterMs": 82
+        },
+        {
+          "libraryReadyMs": 119.5,
+          "filterMs": 25.19999998807907
+        },
+        {
+          "libraryReadyMs": 120.60000002384186,
+          "filterMs": 24.19999998807907
+        },
+        {
+          "libraryReadyMs": 91.10000002384186,
+          "filterMs": 26.899999976158142
+        },
+        {
+          "libraryReadyMs": 107.09999996423721,
+          "filterMs": 25.5
+        },
+        {
+          "libraryReadyMs": 100.5,
+          "filterMs": 26
+        },
+        {
+          "libraryReadyMs": 104.59999996423721,
+          "filterMs": 23.600000023841858
+        }
+      ]
+    },
+    "delayed": {
+      "url": "http://127.0.0.1:1421/",
+      "samples": 7,
+      "instances": 100,
+      "injectedIpcDelayMs": 500,
+      "medianLibraryReadyMs": 2596.7999999523163,
+      "medianFilterMs": 28,
+      "measurements": [
+        {
+          "libraryReadyMs": 2629.600000023842,
+          "filterMs": 29.399999976158142
+        },
+        {
+          "libraryReadyMs": 2588.2999999523163,
+          "filterMs": 24.30000001192093
+        },
+        {
+          "libraryReadyMs": 2589.699999988079,
+          "filterMs": 33.80000001192093
+        },
+        {
+          "libraryReadyMs": 2596.7999999523163,
+          "filterMs": 24.5
+        },
+        {
+          "libraryReadyMs": 2587.199999988079,
+          "filterMs": 28
+        },
+        {
+          "libraryReadyMs": 2628.899999976158,
+          "filterMs": 47.30000001192093
+        },
+        {
+          "libraryReadyMs": 2607.199999988079,
+          "filterMs": 27.400000035762787
+        }
+      ]
+    },
+    "mainJsBytes": 224272
+  },
+  "after": {
+    "immediate": {
+      "url": "http://127.0.0.1:1422/",
+      "samples": 7,
+      "instances": 100,
+      "injectedIpcDelayMs": 0,
+      "medianLibraryReadyMs": 95.30000001192093,
+      "medianFilterMs": 44.69999998807907,
+      "measurements": [
+        {
+          "libraryReadyMs": 158.9000000357628,
+          "filterMs": 91.39999997615814
+        },
+        {
+          "libraryReadyMs": 105.10000002384186,
+          "filterMs": 44.69999998807907
+        },
+        {
+          "libraryReadyMs": 95.09999996423721,
+          "filterMs": 42.60000002384186
+        },
+        {
+          "libraryReadyMs": 87.59999996423721,
+          "filterMs": 36.700000047683716
+        },
+        {
+          "libraryReadyMs": 95.30000001192093,
+          "filterMs": 50.5
+        },
+        {
+          "libraryReadyMs": 97,
+          "filterMs": 38.5
+        },
+        {
+          "libraryReadyMs": 93.90000003576279,
+          "filterMs": 102.19999998807907
+        }
+      ]
+    },
+    "delayed": {
+      "url": "http://127.0.0.1:1422/",
+      "samples": 7,
+      "instances": 100,
+      "injectedIpcDelayMs": 500,
+      "medianLibraryReadyMs": 590.8000000119209,
+      "medianFilterMs": 36.5,
+      "measurements": [
+        {
+          "libraryReadyMs": 611.6999999880791,
+          "filterMs": 46.30000001192093
+        },
+        {
+          "libraryReadyMs": 591.3999999761581,
+          "filterMs": 37.10000002384186
+        },
+        {
+          "libraryReadyMs": 591.5,
+          "filterMs": 36
+        },
+        {
+          "libraryReadyMs": 586.3000000119209,
+          "filterMs": 35.69999998807907
+        },
+        {
+          "libraryReadyMs": 590.8000000119209,
+          "filterMs": 36.5
+        },
+        {
+          "libraryReadyMs": 585.6999999880791,
+          "filterMs": 42
+        },
+        {
+          "libraryReadyMs": 589.5999999642372,
+          "filterMs": 23.80000001192093
+        }
+      ]
+    },
+    "assets": [
+      {
+        "name": "About-B9wot-t9.css",
+        "bytes": 347
+      },
+      {
+        "name": "About-BueXid4u.js",
+        "bytes": 62727
+      },
+      {
+        "name": "CreatePage-YlSRrEqB.js",
+        "bytes": 12718
+      },
+      {
+        "name": "Explore-DWh2PnV2.js",
+        "bytes": 19169
+      },
+      {
+        "name": "InstancePage-B5SPvRcb.css",
+        "bytes": 587
+      },
+      {
+        "name": "InstancePage-C_4SEWKt.js",
+        "bytes": 22828
+      },
+      {
+        "name": "LoaderPicker-CsH5ghBI.js",
+        "bytes": 5609
+      },
+      {
+        "name": "LoaderPicker-DSGW0jMB.css",
+        "bytes": 893
+      },
+      {
+        "name": "News-Bw7Tb-A6.js",
+        "bytes": 6401
+      },
+      {
+        "name": "RuntimeFields-bl913k4E.js",
+        "bytes": 1902
+      },
+      {
+        "name": "SettingsPage-BZRl8aMp.js",
+        "bytes": 10560
+      },
+      {
+        "name": "Tabs-CeLtt776.js",
+        "bytes": 5667
+      },
+      {
+        "name": "format-CJvOSv-j.js",
+        "bytes": 366
+      },
+      {
+        "name": "index-Ca79mKGG.css",
+        "bytes": 42069
+      },
+      {
+        "name": "index-_IEXlrIw.js",
+        "bytes": 144473
+      }
+    ]
+  }
+}

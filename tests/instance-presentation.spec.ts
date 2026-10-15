@@ -12,12 +12,15 @@ test('activity colors follow tabs and groups; console selects text and settings 
       {id:'hidden-run',status:'running',progress:null,phase:'Minecraft is running'},
       {id:'hidden-issue',status:'failed',progress:null,phase:'Installation failed'}];
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return JSON.parse(JSON.stringify(config));
       if(name==='get_activities')return activities;
       if(name==='set_sidebar_groups'){config.sidebar_groups=args.groups;return JSON.parse(JSON.stringify(config));}
       if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
       if(name==='get_instance_icons')return {running:'/chest.svg'};
-      if(name==='get_instance_screenshots'||name==='get_content')return [];
+      if(name==='get_instance_backgrounds'||name==='get_content')return [];
       if(name==='get_logs')return ['Debug console output','Second log line'];
       if(name==='get_instance_folder')return '/Users/example/Chest/instances/'+args.id+'/game';
       if(name==='open_instance_folder'){w.__opened.push(args.id);return;}
@@ -39,8 +42,8 @@ test('activity colors follow tabs and groups; console selects text and settings 
   expect(await group.evaluate(n=>getComputedStyle(n,'::after').animationName)).toBe('none');
   await page.emulateMedia({reducedMotion:'no-preference'});
   expect(await group.evaluate(n=>getComputedStyle(n,'::after').animationName)).toBe('status-background-pulse');
-  expect(await group.evaluate(n=>getComputedStyle(n).getPropertyValue('--status-base').trim())).toBe('#619546');
-  expect(await group.evaluate(n=>getComputedStyle(n).getPropertyValue('--status-bright').trim())).toBe('#b45b4c');
+  expect(await group.evaluate(n=>getComputedStyle(n).getPropertyValue('--status-base').trim())).toContain('#365f3d');
+  expect(await group.evaluate(n=>getComputedStyle(n).getPropertyValue('--status-bright').trim())).toContain('#773f35');
   expect(await page.locator('[data-instance-id="failed"] button').evaluate(n=>getComputedStyle(n,'::after').animationName)).toBe('status-background-pulse');
   await page.emulateMedia({reducedMotion:'reduce'});
 
@@ -80,7 +83,7 @@ test('activity colors follow tabs and groups; console selects text and settings 
   }
   await page.mouse.move(600,150);
   expect(await running.evaluate(n=>getComputedStyle(n,'::after').backgroundColor)).toBe('rgb(54, 95, 61)');
-  expect(await crashed.evaluate(n=>getComputedStyle(n,'::after').backgroundColor)).toBe('rgb(121, 64, 57)');
+  expect(await crashed.evaluate(n=>getComputedStyle(n,'::after').backgroundColor)).toBe('rgb(119, 63, 53)');
   await running.click();
   await expect(running).toHaveAttribute('data-selected');
   await page.mouse.move(600,150);
@@ -103,7 +106,7 @@ test('activity colors follow tabs and groups; console selects text and settings 
   await page.mouse.up();
   await page.mouse.move(600,150);
   await expect(page.locator('.button-label')).toContainText('Running');
-  await expect(page.locator('.button-label svg')).toHaveAttribute('viewBox','0 0 16 16');
+  await expect(page.locator('.button-label svg')).toHaveAttribute('viewBox','0 0 24 24');
   await expect(page.locator('.button-hover')).toContainText('Stop');
   await expect(page.getByText('MINECRAFT JAVA EDITION',{exact:true})).toHaveCount(0);
   await expect(page.locator('.instance-hero button')).toHaveCount(0);

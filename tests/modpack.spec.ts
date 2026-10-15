@@ -28,6 +28,9 @@ test('modpacks queue immediately, allow navigation, and report background progre
     const config={instances:[] as any[],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};w.__config=config;
     w.__emit=(payload:any)=>callbacks.get(listeners.get('activity')!)?.({event:'activity',payload});
     w.__TAURI_INTERNALS__={transformCallback:(fn:Function)=>{callbacks.set(++n,fn);return n;},invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='plugin:event|listen'){listeners.set(args.event,args.handler);return n;}
       if(name==='get_config')return structuredClone(config);
       if(name==='get_activities')return [];
@@ -58,7 +61,7 @@ test('modpacks queue immediately, allow navigation, and report background progre
   await expect(page.locator('.instance-hero')).toContainText('Preparing modpack');
   await expect(page.getByRole('button',{name:'My pack: Waiting to prepare modpack'})).toBeVisible();
   await page.getByRole('button',{name:'Chest home'}).click();
-  await expect(page.getByRole('heading',{name:'Library 1'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Instances 1'})).toBeVisible();
   await page.evaluate(()=>(window as any).__emit({id:'new-pack',status:'installing',progress:.4,phase:'Preparing modpack files'}));
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow','40');
   await page.evaluate(()=>(window as any).__emit({id:'new-pack',status:'failed',progress:null,phase:'Pack verification failed'}));
@@ -68,7 +71,7 @@ test('modpacks queue immediately, allow navigation, and report background progre
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByRole('button',{name:'Duplicate',exact:true})).toBeDisabled();
   await expect(page.getByRole('button',{name:'Export',exact:true})).toBeDisabled();
-  await expect(page.getByRole('button',{name:'Save',exact:true})).toBeDisabled();
+  await expect(page.locator('.instance-settings').getByRole('button',{name:'Save',exact:true})).toBeDisabled();
   await expect(page.getByRole('button',{name:'Delete',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'My pack: Pack verification failed'}).click({button:'right'});
   await expect(page.getByRole('menuitem',{name:'Duplicate',exact:true})).toBeDisabled();

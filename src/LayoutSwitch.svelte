@@ -1,14 +1,13 @@
 <script lang="ts">
-  import { t } from './i18n';
-  import Button from './Button.svelte';
-  let { value = $bindable<'gallery' | 'list'>('gallery'), label }: {
-    value?: 'gallery' | 'list'; label: string;
-  } = $props();
+  import {t} from './i18n';
+  import SegmentedControl from './SegmentedControl.svelte';
+  let {value=$bindable<'gallery'|'list'>('gallery'),label,disabled=false}: {
+    value?:'gallery'|'list';label:string;disabled?:boolean;
+  }=$props();
+  const options=$derived([
+    {value:'gallery' as const,label:$t('Gallery'),icon:'layout-gallery'},
+    {value:'list' as const,label:$t('List'),icon:'layout-list'},
+  ]);
 </script>
 
-<div class="view-switch" role="group" aria-label={label}>
-  {#each ['gallery', 'list'] as layout}
-    <Button selected={value === layout} aria-pressed={value === layout}
-      onclick={() => value = layout as typeof value}>{$t(layout === 'gallery' ? 'Gallery' : 'List')}</Button>
-  {/each}
-</div>
+<SegmentedControl class="view-switch" bind:value {options} {label} {disabled}/>

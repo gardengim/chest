@@ -70,3 +70,9 @@ There are no deferred implementation items from this audit. The deliberate bound
 - Discovery categories now use Tabs, including encoded IDs for multiword accessible labels.
 - The instance header blends into provider gallery backgrounds, with async source metadata lookup and a small presentation component.
 - Library/search alignment and screenshot navigation have regression coverage.
+
+## Weekend pixel consistency audit
+
+Centralized frame/divider widths, staircase corners, white/black alpha bevels, focus rings and overlay depth. Consolidated shared-card rules and removed superseded CSS. Doubled-pixel geometry and the nested content layout have regression coverage.
+
+See the [audit findings, completed tasks and measurements](audits/2026-10-11.md) for scope and limitations.

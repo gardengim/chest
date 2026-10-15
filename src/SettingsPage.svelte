@@ -1,21 +1,24 @@
 <script lang="ts">
+  const about=()=>import('./About.svelte');
   import {onMount} from 'svelte';
   import {showDialog} from './dialog';
+  import ColorSchemeSettings from './ColorSchemeSettings.svelte';
   import AppUpdater from './AppUpdater.svelte';
   import { t } from './i18n';
   import Select from './Select.svelte';
-  import { locale,autoUpdateChecks,doubleClickLaunch,reduceMotion,defaultInstanceLocation } from './preferences';
+  import { languages,locale,autoUpdateChecks,doubleClickLaunch,reduceMotion,defaultInstanceLocation } from './preferences';
   import Button from './Button.svelte';
   import Tabs from './Tabs.svelte';
   import RuntimeFields from './RuntimeFields.svelte';
+  import SkinFace from './SkinFace.svelte';
   import Icon from './Icon.svelte';
   import { api, native } from './api';
   import type { Config, DebugLaunch } from './types';
-  import type { SettingsFormState, Perform } from './ui-state';
+  import type { SettingsFormState, SettingsTab, Perform } from './ui-state';
 
-  let { config, debugLaunch, ontoggleOffline, draft=$bindable(), signingIn, onsignin, onconfig, onnotice, perform }: {
+  let { config, debugLaunch, ontoggleOffline, draft=$bindable(), tab='Accounts', onselectTab, dirty, onsave, ondiscard, onrestore, signingIn, onsignin, onconfig, onnotice, perform }: {
     config: Config; debugLaunch: DebugLaunch; ontoggleOffline: ()=>Promise<void>; draft: SettingsFormState; signingIn: boolean; onsignin: ()=>void;
-    onconfig: (config:Config)=>void; onnotice: (message:string)=>void; perform: Perform;
+    onconfig: (config:Config)=>void; onnotice: (message:string)=>void; perform: Perform; tab?:SettingsTab; onselectTab:(tab:SettingsTab)=>void; dirty:boolean; onsave:()=>Promise<boolean>; ondiscard:()=>void; onrestore:()=>void;
   } = $props();
   let launcherInfo=$state<Awaited<ReturnType<typeof api.launcherInfo>>|null>(null);
   let infoError=$state('');
@@ -31,41 +34,32 @@
   }
   let debugPending=$state(false);
   async function toggleOffline(){debugPending=true;try{await ontoggleOffline();}finally{debugPending=false;}}
-  let tab=$state<'Accounts'|'Settings'>('Accounts');
-  const tabs=['Accounts','Settings'] as const;
-  async function saveSettings() {
-    if(draft.pending)return;
-    draft.pending=true;
-    await perform(async()=>{
-      onconfig(await api.settings(draft.clientId,draft.javaPath,draft.memory));
-      onnotice('Default settings saved.');
-    });
-    draft.pending=false;
+  const development=$derived(native && debugLaunch.available);
+  const tabs=$derived<readonly SettingsTab[]>(development?['Accounts','Settings','Development','About']:['Accounts','Settings','About']);
+  $effect(()=>{if(tab==='Development' && !development)onselectTab('Accounts');});
+  let applicationPending=$state(false);
+  async function saveApplicationId(){
+    applicationPending=true;
+    try{await perform(async()=>{onconfig(await api.settings(draft.clientId,config.java_path,config.memory_mb));onnotice('Settings saved.');});}
+    finally{applicationPending=false;}
   }
+
 </script>
 
 <div class="page-title">
 
-  <h1>{$t("Accounts & settings")}</h1>
+  <h1>{$t("Settings")}</h1>
 
 </div>
-<Tabs options={tabs} value={tab} prefix="profile" label={$t("Accounts and settings pages")} onchange={value=>tab=value}/>
+<Tabs options={tabs} value={tab} prefix="profile" label={$t("Accounts and settings pages")} onchange={onselectTab}/>
 <div class="instance-content" id={`profile-panel-${tab}`} role="tabpanel" aria-labelledby={`profile-tab-${tab}`}>
   {#if tab==='Accounts'}
   <section class="panel">
-    {#if debugLaunch.available}
-      <div class="offline-debug">
-        <h2>{$t("Offline debugging")}</h2>
-        <p class="muted">{$t("Single-player testing as ChestDebug. No multiplayer or Realms.")}</p>
-        <Button disabled={debugPending} selected={debugLaunch.enabled} onclick={toggleOffline}>{$t(debugLaunch.enabled?'Disable':'Enable')}</Button>
-        {#if debugLaunch.enabled}<p class="hint">{$t("Enabled for this session.")}</p>{/if}
-      </div>
-    {/if}
     <h2>{$t("Microsoft accounts")}</h2>
 
     {#each config.accounts as a}
       <div class="account-row">
-        <Icon name="user" size={24}/>
+        <SkinFace account={a} size={32}/>
         <span>
           <strong>{a.name}</strong>
           <small>{$t(a.id===config.active_account?'Active account':'Microsoft account')}</small>
@@ -79,47 +73,69 @@
     <Button tone="accent" disabled={signingIn || !native || !config.client_id} onclick={onsignin}>
       <Icon name="user" size={17}/>{$t("Sign in")}</Button>
     {#if !config.client_id}
-      <p class="hint">{$t("Set Chest’s application ID in")} <Button shape="plain" onclick={()=>tab='Settings'}>{$t("Settings")}</Button> {$t("to enable sign-in.")}</p>
+      <p class="hint">{$t('Microsoft sign-in is not configured.')}{#if development} <Button shape="plain" onclick={()=>onselectTab('Development')}>{$t('Microsoft application setup')}</Button>{/if}</p>
     {/if}
   </section>
-  {:else}
-  <section class="panel launcher-settings">
-    <h2>{$t("Launcher")}</h2>
-    <label>{$t('Language')}<Select aria-label={$t('Language')} bind:value={$locale}><option value="en">English</option><option value="ko">한국어</option></Select></label>
-    <label class="setting-toggle"><input type="checkbox" bind:checked={$doubleClickLaunch}/>{$t('Double-click to play')}</label>
-    <label class="setting-toggle"><input type="checkbox" bind:checked={$autoUpdateChecks}/>{$t('Check for updates on startup')}</label>
-    <label class="setting-toggle"><input type="checkbox" bind:checked={$reduceMotion}/>{$t('Reduce motion')}</label>
+  {:else if tab==='Development' && development}
+  <section class="panel">
+    <h2>{$t('Debugging')}</h2>
+    <h3>{$t('Offline debugging')}</h3>
+    <p class="muted">{$t('Single-player testing as ChestDebug. No multiplayer or Realms.')}</p>
+    <Button disabled={debugPending} selected={debugLaunch.enabled} onclick={toggleOffline}>{$t(debugLaunch.enabled?'Disable':'Enable')}</Button>
+    {#if debugLaunch.enabled}<p class="hint">{$t('Enabled for this session.')}</p>{/if}
   </section>
-  <form class="panel default-settings" onsubmit={e=>{e.preventDefault();void saveSettings();}}>
-    <h2>{$t("Default settings")}</h2>
-
-    <p class="hint">{$t("Applies to new instances.")}</p>
-    <RuntimeFields disabled={draft.pending} bind:memory={draft.memory} bind:javaPath={draft.javaPath}/>
-    <details class="developer-settings" open={!config.client_id}>
-      <summary>{$t("Microsoft application setup")}</summary>
-      <label>{$t("Chest application (client) ID")}<input bind:value={draft.clientId} placeholder="00000000-0000-0000-0000-000000000000"/>
-        <span class="hint">{$t("Public client ID with personal accounts and localhost callback. See README.")}</span>
-      </label>
-    </details>
-    <Button type="submit" tone="accent" disabled={draft.pending}>{$t(draft.pending?'Saving…':'Save')}</Button>
+  <form class="panel" onsubmit={event=>{event.preventDefault();void saveApplicationId();}}>
+    <h2>{$t('Microsoft application setup')}</h2>
+    <label>{$t('Chest application (client) ID')}<input bind:value={draft.clientId} disabled={applicationPending} placeholder="00000000-0000-0000-0000-000000000000"/></label>
+    <Button type="submit" tone="accent" disabled={applicationPending || draft.clientId===config.client_id}>{$t(applicationPending?'Saving…':'Save')}</Button>
   </form>
-  {#if native}
-  <section class="panel storage-settings">
-    <h2>{$t('Storage')}</h2>
-    <div class="settings-field-row"><label>{$t('Default instance folder')}<input bind:value={$defaultInstanceLocation} placeholder={$t('Automatic')}/></label><Button aria-label={$t('Choose instance folder')} onclick={()=>perform(async()=>{const path=await api.chooseLocation();if(path)$defaultInstanceLocation=path;})}>{$t('Browse')}</Button><Button disabled={!$defaultInstanceLocation} onclick={()=>$defaultInstanceLocation=''}>{$t('Reset')}</Button></div>
-    {#if launcherInfo?.data_path}
-      <div class="settings-field-row"><label>{$t('Chest data folder')}<input readonly value={launcherInfo.data_path}/></label><Button onclick={()=>perform(()=>api.dataFolder())}>{$t('Open folder')}</Button></div>
-      <p class="hint">Chest {launcherInfo.version} · {launcherInfo.platform} · {launcherInfo.architecture}</p>
-    {:else if infoError}<p class="inline-error" role="alert">{infoError}</p><Button onclick={loadInfo}>{$t('Retry')}</Button>{/if}
-  </section>
-  {/if}
-  <AppUpdater/>
+  {:else if tab==='About'}
+  {#await about()}<p role="status">{$t('Loading…')}</p>{:then module}<module.default info={launcherInfo}/>{:catch error}<p role="alert">{String(error)}</p>{/await}
+  {:else}
+  <form class="settings-form" onsubmit={event=>{event.preventDefault();void onsave();}}>
+    <fieldset disabled={draft.pending}>
+      <section class="panel launcher-settings" aria-labelledby="general-settings-title">
+        <h2 id="general-settings-title">{$t('General')}</h2>
+        <label>{$t('Language')}<Select aria-label={$t('Language')} bind:value={$locale}>{#each Object.entries(languages) as [code,name]}<option value={code} lang={code}>{name}</option>{/each}</Select></label>
+        <ColorSchemeSettings/>
+        <label class="setting-toggle"><input type="checkbox" bind:checked={$doubleClickLaunch}/>{$t('Double-click to launch')}</label>
+        <label class="setting-toggle"><input type="checkbox" bind:checked={$reduceMotion}/>{$t('Reduce motion')}</label>
+      </section>
+      <section class="panel default-settings" aria-labelledby="default-settings-title">
+        <h2 id="default-settings-title">{$t('Default instance settings')}</h2>
+        <RuntimeFields disabled={draft.pending} bind:memory={draft.memory} bind:javaPath={draft.javaPath}/>
+      </section>
+      <section class="panel storage-settings" aria-labelledby="storage-settings-title">
+        <h2 id="storage-settings-title">{$t('Storage')}</h2>
+        <div class="settings-field-row"><label>{$t('Shared data packs')}<input readonly value={launcherInfo?.data_path ? `${launcherInfo.data_path}/datapacks` : ''}/></label><Button disabled={!native} onclick={()=>perform(()=>api.sharedDatapacks())}>{$t('Open folder')}</Button></div>
+        <div class="settings-field-row"><label>{$t('Default instance folder')}<input bind:value={$defaultInstanceLocation} placeholder={$t('Automatic')}/></label><Button disabled={!native} aria-label={$t('Choose instance folder')} onclick={()=>perform(async()=>{const path=await api.chooseLocation();if(path)$defaultInstanceLocation=path;})}>{$t('Browse')}</Button><Button disabled={!$defaultInstanceLocation} onclick={()=>$defaultInstanceLocation=''}>{$t('Reset')}</Button></div>
+        <div class="settings-field-row"><label>{$t('Chest data folder')}<input readonly value={launcherInfo?.data_path || ''}/></label><Button disabled={!native} onclick={()=>perform(()=>api.dataFolder())}>{$t('Open folder')}</Button></div>
+        {#if infoError}<p class="inline-error" role="alert">{infoError}</p><Button onclick={loadInfo}>{$t('Retry')}</Button>{/if}
+      </section>
+      <AppUpdater headingLabel="Updates">
+        {#snippet startupChecks()}<label class="setting-toggle"><input type="checkbox" bind:checked={$autoUpdateChecks}/>{$t('Check for updates on startup')}</label>{/snippet}
+      </AppUpdater>
+      <div class="form-actions settings-actions">
+        <Button type="submit" tone="accent" disabled={!dirty}>{$t(draft.pending?'Saving…':'Save')}</Button>
+        <Button tone="danger" disabled={!dirty} onclick={ondiscard}>{$t('Discard')}</Button>
+        <Button onclick={onrestore}>{$t('Restore defaults')}</Button>
+      </div>
+    </fieldset>
+  </form>
   {/if}
 </div>
 
 {#if signOutAccount}
   <dialog class="modal" aria-labelledby="signout-title" use:showDialog oncancel={event=>{event.preventDefault();if(!accountPending)signOutAccount=null;}}>
-    <h2 id="signout-title">{$t('Sign out {name}?',{name:signOutAccount.name})}</h2>
+    <h2 id="signout-title"><SkinFace account={signOutAccount} size={24}/> {$t('Sign out {name}?',{name:signOutAccount.name})}</h2>
     <div class="form-actions"><Button disabled={accountPending} onclick={()=>signOutAccount=null}>{$t('Cancel')}</Button><Button tone="danger" disabled={accountPending} onclick={signOut}>{$t('Sign out')}</Button></div>
   </dialog>
 {/if}
+
+<style>
+.settings-form>fieldset{border:0;padding:0;margin:0;min-width:0}
+.settings-form :global(.setting-toggle){display:flex;align-items:center;gap:.57142857rem;margin:0}
+.settings-form :global(.launcher-settings>.setting-toggle){margin-top:1rem}
+.settings-form :global(.app-updater .form-actions){justify-content:flex-start;align-items:center;flex-wrap:wrap}
+.settings-actions{justify-content:flex-start;flex-wrap:wrap;margin-top:1.71428571rem}
+</style>

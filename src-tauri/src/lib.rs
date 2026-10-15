@@ -1,4 +1,9 @@
 mod updater;
+mod startup;
+mod shortcuts;
+mod color_schemes;
+#[cfg(desktop)]
+mod menu;
 use chest_core::{
     metadata::Version,
     store::{Account, Config, Instance, SidebarGroup},
@@ -10,11 +15,91 @@ use std::sync::{
 };
 use tauri::{Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
+fn ui_text(app:&tauri::AppHandle,key:&str)->String {
+    #[cfg(desktop)]
+    {menu::label(app,key)}
+    #[cfg(not(desktop))]
+    {let _=app;key.to_string()}
+}
 type App<'a> = State<'a, Arc<Core>>;
 fn err(e: impl std::fmt::Display) -> String {
     format!("{e}")
 }
 
+#[tauri::command]
+fn get_launch_settings(core: App<'_>, id: String) -> Result<chest_core::launch_settings::LaunchSettings, String> {
+    core.launch_settings(&id).map_err(err)
+}
+#[tauri::command]
+fn save_launch_settings(core: App<'_>, id: String, settings: chest_core::launch_settings::LaunchSettings) -> Result<(), String> {
+    core.save_launch_settings(&id, settings).map_err(err)
+}
+#[tauri::command]
+fn open_launcher_link(link: String) -> Result<(), String> {
+    chest_core::open_launcher_link(&link).map_err(err)
+}
+#[tauri::command]
+async fn get_account_skin(core:App<'_>,id:String)->Result<Option<String>,String>{core.account_skin(&id).await.map_err(err)}
+#[tauri::command]
+async fn get_instance_files(core:App<'_>,id:String)->Result<chest_core::instance_files::InstanceFiles,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.instance_files(&id)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn get_screenshots(core:App<'_>)->Result<chest_core::instance_files::ScreenshotLibrary,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.screenshot_library()).await.map_err(err)
+}
+#[tauri::command]
+async fn get_servers(core:App<'_>)->Result<chest_core::instance_files::ServerLibrary,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.server_library()).await.map_err(err)
+}
+#[tauri::command]
+fn open_instance_file(core:App<'_>,id:String,kind:String,name:String)->Result<(),String>{core.open_instance_file(&id,&kind,&name).map_err(err)}
+#[tauri::command]
+async fn get_screenshot_image(core:App<'_>,id:String,name:String)->Result<String,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.screenshot_image(&id,&name)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn get_world_icon(core:App<'_>,id:String,name:String)->Result<Option<String>,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.world_icon(&id,&name)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn get_server_icon(core:App<'_>,id:String)->Result<Option<String>,String>{core.server_icon(&id).await.map_err(err)}
+#[tauri::command]
+fn open_shared_datapacks(core:App<'_>)->Result<(),String>{core.shared_datapacks().map_err(err)}
+#[tauri::command]
+async fn apply_shared_datapacks(core:App<'_>,id:String,world:String)->Result<usize,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.apply_datapacks(&id,&world)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn get_worlds(core:App<'_>)->Result<chest_core::worlds::Worlds,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.worlds()).await.map_err(err)
+}
+#[tauri::command]
+async fn get_instance_worlds(core:App<'_>,id:String)->Result<Vec<chest_core::worlds::World>,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.instance_worlds(&id)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn get_world_info(core:App<'_>,id:String,name:String)->Result<chest_core::worlds::World,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.world_info(&id,&name)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn copy_world(core:App<'_>,id:String,name:String,target:String)->Result<String,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.copy_world(&id,&name,&target)).await.map_err(err)?.map_err(err)
+}
+#[tauri::command]
+async fn backup_world(app:tauri::AppHandle,core:App<'_>,id:String,name:String)->Result<bool,String>{
+    let Some(path)=app.dialog().file().set_file_name(format!("{name}.zip")).add_filter(ui_text(&app,"World backup"),&["zip"]).blocking_save_file() else{return Ok(false);};
+    let path=path.into_path().map_err(err)?;
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.backup_world(&id,&name,&path)).await.map_err(err)?.map_err(err)?;Ok(true)
+}
+#[tauri::command]
+fn save_server_bookmark(core:App<'_>,bookmark:chest_core::server_bookmarks::ServerBookmark)->Result<Config,String>{core.save_server_bookmark(bookmark).map_err(err)}
+#[tauri::command]
+fn remove_server_bookmark(core:App<'_>,id:String)->Result<Config,String>{core.remove_server_bookmark(&id).map_err(err)}
+#[tauri::command]
+async fn add_bookmarked_server(core:App<'_>,bookmark:String,id:String)->Result<bool,String>{
+    let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.add_bookmarked_server(&bookmark,&id)).await.map_err(err)?.map_err(err)
+}
 #[tauri::command]
 fn get_config(core: App<'_>) -> Config {
     core.store.config()
@@ -54,12 +139,13 @@ fn set_debug_offline(core: App<'_>, enabled: bool) -> Result<chest_core::DebugLa
     core.set_debug_offline(enabled).map_err(err)
 }
 #[tauri::command]
-fn get_instance_icons(core: App<'_>) -> std::collections::HashMap<String, String> {
-    core.instance_icons()
+async fn get_instance_icons(core: App<'_>) -> Result<std::collections::HashMap<String, String>, String> {
+    let core=core.inner().clone();
+    tokio::task::spawn_blocking(move || core.instance_icons()).await.map_err(err)
 }
 #[tauri::command]
-async fn get_instance_screenshots(core: App<'_>, id: String) -> Result<Vec<String>, String> {
-    core.instance_screenshots(&id).await.map_err(err)
+async fn get_instance_backgrounds(core: App<'_>, id: String) -> Result<Vec<chest_core::backgrounds::Background>, String> {
+    core.instance_backgrounds(&id).await.map_err(err)
 }
 #[tauri::command]
 fn get_activities(core: App<'_>) -> Vec<Activity> {
@@ -94,6 +180,10 @@ async fn get_quilt_versions(core: App<'_>, version: String) -> Result<Vec<String
         .map_err(err)
 }
 #[tauri::command]
+async fn get_loader_versions(core: App<'_>, version: String, loader: chest_core::store::Loader) -> Result<Vec<String>, String> {
+    chest_core::loaders::versions(&core.client, &version, loader).await.map_err(err)
+}
+#[tauri::command]
 fn get_catalog_sources() -> chest_core::catalog::Sources {
     chest_core::catalog::sources()
 }
@@ -116,6 +206,14 @@ async fn get_creation_releases(
         loader_version:String::new(), memory_mb:config.memory_mb, java_path:config.java_path,
         artwork:"grass".into(), installed:false, playtime_seconds:0, storage_parent:String::new() };
     chest_core::catalog::releases(&core.client, source, &project, &instance, kind).await.map_err(err)
+}
+#[tauri::command]
+async fn get_catalog_description(core: App<'_>, source: chest_core::catalog::Source, project: String) -> Result<chest_core::catalog_description::Description, String> {
+    chest_core::catalog_description::description(&core.client, source, &project).await.map_err(err)
+}
+#[tauri::command]
+fn open_description_link(url: String) -> Result<(), String> {
+    chest_core::catalog_description::open_link(&url).map_err(err)
 }
 #[tauri::command]
 async fn get_catalog_releases(
@@ -181,13 +279,32 @@ async fn create_wizard(core: App<'_>, request: chest_core::creation::CreationReq
 async fn choose_instance_location(app: tauri::AppHandle) -> Result<Option<String>, String> {
     app.dialog().file().blocking_pick_folder().map(|p| p.into_path().map(|p| p.to_string_lossy().into_owned()).map_err(err)).transpose()
 }
+#[derive(serde::Serialize)]
+struct ImportedColorScheme { name: String, source: String }
+#[tauri::command]
+async fn import_color_scheme(app: tauri::AppHandle) -> Result<Option<ImportedColorScheme>, String> {
+    let Some(path) = app.dialog().file().add_filter(ui_text(&app,"Color scheme"), &["json", "css"]).blocking_pick_file() else { return Ok(None); };
+    let path = path.into_path().map_err(err)?;
+    tokio::task::spawn_blocking(move || {
+        let source = color_schemes::read(&path)?;
+        let name = path.file_stem().and_then(|name| name.to_str()).unwrap_or("Imported scheme").chars().take(120).collect();
+        Ok(Some(ImportedColorScheme {name, source}))
+    }).await.map_err(err)?
+}
+#[tauri::command]
+async fn export_color_scheme(app: tauri::AppHandle, source: String) -> Result<bool, String> {
+    let Some(path) = app.dialog().file().set_file_name("chest-color-scheme.json").add_filter(ui_text(&app,"Color scheme"), &["json"]).blocking_save_file() else { return Ok(false); };
+    let path = path.into_path().map_err(err)?;
+    tokio::task::spawn_blocking(move || color_schemes::write(&path, &source)).await.map_err(err)??;
+    Ok(true)
+}
 #[tauri::command]
 async fn choose_creation_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
-    app.dialog().file().add_filter("Content", &["jar", "zip"]).blocking_pick_files().unwrap_or_default().into_iter().map(|p| p.into_path().map(|p| p.to_string_lossy().into_owned()).map_err(err)).collect()
+    app.dialog().file().add_filter(ui_text(&app,"Content"), &["jar", "zip"]).blocking_pick_files().unwrap_or_default().into_iter().map(|p| p.into_path().map(|p| p.to_string_lossy().into_owned()).map_err(err)).collect()
 }
 #[tauri::command]
 async fn choose_creation_archive(app: tauri::AppHandle) -> Result<Option<chest_core::creation::ArchivePreview>, String> {
-    let Some(path) = app.dialog().file().add_filter("Chest archive", &["zip"]).blocking_pick_file() else { return Ok(None) };
+    let Some(path) = app.dialog().file().add_filter(ui_text(&app,"Chest archive"), &["zip"]).blocking_pick_file() else { return Ok(None) };
     let path = path.into_path().map_err(err)?;
     tokio::task::spawn_blocking(move || chest_core::creation::inspect_archive(path)).await.map_err(err)?.map(Some).map_err(err)
 }
@@ -229,6 +346,10 @@ async fn install_instance(core: App<'_>, id: String) -> Result<(), String> {
 fn pause_install(core: App<'_>, id: String, paused: bool) -> Result<(), String> {
     core.pause(&id, paused).map_err(err)
 }
+#[tauri::command]
+async fn rename_resource(core:App<'_>,id:String,kind:String,item:String,name:String)->Result<(),String>{let core=core.inner().clone();tokio::task::spawn_blocking(move||core.rename_resource(&id,&kind,&item,&name)).await.map_err(err)?.map_err(err)}
+#[tauri::command]
+fn launch_resource(core:App<'_>,id:String,kind:String,item:String)->Result<(),String>{core.launch_resource(id,&kind,item).map_err(err)}
 #[tauri::command]
 async fn launch_instance(core: App<'_>, id: String) -> Result<(), String> {
     core.launch(id).map_err(err)
@@ -338,7 +459,7 @@ async fn export_instance(app: tauri::AppHandle, core: App<'_>, id: String) -> Re
         .dialog()
         .file()
         .set_file_name("instance.chest.zip")
-        .add_filter("Chest archive", &["zip"])
+        .add_filter(ui_text(&app,"Chest archive"), &["zip"])
         .blocking_save_file();
     let Some(path) = path else { return Ok(false) };
     let path = path.into_path().map_err(err)?;
@@ -354,7 +475,7 @@ async fn import_instance(app: tauri::AppHandle, core: App<'_>) -> Result<Option<
     let path = app
         .dialog()
         .file()
-        .add_filter("Chest archive", &["zip"])
+        .add_filter(ui_text(&app,"Chest archive"), &["zip"])
         .blocking_pick_file();
     let Some(path) = path else { return Ok(None) };
     let path = path.into_path().map_err(err)?;
@@ -368,11 +489,24 @@ async fn import_instance(app: tauri::AppHandle, core: App<'_>) -> Result<Option<
 }
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let mut builder=tauri::Builder::default().manage(startup::Trace::new()).manage(shortcuts::Pending(std::sync::Mutex::new(shortcuts::parse(&std::env::args().collect::<Vec<_>>()))));
+    // Test profiles remain isolated from the normal application and its process handoff.
+    if std::env::var_os("CHEST_TEST_PROFILE").is_none() {
+        builder=builder.plugin(tauri_plugin_single_instance::init(|app,args,_cwd|{
+            if let Some(intent)=shortcuts::parse(&args){
+                if let Some(core)=app.try_state::<Arc<Core>>(){if core.store.instance(&intent.id).is_err(){return;}}
+                *app.state::<shortcuts::Pending>().0.lock().unwrap()=Some(intent);
+                let _=app.emit("instance-intent",());
+            }
+            if let Some(window)=app.get_webview_window("main"){let _=window.show();let _=window.set_focus();}
+        }));
+    }
+    builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(updater::UpdaterState::default())
         .setup(|app| {
+            app.state::<startup::Trace>().mark("setup");
             let activity = app.handle().clone();
             let logs = app.handle().clone();
             let normal = app.path().app_data_dir()?;
@@ -397,8 +531,13 @@ pub fn run() {
                 },
             )?;
             app.manage(Arc::new(core));
+            app.state::<startup::Trace>().mark("core-ready");
             let config = app.config().app.windows[0].clone();
-            let mut window = tauri::WebviewWindowBuilder::from_config(app, &config)?;
+            let mut window = tauri::WebviewWindowBuilder::from_config(app, &config)?.devtools(cfg!(debug_assertions));
+            if let Some(monitor) = app.primary_monitor()? {
+                let size = monitor.size().to_logical::<f64>(monitor.scale_factor());
+                window = window.inner_size(size.width * 0.8, size.height * 0.8).center();
+            }
             if let Some(profile) = profile {
                 window = window.title("Chest — Test profile");
                 #[cfg(target_os = "macos")]
@@ -406,15 +545,46 @@ pub fn run() {
                 #[cfg(not(target_os = "macos"))]
                 { window = window.data_directory(profile.root.join("webview")); }
             }
+            if app.state::<startup::Trace>().enabled() {
+                window = window.initialization_script("window.__CHEST_STARTUP_TRACE__ = true;");
+            }
             window.build()?;
+            #[cfg(desktop)]
+            menu::install(app)?;
+            app.state::<startup::Trace>().mark("window-built");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            menu::set_menu_labels,
+            startup::report_startup_ready,
             updater::get_app_update_info,
             updater::check_app_update,
             updater::install_app_update,
             updater::restart_updated_app,
+            shortcuts::take_instance_intent,
+            shortcuts::create_instance_shortcut,
+            get_worlds,
+            get_world_icon,
+            get_server_icon,
+            get_world_info,
+            get_instance_worlds,
+            copy_world,
+            backup_world,
+            save_server_bookmark,
+            remove_server_bookmark,
+            add_bookmarked_server,
+            get_instance_files,
+            get_account_skin,
+            get_servers,
+            get_screenshots,
+            open_instance_file,
+            get_screenshot_image,
+            open_shared_datapacks,
+            apply_shared_datapacks,
             get_config,
+            get_launch_settings,
+            save_launch_settings,
+            open_launcher_link,
             get_launcher_info,
             open_data_folder,
             choose_java,
@@ -423,16 +593,19 @@ pub fn run() {
             get_instance_icons,
             get_debug_launch,
             set_debug_offline,
-            get_instance_screenshots,
+            get_instance_backgrounds,
             get_versions,
             get_news,
             get_instance_news,
             open_news,
             get_fabric_versions,
             get_quilt_versions,
+            get_loader_versions,
             get_catalog_sources,
             search_catalog,
             get_catalog_releases,
+            get_catalog_description,
+            open_description_link,
             get_creation_releases,
             add_catalog_content,
             get_modpack_releases,
@@ -442,6 +615,8 @@ pub fn run() {
             create_wizard,
             choose_instance_location,
             choose_creation_files,
+            import_color_scheme,
+            export_color_scheme,
             choose_creation_archive,
             save_instance,
             reorder_instances,
@@ -449,6 +624,8 @@ pub fn run() {
             install_instance,
             pause_install,
             launch_instance,
+            launch_resource,
+            rename_resource,
             stop_instance,
             get_logs,
             get_content,

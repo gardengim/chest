@@ -1,11 +1,14 @@
 <script lang="ts">
+  import DirectionIcon from './DirectionIcon.svelte';
   import { locale } from './preferences';
   import { newsDate } from './format';
   import { t } from './i18n';
   import { tick } from 'svelte';
   import { showDialog } from './dialog';
   import Button from './Button.svelte';
+  import InstanceName from './InstanceName.svelte';
   import Icon from './Icon.svelte';
+  import Pagination from './Pagination.svelte';
   import { loadNews, loadInstanceUpdates } from './news';
   import { api, native } from './api';
   import type { NewsArticle, Instance } from './types';
@@ -27,7 +30,7 @@
   $effect(()=>{
     const selected=JSON.parse(instanceKey) as Instance[], force=retry>0;
     let alive=true;updates=[];unavailable=[];updatesLoading=selected.length>0;
-    void loadInstanceUpdates(selected,force).then(result=>{if(alive){updates=result.articles;unavailable=result.unavailable;}}).finally(()=>{if(alive)updatesLoading=false;});
+    void loadInstanceUpdates(selected,force,()=>alive).then(result=>{if(alive){updates=result.articles;unavailable=result.unavailable;}}).finally(()=>{if(alive)updatesLoading=false;});
     return()=>{alive=false;};
   });
   $effect(()=>{if(page>=pages)page=pages-1;});
@@ -46,19 +49,15 @@
   {/if}
   </div>
   {#if paginated}
-    <nav class="news-footer news-pagination" aria-label={$t('News pages')}>
-      <Button disabled={page===0} onclick={()=>page--}>{$t('Previous')}</Button>
-      <span role="status" aria-live="polite" aria-label={$t('Page {page} of {pages}',{page:page+1,pages})}>{page+1} / {pages}</span>
-      <Button disabled={page>=pages-1} onclick={()=>page++}>{$t('Next')}</Button>
-    </nav>
-  {:else}
+    {#if articles.length}<Pagination label={$t('News pages')} {page} {pages} onchange={value=>page=value}/>{/if}
+  {:else if articles.length>limit}
   <div class="news-footer"><Button disabled={!articles.length} onclick={event=>{trigger=event.currentTarget;expanded=true;}}>{$t("More")}</Button></div>
   {/if}
 </section>
 
 {#snippet articleList(items:NewsArticle[])}
   {#each items as article}
-    <Button shape="plain" class="news-item" onclick={()=>openArticle(article)}><span>{article.instance_id?`${instances.find(i=>i.id===article.instance_id)?.name || ''} · ${article.title}`:article.title}<small><span class="news-source">{source(article)}</span>{article.instance_id?' · '+$t('Update available'):''}{article.date?' · '+newsDate(article.date,$locale):''}</small></span><Icon name="arrow" size={16}/></Button>
+    <Button shape="plain" class="news-item" onclick={()=>openArticle(article)}><span>{#if article.instance_id && instances.find(i=>i.id===article.instance_id)}<InstanceName instance={instances.find(i=>i.id===article.instance_id)!}/>{' · '}{/if}{article.title}<small><span class="news-source">{source(article)}</span>{article.instance_id?' · '+$t('Update available'):''}{article.date?' · '+newsDate(article.date,$locale):''}</small></span><DirectionIcon direction="right"/></Button>
   {/each}
 {/snippet}
 {#if expanded}

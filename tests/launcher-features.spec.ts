@@ -1,0 +1,150 @@
+import {test,expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test('About provides project links, MIT text and searchable bundled dependency notices',async({page})=>{
+  await page.goto('/');await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await page.getByRole('tab',{name:'About',exact:true}).click();
+  await expect(page.locator('.license-text').first()).toContainText('MIT License');
+  await expect(page.getByRole('link',{name:'Issues',exact:true})).toHaveAttribute('href','https://github.com/gardengim/chest/issues');
+  await expect(page.locator('.license-text')).toHaveCount(1);
+  await page.getByLabel('Search',{exact:true}).fill('fastnbt');
+  await expect(page.locator('details')).toHaveCount(1);await page.locator('summary').click();
+  await expect(page.locator('details')).toContainText('MIT');
+  const audit=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(audit.violations).toEqual([]);
+});
+
+test('per-instance account, window, log and command settings persist independently of defaults',async({page},testInfo)=>{
+  await page.addInitScript(()=>localStorage.setItem('chest-preview-v1',JSON.stringify({instances:[{id:'world',name:'World',version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true}],accounts:[{id:'one',name:'First player'},{id:'two',name:'Second player'}],active_account:'one',client_id:'',java_path:'',memory_mb:4096})));
+  await page.goto('/');await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();
+  await expect(page.locator('.install-button')).toContainText('Launch');
+  await page.getByRole('tab',{name:'Settings',exact:true}).click();
+  const form=page.locator('.launch-settings');
+  for(const name of ['General','Runtime','Launch behavior','Display','Files and actions','Delete instance'])await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
+  await expect(page.locator('.instance-settings').getByRole('button',{name:'Duplicate',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('region',{name:'Files and actions'}).getByRole('button',{name:'Duplicate',exact:true})).toBeVisible();
+  await expect(form.getByLabel('Java arguments',{exact:true})).not.toBeVisible();
+  await page.locator('.instance-settings').screenshot({path:testInfo.outputPath('general-settings.png')});
+  await form.screenshot({path:testInfo.outputPath('launch-settings.png')});
+  expect(await page.locator('.danger-zone').evaluate(node=>!!(document.querySelector('.launch-settings')!.compareDocumentPosition(node)&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+  await form.getByLabel('Account',{exact:true}).selectOption('two');
+  await form.getByLabel('Window width',{exact:true}).fill('1280');
+  await page.getByRole('button',{name:'Chest home',exact:true}).click();await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();await page.getByRole('tab',{name:'Settings',exact:true}).click();await expect(form.getByLabel('Window width',{exact:true})).toHaveValue('1280');
+  await form.getByLabel('Window height',{exact:true}).fill('720');
+  await form.getByLabel('Fullscreen',{exact:true}).check();await form.getByLabel('Open log on launch',{exact:true}).check();
+  await form.getByText('Advanced',{exact:true}).click();
+  await form.getByLabel('Java arguments',{exact:true}).fill('-Dexample=with spaces\n-XX:+UseG1GC');
+  await form.getByLabel('Environment variables',{exact:true}).fill('EXAMPLE=one=two');
+  await form.getByLabel('Before launch',{exact:true}).fill('/path with spaces/tool\nargument with spaces');
+  await form.getByRole('button',{name:'Save',exact:true}).click();await expect(form.getByRole('status')).toHaveText('Saved');
+  const config=await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1')!));
+  expect(config.active_account).toBe('one');expect(config.launch_settings.world).toMatchObject({width:1280,height:720,fullscreen:true,account_id:'two',java_args:['-Dexample=with spaces','-XX:+UseG1GC'],environment:{EXAMPLE:'one=two'},before_launch:['/path with spaces/tool','argument with spaces'],open_log:true});
+  await page.getByRole('tab',{name:'Overview',exact:true}).click();await expect(page.locator('.details')).toContainText('Second player');
+  await page.getByRole('tab',{name:'Settings',exact:true}).click();
+  await expect(form.getByLabel('Window width',{exact:true})).toHaveValue('1280');
+  await form.getByText('Advanced',{exact:true}).click();await form.getByLabel('Environment variables',{exact:true}).fill('INVALID');
+  await form.getByRole('button',{name:'Save',exact:true}).click();await expect(form.getByRole('alert')).toContainText('NAME=value');
+});
+
+test('local files expose conditional tabs and content types remain separate in list and gallery',async({page},testInfo)=>{
+  await page.addInitScript(()=>{
+    const w=window as any;w.isTauri=true;w.__calls=[];
+    const instance={id:'world',name:'World',version:'1.21.4',loader:'fabric',loader_version:'0.16.9',memory_mb:4096,java_path:'',artwork:'grass',installed:true};
+    w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      w.__calls.push({name,args});
+      if(name==='get_config')return {instances:[instance],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
+      if(name==='get_instance_files')return {worlds:['Survival'],servers:[{name:'Home server',ip:'localhost:25565'}],screenshots:['2026-10-11.png']};
+      if(name==='get_content')return [{name:'example.jar',kind:'mods',enabled:true},{name:'texture.zip',kind:'resourcepacks',enabled:true},{name:'shader.zip',kind:'shaderpacks',enabled:true}];
+      if(name==='get_instance_icons')return {};
+      if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
+      if(name==='get_fabric_versions')return ['0.16.9'];
+      if(name==='get_catalog_sources')return {modrinth:true,curseforge:false};
+      if(name==='search_catalog')return {projects:[],total:0};
+      if(name==='get_instance_news')return {articles:[],unavailable:[]};
+      if(name==='get_screenshot_image')return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jJ9kAAAAASUVORK5CYII=';
+      if(name==='apply_shared_datapacks')return 1;
+      return [];
+    }};
+  });
+  await page.goto('/');await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();
+  await page.getByRole('tab',{name:'Worlds',exact:true}).click();await expect(page.getByRole('tabpanel',{name:'Worlds',exact:true})).toContainText('Survival');
+  await page.locator('.world-list .launcher-card').first().click({button:'right'});await page.getByRole('menuitem',{name:'Add data packs',exact:true}).click();await expect(page.getByRole('status').last()).toContainText('Added 1 data pack.');
+  await page.getByRole('tab',{name:'Servers',exact:true}).click();await expect(page.getByRole('tabpanel',{name:'Servers',exact:true})).toContainText('localhost:25565');
+  await page.getByRole('tab',{name:'Screenshots',exact:true}).click();
+  const screenshot=page.getByRole('button',{name:'2026-10-11.png · World',exact:true});
+  await expect(screenshot).toHaveAttribute('data-shape','card');await expect(screenshot).toBeEnabled();await screenshot.click();
+  const preview=page.getByRole('dialog',{name:'2026-10-11.png',exact:true});await expect(preview.getByRole('img',{name:'2026-10-11.png',exact:true})).toBeVisible();
+  await preview.getByRole('button',{name:'Open',exact:true}).click();
+  expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='open_instance_file').args)).toEqual({id:'world',kind:'screenshots',name:'2026-10-11.png'});
+  await page.keyboard.press('Escape');await expect(preview).toHaveCount(0);
+  await page.getByRole('tab',{name:'Content',exact:true}).click();await expect(page.locator('.content-entry')).toHaveCount(1);await expect(page.locator('.content-entry')).toContainText('example.jar');
+  await expect(page.locator('.content-entry').getByRole('button',{name:'Disable',exact:true})).toBeVisible();
+  await page.getByLabel('Search content',{exact:true}).fill('EXAMPLE');
+  await expect(page.locator('.content-entry')).toHaveCount(1);
+  await page.getByLabel('Search content',{exact:true}).fill('missing');
+  await expect(page.locator('.content-entry')).toHaveCount(0);
+  await expect(page.getByText('No results',{exact:true})).toBeVisible();
+  await page.getByLabel('Search content',{exact:true}).fill('');
+  await page.getByLabel('Status',{exact:true}).selectOption('disabled');
+  await expect(page.locator('.content-entry')).toHaveCount(0);
+  await page.getByLabel('Status',{exact:true}).selectOption('enabled');
+  await expect(page.locator('.content-entry')).toHaveCount(1);
+  const reads=await page.evaluate(()=>(window as any).__calls.filter((call:any)=>call.name==='get_content').length);
+  await page.getByRole('button',{name:'Refresh',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>(window as any).__calls.filter((call:any)=>call.name==='get_content').length)).toBe(reads+1);
+
+  await page.getByRole('tab',{name:'Resource packs',exact:true}).click();await expect(page.locator('.content-entry')).toContainText('texture.zip');
+  await page.getByRole('radiogroup',{name:'Content view'}).getByRole('radio',{name:'Gallery',exact:true}).click();await expect(page.locator('.content-collection')).toHaveClass(/gallery/);
+  const panel=page.getByRole('tabpanel',{name:'Resource packs',exact:true});
+  const selectedTab=page.getByRole('tab',{name:'Resource packs',exact:true});
+  const panelBounds=await panel.boundingBox(),tabBounds=await selectedTab.boundingBox();
+  expect(Math.abs(panelBounds!.y-(tabBounds!.y+tabBounds!.height))).toBeLessThanOrEqual(1);
+  expect(panelBounds!.x).toBeLessThanOrEqual(tabBounds!.x);
+  await expect(panel.locator('.launcher-card .shared-card-art')).toHaveCount(1);
+  await page.screenshot({path:testInfo.outputPath('nested-content-gallery.png'),fullPage:true});
+  await page.getByRole('radiogroup',{name:'Content view'}).getByRole('radio',{name:'List',exact:true}).click();
+  await page.screenshot({path:testInfo.outputPath('nested-content-list.png'),fullPage:true});
+  await page.setViewportSize({width:600,height:800});
+  await expect(panel).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(600);
+  await page.screenshot({path:testInfo.outputPath('nested-content-narrow.png'),fullPage:true});
+  const audit=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(audit.violations).toEqual([]);
+  await page.getByRole('button',{name:'Add',exact:true}).click();
+  await expect(page.getByRole('tab',{name:'Resource packs',exact:true})).toHaveAttribute('aria-selected','true');
+  await expect(page.getByLabel('Target instance')).toHaveValue('world');
+});
+
+test('a desktop shortcut intent opens its instance, launches once, and honors open-log setting',async({page})=>{
+  await page.addInitScript(()=>{
+    const w=window as any;w.isTauri=true;w.__calls=[];let consumed=false;
+    w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      w.__calls.push({name,args});
+      if(name==='get_config')return {instances:[{id:'world',name:'World',version:'1.21.4',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true}],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
+      if(name==='take_instance_intent'){if(consumed)return null;consumed=true;return {id:'world',launch:true};}
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:true};
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
+      if(name==='get_instance_icons')return {};
+      if(name==='get_instance_news')return {articles:[],unavailable:[]};
+      if(name==='get_logs')return ['Started from shortcut','[WARN] Example warning'];
+      if(name==='create_instance_shortcut')return '/Desktop/World.app';
+      return [];
+    }};
+  });
+  await page.goto('/');await expect(page.locator('.instance-hero h1')).toHaveText('World');
+  await expect(page.getByRole('tab',{name:'Log',exact:true})).toHaveAttribute('aria-selected','true');await expect(page.locator('.console')).toContainText('Started from shortcut');
+  await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(text:string)=>{(window as any).__copied=text;}}}));
+  await page.getByLabel('Search log',{exact:true}).fill('warn');
+  await expect(page.locator('.console')).toHaveText('[WARN] Example warning');
+  await page.getByRole('button',{name:'Copy',exact:true}).click();
+  expect(await page.evaluate(()=>(window as any).__copied)).toBe('[WARN] Example warning');
+  await page.getByLabel('Search log',{exact:true}).fill('missing');
+  await expect(page.locator('.console')).toHaveText('No results');
+  await page.getByLabel('Search log',{exact:true}).fill('');
+  await expect(page.locator('.console')).toContainText('Started from shortcut');
+  expect(await page.evaluate(()=>(window as any).__calls.filter((call:any)=>call.name==='launch_instance').length)).toBe(1);
+  await page.getByRole('tab',{name:'Settings',exact:true}).click();await page.getByRole('button',{name:'Create shortcut',exact:true}).click();
+  await expect(page.locator('.notification[role="status"]')).toContainText('Desktop shortcut created.');
+  expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='create_instance_shortcut').args)).toEqual({id:'world'});
+});

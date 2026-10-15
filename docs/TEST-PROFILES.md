@@ -30,3 +30,28 @@ marker to retain profile identity; do not copy it into other profiles.
 Use [ACCEPTANCE.md](ACCEPTANCE.md) to record scenarios. For updater replacement acceptance,
 use a separate installed app copy and separate OS user/VM; replacement is deliberately
 blocked in this profile mode. Browser regression tests still mock native IPC.
+
+## Packaged startup timing
+
+`CHEST_STARTUP_TRACE=1` enables stderr-only timing when a valid isolated test
+profile is used. It records setup, profile/core readiness, window construction,
+and a frontend acknowledgement after the library renders across two animation
+frames. It logs no accounts, tokens, filenames or profile paths. Normal profiles
+do not receive the frontend tracing flag.
+
+Build/package the app first, then measure its executable with disposable profiles:
+
+```sh
+python3 scripts/measure-native-startup.py \
+  --executable src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest \
+  --instances 100 --samples 3 --output /tmp/chest-native-startup.json
+```
+
+Use `--instances 0` for a fresh empty profile. Populated workloads first initialize
+a valid empty profile (not a reported sample), then write synthetic instance
+records. Each reported sample terminates only its own child process after readiness.
+Profiles/markers remain available for inspection; WebKit storage is OS-managed.
+No account sign-in or game installation is performed. Timing starts before process
+creation and ends when the native side receives the render acknowledgement. It
+includes dynamic loading, but excludes Finder/LaunchServices and does not prove
+compositor presentation, cold-boot speed, or game launch readiness.

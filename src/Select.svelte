@@ -1,33 +1,40 @@
 <script lang="ts">
   import { t } from './i18n';
-  import { onMount, tick, type Snippet } from 'svelte';
+  import { tick, type Snippet } from 'svelte';
   import type { HTMLSelectAttributes } from 'svelte/elements';
   import Button from './Button.svelte';
 
-  let { children, value=$bindable(''), disabled=false, onchange, ...attributes }:
+  let { children, optionContent, leading, value=$bindable(''), disabled=false, onchange, ...attributes }:
     Omit<HTMLSelectAttributes,'value'|'children'|'onchange'> & {
-      children?:Snippet; value?:string; onchange?:(event:Event & {currentTarget:HTMLSelectElement})=>void;
+      children?:Snippet; optionContent?:Snippet<[string,string]>; leading?:Snippet<[string]>; value?:string; onchange?:(event:Event & {currentTarget:HTMLSelectElement})=>void;
     }=$props();
   const uid=$props.id();
   let control:HTMLSelectElement;
   let menu:HTMLDivElement;
+  let anchorBox:DOMRect|undefined;
   let open=$state(false),active=$state(0),label=$state('');
   let options=$state<{value:string;label:string;disabled:boolean}[]>([]);
   let search='',searchedAt=0;
 
-  onMount(()=>{
-    const nativeLabel=control.labels?.[0]?.cloneNode(true) as HTMLElement | undefined;
-    nativeLabel?.querySelectorAll('select,[popover],.hint').forEach(node=>node.remove());
-    label=attributes['aria-label'] || nativeLabel?.textContent?.trim() || 'Choose an option';
+  $effect(()=>{
+    const translate=$t;
+    // Read the rendered label after language changes, excluding options and hints.
+    void tick().then(()=>{
+      if(!control)return;
+      const nativeLabel=control.labels?.[0]?.cloneNode(true) as HTMLElement | undefined;
+      nativeLabel?.querySelectorAll('select,[popover],.hint').forEach(node=>node.remove());
+      label=nativeLabel?.textContent?.trim() || translate('Choose an option');
+    });
   });
   function close(){menu?.hidePopover();open=false;}
   function position(){
-    const box=control.getBoundingClientRect();
+    const box=control.getBoundingClientRect();anchorBox=box;
     const width=Math.min(box.width,innerWidth-16);
     menu.style.width=width+'px';
     const below=window.innerHeight-box.bottom-8,above=box.top-8;
-    const upwards=below<Math.min(280,menu.scrollHeight) && above>below;
-    const height=Math.max(0,Math.min(280,upwards?above:below));
+    const limit=20*parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const upwards=below<Math.min(limit,menu.scrollHeight) && above>below;
+    const height=Math.max(0,Math.min(limit,upwards?above:below));
     const top=upwards?Math.max(8,box.top-Math.min(height,menu.scrollHeight)-4):box.bottom+4;
     menu.style.cssText='left:'+Math.max(8,Math.min(box.left,innerWidth-width-8))+'px;top:'+top+'px;width:'+width+'px;max-height:'+height+'px;';
   }
@@ -81,13 +88,19 @@
   $effect(()=>{
     if(!open)return;
     const resize=()=>close();
-    const scroll=(event:Event)=>{if(!(event.target instanceof Node) || !menu.contains(event.target))close();};
+    const scroll=(event:Event)=>{
+      if(event.target instanceof Node && menu.contains(event.target))return;
+      const box=control.getBoundingClientRect();
+      if(anchorBox && (Math.abs(box.top-anchorBox.top)>1 || Math.abs(box.left-anchorBox.left)>1))close();
+    };
     window.addEventListener('resize',resize);
     window.addEventListener('scroll',scroll,true);
     return()=>{window.removeEventListener('resize',resize);window.removeEventListener('scroll',scroll,true);};
   });
 </script>
 
+<div class="select-shell" class:with-leading={!!leading}>
+{#if leading}<span class="select-leading" aria-hidden="true">{@render leading(value)}</span>{/if}
 <select {...attributes} bind:this={control} bind:value {disabled} class={['inventory-select',attributes.class]}
   aria-label={attributes['aria-label'] || label || undefined} aria-expanded={open} aria-controls={uid}
   aria-activedescendant={open?uid+'-option-'+active:undefined}
@@ -102,7 +115,10 @@
     <Button shape="plain" role="option" id={uid+'-option-'+i} aria-selected={value===option.value}
       class={['dropdown-option',active===i && 'highlighted']} tabindex={-1} disabled={option.disabled}
       onpointermove={()=>active=i} onmousedown={event=>event.preventDefault()} onclick={()=>choose(i)}>
-      <span>{option.label}</span><span aria-hidden="true">{value===option.value?'✓':''}</span>
+      <span>{#if optionContent}{@render optionContent(option.value,option.label)}{:else}{option.label}{/if}</span><span aria-hidden="true">{value===option.value?'✓':''}</span>
     </Button>
   {/each}
 </div>
+
+</div>
+<style>.select-shell{display:block;position:relative;min-width:0;flex:1;margin:0}.with-leading{container-type:inline-size}.select-shell select{width:100%;margin:0}:global(label)>.select-shell{margin-top:.57142857rem}.with-leading select{padding-left:clamp(1.75rem,25cqi,2.85714286rem)}.select-leading{position:absolute;z-index:1;left:clamp(.25rem,5cqi,.85714286rem);top:50%;translate:0 -50%;display:flex;pointer-events:none}.select-shell::after{color:var(--control-icon);content:'';position:absolute;top:50%;right:clamp(.25rem,5cqi,.85714286rem);translate:0 -50%;width:.85714286rem;height:.85714286rem;background:currentColor;mask:var(--direction-mask) center/contain no-repeat;rotate:180deg;pointer-events:none}.select-shell:has(select:disabled)::after{opacity:.5}</style>

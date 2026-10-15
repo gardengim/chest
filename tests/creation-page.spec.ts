@@ -3,17 +3,17 @@ import {test,expect} from '@playwright/test';
 test('creation stays on one page, retains drafts, defaults blank names, and aligns controls',async({page})=>{
   await page.goto('/');await page.evaluate(()=>localStorage.clear());await page.reload();
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Game and modloader'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Game and mod loader'})).toBeVisible();
   await expect(page.getByLabel('Instance name',{exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'Content',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'Next',exact:true})).toHaveCount(0);
   await page.getByLabel('Minecraft version',{exact:true}).selectOption('1.21.4');
-  await page.getByLabel('Modloader',{exact:true}).selectOption('fabric');
+  await page.getByLabel('Mod loader',{exact:true}).selectOption('fabric');
   await expect(page.getByLabel('Instance name',{exact:true})).toHaveAttribute('placeholder','Fabric 1.21.4');
   await page.getByLabel('Instance name',{exact:true}).fill('Draft');
   await page.getByRole('button',{name:'Chest home',exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Discard draft?'})).toBeVisible();
-  await page.getByRole('button',{name:'Stay',exact:true}).click();
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await expect(page.getByLabel('Instance name',{exact:true})).toHaveValue('Draft');
   const location=await page.getByLabel('Instance location',{exact:true}).boundingBox();
   const choose=await page.getByRole('button',{name:'Browse',exact:true}).boundingBox();
@@ -37,7 +37,7 @@ test('home Explore hands a pack to creation and does not install immediately',as
   await expect(page.getByRole('heading',{name:'New instance',exact:true})).toBeVisible();
   await expect(page.getByLabel('Instance name',{exact:true})).toHaveAttribute('placeholder','Fabulously Optimized');
   await expect(page.getByRole('heading',{name:'Fabulously Optimized',exact:true})).toBeVisible();
-  await expect(page.locator('.selected-pack > .artwork')).toBeVisible();
+  await expect(page.locator('.selected-pack > .artwork')).toHaveCount(0);
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-preview-v1') || '{"instances":[]}').instances.length)).toBe(0);
   await expect(page.getByRole('heading',{name:'Content',exact:true})).toBeVisible();
 });
@@ -48,9 +48,12 @@ test('import, local files and catalog releases share one final submission',async
     const config={instances:[] as any[],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
     const imported={id:'original',name:'Imported world',version:'1.21.4',loader:'fabric',loader_version:'0.16.10',installed:false,artwork:'grass',java_path:'',memory_mb:4096};
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string,args:any)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return structuredClone(config);
       if(name==='get_versions')return [{id:'1.21.4',type:'release'}];
-      if(name==='get_activities'||name==='get_content'||name==='get_logs'||name==='get_instance_screenshots')return [];
+      if(name==='get_activities'||name==='get_content'||name==='get_logs'||name==='get_instance_backgrounds')return [];
       if(name==='get_instance_icons')return {};
       if(name==='get_catalog_sources')return {modrinth:true,curseforge:false};
       if(name==='search_catalog'){w.__catalogQuery=args.query;return {projects:[{id:'sodium',title:'Sodium',description:'Performance',author:'Creator',icon:null,downloads:1000,url:'https://modrinth.com/mod/sodium'}],total:1};}
@@ -69,7 +72,7 @@ test('import, local files and catalog releases share one final submission',async
   await page.getByRole('button',{name:'Browse',exact:true}).click();
   await expect(page.getByLabel('Instance location',{exact:true})).toHaveValue('/tmp/Worlds');
   await page.getByRole('button',{name:'Add',exact:true}).click();
-  await expect(page.getByRole('dialog',{name:'Add content'}).getByRole('tab',{name:'Modpacks',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('dialog',{name:'Add content'}).getByRole('tab')).toHaveCount(0);
   await page.getByRole('button',{name:'Choose file',exact:true}).click();
   await expect(page.getByRole('checkbox')).toHaveCount(0);
   await page.getByRole('button',{name:'Add',exact:true}).click();
@@ -81,8 +84,8 @@ test('import, local files and catalog releases share one final submission',async
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(await page.evaluate(()=>(window as any).__releaseQuery)).toMatchObject({game:'1.21.4',loader:'fabric',kind:'mod'});
   await expect(page.locator('.creation-file')).toHaveCount(2);
-  expect(await page.locator('.creation-file').first().evaluate(node=>getComputedStyle(node).borderBottomWidth)).toBe('0px');
-  expect(await page.locator('.creation-file').last().evaluate(node=>getComputedStyle(node).borderTopWidth)).toBe('1px');
+  await expect(page.getByRole('tablist',{name:'Content types'})).toBeVisible();
+  expect(await page.locator('.creation-file').last().evaluate(node=>getComputedStyle(node).borderTopWidth)).toBe('2px');
   await page.getByRole('button',{name:'Add',exact:true}).click();
   await expect(page.locator('.catalog-card')).toContainText('Already added');
   await page.locator('.catalog-card').click();
@@ -98,12 +101,12 @@ test('import, local files and catalog releases share one final submission',async
 test('discard confirmation resets creation and cancels navigation on Escape',async({page})=>{
   await page.goto('/');await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await page.getByLabel('Instance name',{exact:true}).fill('Discard me');
-  await page.getByRole('button',{name:'Accounts and settings',exact:true}).click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.keyboard.press('Escape');
   await expect(page.getByLabel('Instance name',{exact:true})).toHaveValue('Discard me');
-  await page.getByRole('button',{name:'Accounts and settings',exact:true}).click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.getByRole('button',{name:'Discard',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Accounts & settings'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Settings'})).toBeVisible();
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await expect(page.getByLabel('Instance name',{exact:true})).toHaveValue('');
 });
@@ -117,6 +120,21 @@ test('Vanilla hides loader mods and creation sections follow content then detail
   await expect(page.getByRole('heading',{name:'Vanilla does not load mods.'})).toBeVisible();
   await expect(page.locator('.catalog-card')).toHaveCount(0);
   await page.getByRole('button',{name:'Close content browser'}).click();
+  for(const [tab,type] of [['Resource packs','resourcepacks'],['Shaders','shaderpacks'],['Mods','mods']]){
+    await page.getByRole('tab',{name:tab,exact:true}).click();
+    const add=page.getByRole('button',{name:'Add',exact:true});
+    const bounds=await add.boundingBox(),panel=await page.locator('.collection-panel').boundingBox();
+    expect(bounds!.y).toBeGreaterThan(panel!.y);
+    expect(bounds!.x).toBeGreaterThan(panel!.x);
+    const view=await page.getByRole('radiogroup',{name:'Content view'}).boundingBox();
+    expect(bounds!.x+bounds!.width).toBeLessThan(view!.x);
+    expect(bounds!.y+bounds!.height/2).toBeCloseTo(view!.y+view!.height/2,0);
+    await expect(add).toHaveText('Add');
+    await add.click();
+    await expect(page.getByRole('dialog',{name:'Add content'}).getByLabel('File type')).toHaveValue(type);
+    await expect(page.getByRole('dialog',{name:'Add content'}).getByRole('tab')).toHaveCount(0);
+    await page.getByRole('button',{name:'Close content browser'}).click();
+  }
   for(const method of ['Modpacks','Import']){
     await page.getByRole('tab',{name:method,exact:true}).click();
     expect(await page.locator(`#create-panel-${method}`).evaluate(node=>getComputedStyle(node).borderTopWidth)).toBe('0px');
@@ -129,7 +147,7 @@ test('unchanged creation exits freely, including after reverting edits',async({p
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await expect(page.getByLabel('Minecraft version',{exact:true})).toHaveValue('26.3');
   await page.getByRole('button',{name:'Chest home',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Library 0',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Instances 0',exact:true})).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await page.getByLabel('Instance name',{exact:true}).fill('Temporary');
@@ -137,9 +155,9 @@ test('unchanged creation exits freely, including after reverting edits',async({p
   await page.getByLabel('Minecraft version',{exact:true}).selectOption('1.21.4');
   await page.getByRole('button',{name:'Chest home',exact:true}).click();
   await expect(page.getByRole('dialog')).toContainText('Discard draft?');
-  await page.getByRole('button',{name:'Stay',exact:true}).click();
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await page.getByLabel('Minecraft version',{exact:true}).selectOption('26.3');
-  await page.getByRole('button',{name:'Accounts and settings',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Accounts & settings',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Settings',exact:true})).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });

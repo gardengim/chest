@@ -6,6 +6,9 @@ test('Explore cards fill with gallery backgrounds and gradients in gallery and l
   await page.addInitScript(()=>{
     const w=window as any;w.isTauri=true;
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string)=>{
+      if(name==='get_instance_files')return {worlds:[],servers:[],screenshots:[]};
+      if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
+      if(name==='take_instance_intent')return null;
       if(name==='get_config')return {instances:[],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_instance_icons')return {};
       if(name==='get_catalog_sources')return {modrinth:true,curseforge:false};
@@ -25,7 +28,7 @@ test('Explore cards fill with gallery backgrounds and gradients in gallery and l
   async function check(){
     const geometry=await card.evaluate(node=>{
       const rect=node.getBoundingClientRect(),bg=node.querySelector('.card-backdrop')!.getBoundingClientRect();
-      const art=getComputedStyle(node.querySelector('.catalog-art')!);
+      const art=getComputedStyle(node.querySelector('.shared-card-art')!);
       return {width:rect.width,height:rect.height,bgWidth:bg.width,bgHeight:bg.height,bottom:art.borderBottomWidth,right:art.borderRightWidth,gradient:getComputedStyle(node.querySelector('.card-backdrop')!,'::after').backgroundImage};
     });
     expect(geometry.bgWidth).toBe(geometry.width-4);
@@ -34,10 +37,10 @@ test('Explore cards fill with gallery backgrounds and gradients in gallery and l
     expect(geometry.gradient).toContain('linear-gradient');
   }
   await check();
-  await expect(card.locator('.catalog-art img')).toHaveAttribute('src','/chest.svg');
-  await expect(page.locator('.catalog-card').last().locator('.card-backdrop img')).toHaveCount(0);
+  await expect(card.locator('.shared-card-art img')).toHaveAttribute('src','/chest.svg');
+  await expect(page.locator('.catalog-card').last().locator('.icon-backdrop')).toHaveCount(0);
   await page.screenshot({path:'/tmp/chest-catalog-background-gallery.png',fullPage:true});
-  await page.getByRole('group',{name:'Project layout'}).getByRole('button',{name:'List',exact:true}).click();
+  await page.getByRole('radiogroup',{name:'Project layout'}).getByRole('radio',{name:'List',exact:true}).click();
   await check();
   await page.screenshot({path:'/tmp/chest-catalog-background-list.png',fullPage:true});
 });

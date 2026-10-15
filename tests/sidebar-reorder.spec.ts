@@ -14,11 +14,11 @@ test('dragging reorders only instances, persists, and overflow fades clear at th
   await page.mouse.move(source!.x+25,source!.y+25);await page.mouse.down();
   await page.mouse.move(target!.x+25,target!.y+48,{steps:8});await page.mouse.up();
   await expect(items.nth(2)).toHaveAttribute('data-instance-id','world-0');
-  await expect(page.getByRole('heading',{name:'Library 18',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Instances 18',exact:true})).toBeVisible();
   await page.reload();
   await expect(items.nth(2)).toHaveAttribute('data-instance-id','world-0');
   await rail.evaluate(n=>n.scrollTop=n.scrollHeight);
   await expect(rail).toHaveClass(/fade-top/);await expect(rail).not.toHaveClass(/fade-bottom/);
   await expect(rail.locator('button').last()).toHaveAttribute('aria-label','Create instance');
-  await expect(page.getByRole('button',{name:'Accounts and settings',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Settings',exact:true})).toBeVisible();
 });

@@ -12,7 +12,7 @@ pub struct Article {
 }
 fn article_url(link: &str) -> bool {
     url::Url::parse(link).is_ok_and(|url| {
-        url.scheme() == "https" && matches!(url.host_str(), Some("www.minecraft.net" | "modrinth.com" | "www.curseforge.com" | "fabricmc.net" | "quiltmc.org"))
+        url.scheme() == "https" && matches!(url.host_str(), Some("www.minecraft.net" | "modrinth.com" | "www.curseforge.com" | "fabricmc.net" | "quiltmc.org" | "files.minecraftforge.net" | "neoforged.net"))
             && url.username().is_empty() && url.password().is_none() && url.port().is_none()
     })
 }
@@ -78,6 +78,8 @@ async fn loader_article(core: &crate::Core, instance: &crate::store::Instance) -
         Loader::Vanilla => return Ok(None),
         Loader::Fabric => (crate::fabric::versions(&core.client, &instance.version).await?, "Fabric", "https://fabricmc.net/use/installer/"),
         Loader::Quilt => (crate::fabric::quilt_versions(&core.client, &instance.version).await?, "Quilt", "https://quiltmc.org/en/install/client/"),
+        Loader::Forge => (crate::loaders::versions(&core.client, &instance.version, instance.loader).await?, "Forge", "https://files.minecraftforge.net/"),
+        Loader::Neoforge => (crate::loaders::versions(&core.client, &instance.version, instance.loader).await?, "NeoForge", "https://neoforged.net/"),
     };
     Ok(newer_loader(&versions, &instance.loader_version).map(|version| InstanceArticle {
         article: Article { title: format!("{} {version}", source), date: String::new(), url: url.into() },

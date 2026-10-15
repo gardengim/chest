@@ -131,54 +131,47 @@ fn gallery(source: Source, info: &Value) -> Vec<String> {
     }
     urls
 }
+// Local metadata reads belong on the blocking pool; fetching older pack
+// receipts' galleries remains asynchronous below.
+fn gallery_metadata(directory: PathBuf) -> Result<Option<Value>> {
+    let root = directory.canonicalize()?;
+    for name in ["game/.chest-modpack.json", REQUEST_FILE] {
+        let Ok(path) = root.join(name).canonicalize() else { continue; };
+        if !path.starts_with(&root) { continue; }
+        let file = fs::File::open(path)?;
+        let mut bytes = vec![];
+        file.take(1024 * 1024 + 1).read_to_end(&mut bytes)?;
+        if bytes.len() > 1024 * 1024 { bail!("Modpack metadata exceeds limit"); }
+        return Ok(Some(serde_json::from_slice(&bytes)?));
+    }
+    Ok(None)
+}
 impl Core {
-    pub async fn instance_screenshots(&self, id: &str) -> Result<Vec<String>> {
+    pub(crate) async fn provider_backgrounds(&self, id: &str) -> Result<Vec<String>> {
         self.store.instance(id)?;
-        let root = self.store.dir(id)?.canonicalize()?;
-        for name in ["game/.chest-modpack.json", REQUEST_FILE] {
-            let path = root.join(name);
-            let Ok(path) = path.canonicalize() else {
-                continue;
-            };
-            if !path.starts_with(&root) {
-                continue;
+        let directory = self.store.dir(id)?;
+        let Some(metadata) = tokio::task::spawn_blocking(move || gallery_metadata(directory)).await?? else {
+            return Ok(vec![]);
+        };
+        if let Some(images) = metadata["gallery"].as_array() {
+            let mut urls = vec![];
+            for url in images.iter().filter_map(Value::as_str).filter(|url| gallery_url(url)) {
+                if !urls.iter().any(|existing| existing == url) { urls.push(url.to_owned()); }
+                if urls.len() == 4 { break; }
             }
-            let file = fs::File::open(path)?;
-            let mut bytes = vec![];
-            file.take(1024 * 1024 + 1).read_to_end(&mut bytes)?;
-            if bytes.len() > 1024 * 1024 {
-                bail!("Modpack metadata exceeds limit");
-            }
-            let metadata: Value = serde_json::from_slice(&bytes)?;
-            if let Some(images) = metadata["gallery"].as_array() {
-                let mut urls = vec![];
-                for url in images
-                    .iter()
-                    .filter_map(Value::as_str)
-                    .filter(|url| gallery_url(url))
-                {
-                    if !urls.iter().any(|existing| existing == url) {
-                        urls.push(url.to_owned());
-                    }
-                    if urls.len() == 4 {
-                        break;
-                    }
-                }
-                return Ok(urls);
-            }
-            let source: Source = serde_json::from_value(metadata["source"].clone())?;
-            let project = text(&metadata, "project")?;
-            // Existing packs already contain their source identity in the receipt.
-            let info = tokio::time::timeout(
-                std::time::Duration::from_secs(15),
-                project_info(&self.client, source, project),
-            )
-            .await??;
-            return Ok(gallery(source, &info));
+            return Ok(urls);
         }
-        Ok(vec![])
+        let source: Source = serde_json::from_value(metadata["source"].clone())?;
+        let project = text(&metadata, "project")?;
+        // Existing packs already contain their source identity in the receipt.
+        let info = tokio::time::timeout(
+            std::time::Duration::from_secs(15),
+            project_info(&self.client, source, project),
+        ).await??;
+        Ok(gallery(source, &info))
     }
 }
+
 pub async fn releases(
     client: &reqwest::Client,
     source: Source,
@@ -319,9 +312,8 @@ fn loader(deps: &Value) -> Result<(String, Loader, String)> {
         let kind = match key.as_str() {
             "fabric-loader" => Loader::Fabric,
             "quilt-loader" => Loader::Quilt,
-            "forge" | "neoforge" => {
-                bail!("This pack requires {key}. Chest does not install this loader yet.")
-            }
+            "forge" => Loader::Forge,
+            "neoforge" => Loader::Neoforge,
             _ => bail!("Unsupported pack dependency: {key}"),
         };
         if selected.0 != Loader::Vanilla {
@@ -329,6 +321,9 @@ fn loader(deps: &Value) -> Result<(String, Loader, String)> {
         }
         let version = value.as_str().context("Invalid loader version")?.to_owned();
         store::valid_segment(&version)?;
+        if matches!(kind, Loader::Forge | Loader::Neoforge) {
+            crate::forge::validate_version(&game, &version, kind)?;
+        }
         selected = (kind, version);
     }
     Ok((game, selected.0, selected.1))
@@ -801,7 +796,7 @@ mod tests {
         );
     }
     #[tokio::test]
-    async fn backgrounds_use_pack_gallery_metadata_instead_of_local_screenshots() {
+    async fn provider_backgrounds_use_pack_gallery_metadata() {
         let d = tempfile::tempdir().unwrap();
         let core = Core::new(d.path().into(), |_| {}, |_| {}).unwrap();
         let instance = core
@@ -816,19 +811,19 @@ mod tests {
         )
         .unwrap();
         assert!(core
-            .instance_screenshots(&instance.id)
+            .provider_backgrounds(&instance.id)
             .await
             .unwrap()
             .is_empty());
         fs::write(game.join(".chest-modpack.json"),serde_json::to_vec(&json!({"source":"modrinth","project":"pack","gallery":["https://cdn.modrinth.com/image.png","file:///private.png"]})).unwrap()).unwrap();
         assert_eq!(
-            core.instance_screenshots(&instance.id).await.unwrap(),
+            core.provider_backgrounds(&instance.id).await.unwrap(),
             vec!["https://cdn.modrinth.com/image.png"]
         );
         let copy = core.duplicate(&instance.id).unwrap();
         assert_eq!(
-            core.instance_screenshots(&copy.id).await.unwrap(),
-            core.instance_screenshots(&instance.id).await.unwrap()
+            core.provider_backgrounds(&copy.id).await.unwrap(),
+            core.provider_backgrounds(&instance.id).await.unwrap()
         );
     }
     #[tokio::test]
@@ -944,9 +939,14 @@ mod tests {
                 .1,
             Loader::Quilt
         );
+        for (key, expected, version) in [("forge", Loader::Forge, "54.1.0"), ("neoforge", Loader::Neoforge, "21.4.100")] {
+            let deps = json!({"minecraft":"1.21.4",key:version});
+            assert_eq!(loader(&deps).unwrap().1, expected);
+            let cf = json!({"minecraft":{"version":"1.21.4","modLoaders":[{"id":format!("{key}-{version}"),"primary":true}]}});
+            assert_eq!(loader(&dependencies(&cf, Source::Curseforge).unwrap()).unwrap().1, expected);
+        }
         for deps in [
             json!({"minecraft":"1.18.2"}),
-            json!({"minecraft":"1.21.4","forge":"54.1"}),
             json!({"minecraft":"1.21.4","quilt-loader":"0.30","fabric-loader":"0.16"}),
             json!({"minecraft":"1.21.4","unknown":"1"}),
         ] {

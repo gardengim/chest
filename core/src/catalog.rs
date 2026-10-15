@@ -267,6 +267,8 @@ fn loader_name(i: &Instance) -> &'static str {
         Loader::Vanilla => "vanilla",
         Loader::Fabric => "fabric",
         Loader::Quilt => "quilt",
+        Loader::Forge => "forge",
+        Loader::Neoforge => "neoforge",
     }
 }
 fn compatible(v: &Value, source: Source, i: &Instance, kind: Kind) -> bool {
@@ -773,6 +775,18 @@ mod tests {
             &vanilla,
             Kind::Resourcepack
         ));
+    }
+    #[test]
+    fn forge_and_neoforge_are_distinct_for_both_providers() {
+        let temp = tempfile::tempdir().unwrap();
+        let store = crate::store::Store::new(temp.path().into()).unwrap();
+        for (loader, version, name, other) in [(Loader::Forge, "52.0.1", "forge", "neoforge"), (Loader::Neoforge, "21.1.172", "neoforge", "forge")] {
+            let instance = store.create_with_loader(name.into(), "1.21.1".into(), "grass".into(), loader, version.into()).unwrap();
+            assert!(compatible(&json!({"game_versions":["1.21.1"],"loaders":[name]}), Source::Modrinth, &instance, Kind::Mod));
+            assert!(!compatible(&json!({"game_versions":["1.21.1"],"loaders":[other]}), Source::Modrinth, &instance, Kind::Mod));
+            assert!(compatible(&json!({"gameVersions":["1.21.1",name]}), Source::Curseforge, &instance, Kind::Mod));
+            assert!(!compatible(&json!({"gameVersions":["1.21.1",other]}), Source::Curseforge, &instance, Kind::Mod));
+        }
     }
     #[test]
     fn curseforge_file_requires_an_allowed_download_and_sha1() {

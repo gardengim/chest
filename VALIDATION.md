@@ -7,13 +7,13 @@ this is browser verification, not native WebKit or packaged-app acceptance.
 
 | Command | Result |
 | --- | --- |
-| `npm run check:release` / `npm run test:scripts` | Passed: release inputs agree; five rejection/regression tests |
+| `npm run check:release` / `npm run test:scripts` | Passed: release inputs agree; six rejection/regression tests |
 | `npm run check` | Passed: zero errors or warnings |
 | `npm run build` | Passed |
-| `cargo test --manifest-path core/Cargo.toml` | Passed: 54 tests on macOS; examples compile |
+| `cargo test --manifest-path core/Cargo.toml` | Passed: 60 tests on macOS; examples compile |
 | `cargo clippy --manifest-path core/Cargo.toml --all-targets -- -D warnings` | Passed |
 | `cargo check --manifest-path src-tauri/Cargo.toml` | Passed on macOS arm64 |
-| `CHEST_BROWSER_EXECUTABLE='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm test` | Passed: all 63 tests |
+| `CHEST_BROWSER_EXECUTABLE='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm test` | Passed: all 67 tests |
 
 These results establish the automated portion of milestone 1. The current behavior
 contract is [docs/BASELINE.md](docs/BASELINE.md), and the dependency-ordered release gates
@@ -128,3 +128,84 @@ signature verifies against the committed key and a modified artifact is rejected
 Final `npm run verify` passes: 63 browser, 54 Rust and five release-script tests,
 Svelte/build, Clippy and native compilation. Apple distribution signing/notarization
 remain unperformed.
+
+## Launcher usability/features — October 11, 2026
+
+Implemented MIT licensing, Settings/About with project links and dependency notices,
+per-instance accounts/window/arguments/environment/hooks/log behavior, shared content
+category tabs and list/gallery cards, conditional local Worlds/Servers/Screenshots,
+shared ZIP data packs, and installed-release desktop instance shortcuts.
+
+The final `bun run verify` pipeline covers 67 browser tests, 60 core tests on macOS,
+six script tests, two native shortcut tests, release/license consistency, Svelte,
+build, Clippy and native compilation. A subprocess integration test uses a local fake
+Java executable to verify argument boundaries, environment, window options and hooks;
+it does not establish real Minecraft compatibility for custom launch arguments.
+Archive tests verify that commands/environment are not imported. Symlink and overwrite
+checks cover screenshots, world data packs, and macOS shortcut creation.
+
+Native desktop shortcut tests verify macOS bundle creation and argument quoting;
+browser tests verify startup handoff, one launch, and open-log behavior. Actual Finder,
+Windows .lnk and Linux .desktop activation still need packaged-machine acceptance.
+The new feature UI passes automated axe checks; native assistive technology is pending.
+Bun runs the same verification scripts while npm remains the CI/release install baseline.
+
+## Weekend audit — October 11, 2026
+
+Current automated baseline: seven script tests, 60 core Rust tests, two native shortcut tests, and 69 browser tests, plus Svelte/build, license/release checks, Clippy and native compilation. The final browser suite was rerun after news cancellation changes. Production embedded assets were verified in the size-optimized executable.
+
+See the [audit findings, completed tasks and measurements](docs/audits/2026-10-11.md) for scope and limitations.
+
+## Startup continuation — October 12, 2026
+
+Overlapped critical local initialization, deferred optional artwork/network work,
+and split unselected pages out of the startup bundle. Main JS is 35.6% smaller.
+Production-browser fixtures verify that optional requests can remain unresolved
+without blocking library navigation, and newer activity events beat the initial
+snapshot. See the [startup audit and raw measurements](docs/audits/2026-10-12-startup.md) for verification,
+benchmark methodology and native measurement limits.
+
+## Packaged native startup — October 12, 2026
+
+The current release `.app` was rebuilt, locally ad-hoc signed and strictly verified.
+Real native/WebKit measurements: first empty-profile launch 1,016 ms; empty
+relaunches 381/382 ms; 100-instance launches 464/406/410 ms. Native accessibility
+and input verified library search, instance opening and Content navigation. No
+account sign-in or game installation occurred. See the
+[startup report](docs/audits/2026-10-12-startup.md#packaged-macos-follow-up) for
+measurement boundaries and raw timing stages. This supersedes the earlier native
+inspection blocker for this basic interaction scenario, not full acceptance.
+
+
+## Forge-family integration — October 12, 2026
+
+- Added Forge and NeoForge instance types, on-demand version selection, official
+  installer execution, shared profile merging, content compatibility, modpack
+  dependency parsing and loader update notices.
+- `cargo test --manifest-path core/Cargo.toml --lib`: 68 passed, including exact
+  loader compatibility, manifest pinning, classifier preservation, profile
+  identity, shared-client-JAR ignore handling and symlink rejection.
+- `npm run check`: no errors or warnings. `npm run build`: passed.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- Affected browser tests: 21 passed across startup, creation, explore, Forge,
+  Fabric, modpacks and instance news, using installed Chrome.
+- Live disposable installations passed on macOS Apple Silicon: NeoForge
+  21.1.172 / Minecraft 1.21.1 (99 classpath entries), and Forge 47.4.0 /
+  Minecraft 1.20.1 (87 classpath entries).
+- Initial game launches exposed a duplicate Minecraft module caused by the
+  inherited client's filename. Prepared profiles now explicitly ignore Chest's
+  shared vanilla client JAR; a regression test covers that adaptation.
+- NeoForge 21.1.172 / Minecraft 1.21.1 reached texture-atlas creation on macOS
+  Apple Silicon and was automatically stopped by the smoke example.
+- Forge 1.20.1 additionally exposed the upstream JNA macOS assertion crash.
+  The compatibility fix uses Mojang's verified JNA 5.13.0 libraries and updates
+  Forge's module merge arguments; a platform-specific regression test covers it.
+- After the JNA fix, Forge 47.4.0 / Minecraft 1.20.1 also reached texture-atlas
+  creation on macOS Apple Silicon and was automatically stopped. Both final
+  `--launch-smoke` runs passed. These use offline development identities, not
+  authenticated accounts, and do not establish modpack gameplay acceptance.
+- `cargo clippy --manifest-path core/Cargo.toml --lib -- -D warnings`: passed.
+- Windows/Linux packaged tests, authenticated gameplay, live CurseForge API
+  access and restricted-file pack resume remain unverified or pending.
+
+See [loader support](docs/LOADERS.md) for scope and reproducible smoke commands.

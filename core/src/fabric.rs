@@ -1,3 +1,4 @@
+use crate::loaders::{merge, validate_profile};
 use crate::{
     metadata,
     store::{safe_join, valid_segment},
@@ -183,63 +184,6 @@ async fn prepare_loader(
     merge(base, &profile, game, &expected)
 }
 
-fn validate_profile(profile: &Value, game: &str, expected: &str) -> Result<()> {
-    if metadata::text(profile, "inheritsFrom")? != game
-        || metadata::text(profile, "id")? != expected
-    {
-        bail!("loader profile does not match the selected Minecraft and loader versions");
-    }
-    metadata::text(profile, "mainClass")?;
-    Ok(())
-}
-
-fn library_key(lib: &Value) -> Result<String> {
-    let name = metadata::text(lib, "name")?;
-    // A loader library supersedes the same Maven artifact from the base profile.
-    Ok(name.split(':').take(2).collect::<Vec<_>>().join(":"))
-}
-
-fn merge(mut base: Value, profile: &Value, game: &str, expected: &str) -> Result<Value> {
-    validate_profile(profile, game, expected)?;
-    if metadata::text(&base, "id")? != game {
-        bail!("Minecraft metadata does not match the loader profile");
-    }
-    let children = profile["libraries"]
-        .as_array()
-        .context("Missing loader libraries")?;
-    let keys = children
-        .iter()
-        .map(library_key)
-        .collect::<Result<Vec<_>>>()?;
-    let libraries = base["libraries"]
-        .as_array_mut()
-        .context("Missing Minecraft libraries")?;
-    let mut merged = vec![];
-    for library in libraries.iter() {
-        if !keys.contains(&library_key(library)?) {
-            merged.push(library.clone());
-        }
-    }
-    merged.extend(children.iter().cloned());
-    *libraries = merged;
-    for kind in ["game", "jvm"] {
-        let inherited = base["arguments"][kind]
-            .as_array_mut()
-            .context("Missing Minecraft arguments")?;
-        if let Some(extra) = profile["arguments"].get(kind) {
-            inherited.extend(
-                extra
-                    .as_array()
-                    .context("Invalid loader arguments")?
-                    .iter()
-                    .cloned(),
-            );
-        }
-    }
-    base["id"] = profile["id"].clone();
-    base["mainClass"] = profile["mainClass"].clone();
-    Ok(base)
-}
 
 #[cfg(test)]
 mod tests {

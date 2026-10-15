@@ -17,7 +17,7 @@
   }
 </script>
 
-<label>{$t("Memory (MB)")}<input type="number" min="512" max="65536" step="512" bind:value={memory} required {disabled}/></label>
+<label class="runtime-memory">{$t("Memory (MB)")}<input type="number" min="512" max="65536" step="512" bind:value={memory} required {disabled}/></label>
 <div class="runtime-java">
   <label>{$t("Java executable")}<input placeholder={$t("Automatic")} bind:value={javaPath} disabled={disabled || picking}/></label>
   <Button disabled={disabled || !native || picking || checking} onclick={choose}>{$t("Browse")}</Button>

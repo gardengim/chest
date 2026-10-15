@@ -140,23 +140,15 @@ pub async fn install(core: Arc<Core>, id: String, job: Arc<Job>) -> Result<()> {
         "Downloading Minecraft",
     )?];
     if instance.loader != crate::store::Loader::Vanilla {
-        checkpoint(&core, &id, &job, None, "Loading modloader metadata").await?;
-        meta = if instance.loader == crate::store::Loader::Quilt {
-            crate::fabric::prepare_quilt(
-                &core.client,
-                meta,
-                &instance.version,
-                &instance.loader_version,
-            )
-            .await?
-        } else {
-            crate::fabric::prepare(
-                &core.client,
-                meta,
-                &instance.version,
-                &instance.loader_version,
-            )
-            .await?
+        checkpoint(&core, &id, &job, None, "Loading mod loader metadata").await?;
+        meta = match instance.loader {
+            crate::store::Loader::Fabric => crate::fabric::prepare(&core.client, meta, &instance.version, &instance.loader_version).await?,
+            crate::store::Loader::Quilt => crate::fabric::prepare_quilt(&core.client, meta, &instance.version, &instance.loader_version).await?,
+            crate::store::Loader::Forge | crate::store::Loader::Neoforge => {
+                fetch(&core.client, &files[0]).await?;
+                crate::forge::prepare(&core, &instance, &job, meta).await?
+            }
+            crate::store::Loader::Vanilla => unreachable!(),
         };
     }
     let (libs, _, native_archives) = metadata::libraries(&meta, &core.store.root)?;

@@ -14,10 +14,14 @@
     "check:core": "cargo check --manifest-path src-tauri/Cargo.toml",
     "check:release": "node scripts/check-release-version.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "licenses": "node scripts/generate-licenses.mjs",
+    "check:licenses": "node scripts/check-licenses.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",
+    "dompurify": "^3.4.17",
+    "marked": "^18.1.1",
     "svelte": "^5.57.2"
   },
   "devDependencies": {
@@ -28,5 +32,6 @@
     "svelte-check": "^4.3.3",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
-  }
+  },
+  "license": "MIT"
 }

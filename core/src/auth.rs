@@ -235,10 +235,12 @@ pub async fn sign_in(
     Ok(session.account)
 }
 pub async fn refresh(store: &Store, client: &reqwest::Client) -> Result<Session> {
-    let id = store
-        .config()
-        .active_account
-        .context("Sign in with Microsoft before playing")?;
+    refresh_for(store, client, None).await
+}
+pub async fn refresh_for(store: &Store, client: &reqwest::Client, selected: Option<&str>) -> Result<Session> {
+    let config=store.config();
+    let id=selected.map(str::to_owned).or(config.active_account).context("Sign in with Microsoft before launching")?;
+    if !config.accounts.iter().any(|a| a.id==id) { bail!("Selected account is no longer signed in"); }
     let credential: Credential = serde_json::from_str(
         &entry(store, &id)?
             .get_password()

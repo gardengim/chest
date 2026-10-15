@@ -1,45 +1,80 @@
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { api } from './api';
-  let { id, sources, variant='header' }: { id?:string; sources?:string[]; variant?:'header'|'card' } = $props();
-  let images=$state<string[]>([]);
+  import {instanceBackgrounds,backgroundImage,backgroundKey} from './instance-backgrounds';
+  import type {InstanceBackground} from './types';
+  import {presentation,observeVisibility} from './visibility';
+  let { id, sources, fallback, variant='header' }: { fallback?:string;id?:string; sources?:string[]; variant?:'header'|'card' } = $props();
+  let inView=$state(false);
+  function observe(node:HTMLElement){
+    $effect(()=>{
+      if(!id && (sources?.length || 0)<2)return;
+      return observeVisibility(node,visible=>inView=visible);
+    });
+  }
+  let images=$state<InstanceBackground[]>([]);
+  let ready=$state<{image:InstanceBackground;source:string}[]>([]);
+  let failedFallback=$state('');
   let index=$state(0);
+  let loadedId='';
+  let loaded=false;
+  const rendered=$derived(images.filter((_,i)=>i===index || i===(index+images.length-1)%images.length));
   // Compare actual inputs, rather than the identity of a refreshed instance/array.
   const input=$derived(JSON.stringify(sources===undefined?{id:id || ''}:{sources}));
-  function update(next:string[]){
-    const unique=[...new Set(next)];
-    if(unique.length===images.length && unique.every((source,i)=>source===images[i]))return;
+  function update(next:InstanceBackground[]){
+    const unique=[...new Map(next.map(image=>[backgroundKey(image),image])).values()];
+    if(unique.length===images.length && unique.every((image,i)=>backgroundKey(image)===backgroundKey(images[i])))return;
     const current=images[index];
-    images=unique;index=Math.max(0,unique.indexOf(current));
+    images=unique;index=Math.max(0,unique.findIndex(image=>current && backgroundKey(image)===backgroundKey(current)));
   }
+  function remove(image:InstanceBackground){update(images.filter(entry=>backgroundKey(entry)!==backgroundKey(image)));}
+  $effect(()=>{
+    const visible=rendered,instanceId=id || '';
+    let alive=true;
+    // Resolve only the current/previous frames, never an entire screenshot folder.
+    void Promise.all(visible.map(async image=>({image,source:await backgroundImage(instanceId,image)}))).then(frames=>{
+      if(!alive)return;
+      ready=frames.filter((frame):frame is {image:InstanceBackground;source:string}=>!!frame.source);
+      for(const frame of frames)if(!frame.source)remove(frame.image);
+    });
+    return()=>{alive=false;};
+  });
   $effect(()=>{
     const source=JSON.parse(input) as {id?:string;sources?:string[]};
-    if(source.sources!==undefined){untrack(()=>update(source.sources!));return;}
-    images=[];index=0;
+    if(source.sources!==undefined){untrack(()=>update(source.sources!.map(url=>({kind:'provider',url}))));return;}
     if(!source.id)return;
+    if(variant==='card' && !inView)return;
+    // Ignore old artwork when the instance itself changes, but keep nodes on focus/visibility refresh.
     const instanceId=source.id;
+    untrack(()=>{if(loadedId!==instanceId){images=[];index=0;loadedId=instanceId;loaded=false;}});
     let alive=true;
     let request=0;
     async function refresh() {
       const ticket=++request;
       try {
-        const next=await api.screenshots(instanceId) || [];
-        if(alive && ticket===request)update(next);
+        const next=await instanceBackgrounds(instanceId) || [];
+        if(alive && ticket===request){update(next);loaded=true;}
       } catch { /* Keep the current backdrop if a refresh fails. */ }
     }
-    void refresh();
+    if(!loaded)void refresh();
     window.addEventListener('focus',refresh);
     return ()=>{alive=false;window.removeEventListener('focus',refresh);};
   });
   $effect(()=>{
-    if(images.length<2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    if(images.length<2 || !$presentation.visible || !$presentation.motion || !inView)return;
     const timer=setInterval(()=>{index=(index+1)%images.length;},8000);
     return ()=>clearInterval(timer);
   });
 </script>
 
-<div class="instance-backdrop" class:card-backdrop={variant==='card'} aria-hidden="true">
-  {#each images as source (source)}
-    <img src={source} alt="" loading={variant==='card'?'lazy':'eager'} class:visible={images[index]===source} onerror={()=>{images=images.filter(image=>image!==source);index=0;}}/>
+<div use:observe class="instance-backdrop" class:card-backdrop={variant==='card'} aria-hidden="true">
+  {#if !images.length && fallback && fallback!==failedFallback}
+    <img class="visible icon-backdrop" src={fallback} alt="" loading="lazy" onerror={()=>failedFallback=fallback || ''}/>
+  {/if}
+  {#each ready as frame (backgroundKey(frame.image))}
+    <img src={frame.source} alt="" loading={variant==='card'?'lazy':'eager'} class:visible={!!images[index] && backgroundKey(images[index])===backgroundKey(frame.image)} onerror={()=>remove(frame.image)}/>
   {/each}
 </div>
+
+<style>
+  .icon-backdrop{filter:blur(1.14285714rem);transform:scale(1.16);image-rendering:auto}
+</style>
