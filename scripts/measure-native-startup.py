@@ -26,6 +26,19 @@ def ignore_already_removed(_function, _path, error):
     if not isinstance(error[1], FileNotFoundError):
         raise error[1]
 
+def remove_owned_profile(path):
+    # Windows WebView shutdown can briefly outlive its host. Wait only for
+    # sharing/directory teardown races; do not hide access-denied or other errors.
+    deadline = time.monotonic() + 10
+    while True:
+        try:
+            shutil.rmtree(path, onerror=ignore_already_removed)
+            return
+        except OSError as error:
+            if platform.system() != 'Windows' or getattr(error, 'winerror', None) not in (32, 145) or time.monotonic() >= deadline:
+                raise
+            time.sleep(.1)
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--executable', required=True, type=Path)
 parser.add_argument('--instances', type=int, default=0)
@@ -138,4 +151,4 @@ finally:
                 if owned.is_symlink() or owned.resolve().parent != stores.resolve():
                     raise RuntimeError('Refusing to clean an unconfined WebView profile')
                 shutil.rmtree(owned)
-        shutil.rmtree(profile, onerror=ignore_already_removed)
+        remove_owned_profile(profile)
