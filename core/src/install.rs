@@ -47,11 +47,19 @@ impl Drop for PartialFile {
     fn drop(&mut self) { let _ = fs::remove_file(&self.0); }
 }
 const MAX_DOWNLOAD_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+async fn verified_download(file: &Download) -> Result<bool> {
+    let (path,size,expected) = (file.path.clone(),file.size,file.hash.clone());
+    tokio::task::spawn_blocking(move || -> Result<bool> {
+        Ok(path.is_file()
+            && size.is_none_or(|size| fs::metadata(&path).is_ok_and(|metadata| metadata.len() == size))
+            && hash_file(&path,expected.len() == 64)? == expected)
+    }).await?
+}
 pub async fn fetch(client: &reqwest::Client, file: &Download) -> Result<()> {
     if ![40, 64].contains(&file.hash.len()) || !file.hash.chars().all(|c| c.is_ascii_hexdigit()) {
         bail!("Invalid file checksum");
     }
-    if file.path.is_file() && file.size.is_none_or(|size| fs::metadata(&file.path).is_ok_and(|metadata| metadata.len() == size)) && hash_file(&file.path, file.hash.len() == 64)? == file.hash {
+    if verified_download(file).await? {
         return Ok(());
     }
     let limit = file.size.unwrap_or(MAX_DOWNLOAD_BYTES);
@@ -60,7 +68,7 @@ pub async fn fetch(client: &reqwest::Client, file: &Download) -> Result<()> {
     let directory = parent.to_owned();
     let _directory = tokio::task::spawn_blocking(move || crate::download_temp::DownloadDirectory::acquire(&directory)).await??;
     // Recheck after waiting for a writer in another process.
-    if file.path.is_file() && file.size.is_none_or(|size| fs::metadata(&file.path).is_ok_and(|metadata| metadata.len() == size)) && hash_file(&file.path, file.hash.len() == 64)? == file.hash {
+    if verified_download(file).await? {
         return Ok(());
     }
     let temp = crate::download_temp::temporary_path(parent);
