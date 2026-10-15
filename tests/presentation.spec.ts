@@ -145,7 +145,9 @@ test('pending form submissions remain disabled after leaving and returning to th
 
 test('inventory controls align and discovery tabs support the same keyboard navigation',async({page})=>{
   await page.goto('/');
-  const bounds=await page.locator('.home-library [data-tool="add"] button, .home-library .search-field, .home-library .view-switch .ui-button').evaluateAll(nodes=>nodes.map(node=>({top:node.getBoundingClientRect().top,height:node.getBoundingClientRect().height})));
+  const controls=page.locator('.home-library [data-tool="add"] button, .home-library .search-field, .home-library .view-switch .ui-button');
+  await expect(controls).toHaveCount(4);
+  const bounds=await controls.evaluateAll(nodes=>nodes.map(node=>({top:node.getBoundingClientRect().top,height:node.getBoundingClientRect().height})));
   expect(bounds).toHaveLength(4);
   expect(Math.max(...bounds.map(b=>b.top))-Math.min(...bounds.map(b=>b.top))).toBeLessThanOrEqual(1);
   expect(new Set(bounds.map(b=>b.height)).size).toBe(1);

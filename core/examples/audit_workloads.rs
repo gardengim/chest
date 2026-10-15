@@ -1,6 +1,6 @@
 //! Disposable, offline workloads; never opens the normal library or credentials.
-use chest_core::{Core, install::hash_file};
-use std::{fs, io::Write, time::Instant};
+use chest_core::{Core, install::{hash_file,fetch}, metadata::Download};
+use std::{fs, io::{Read,Write}, time::Instant};
 
 fn main() -> anyhow::Result<()> {
     let root = std::env::temp_dir().join(format!("chest-workload-{}", uuid::Uuid::new_v4()));
@@ -31,6 +31,28 @@ fn main() -> anyhow::Result<()> {
     let start = Instant::now();
     let original = hash_file(&source, true)?;
     println!("{}", serde_json::json!({"workload":"sha256","bytes":bytes,"ms":start.elapsed().as_secs_f64()*1000.0}));
+    let listener = std::net::TcpListener::bind("127.0.0.1:0")?;
+    let address = listener.local_addr()?;
+    let served = source.clone();
+    let server = std::thread::spawn(move || -> std::io::Result<()> {
+        let (mut socket,_) = listener.accept()?;
+        let mut request = Vec::new();
+        while !request.ends_with(b"\r\n\r\n") {
+            let mut byte = [0];socket.read_exact(&mut byte)?;request.push(byte[0]);
+            assert!(request.len()<8192);
+        }
+        write!(socket,"HTTP/1.1 200 OK\r\nContent-Length: {bytes}\r\nConnection: close\r\n\r\n")?;
+        std::io::copy(&mut fs::File::open(served)?,&mut socket)?;
+        Ok(())
+    });
+    let destination = root.join("downloaded.bin");
+    let download = Download {url:format!("http://{address}/workload"),path:destination.clone(),size:Some(bytes),hash:original.clone(),phase:"Audit".into()};
+    let start = Instant::now();
+    tokio::runtime::Runtime::new()?.block_on(fetch(&reqwest::Client::new(),&download))?;
+    server.join().unwrap()?;
+    let duration = start.elapsed().as_secs_f64()*1000.0;
+    assert_eq!(hash_file(&destination,true)?,original);
+    println!("{}",serde_json::json!({"workload":"verified-local-download","bytes":bytes,"ms":duration,"verified":true}));
     let start = Instant::now();
     let copy = core.duplicate(&instance.id)?;
     let duration = start.elapsed().as_secs_f64()*1000.0;
