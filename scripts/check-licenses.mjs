@@ -1,9 +1,9 @@
-import {validateLicenses} from './license-bundle.mjs';
+import {sameLicenseText,validateLicenses} from './license-bundle.mjs';
 import {readFileSync} from 'node:fs';
 const notices=JSON.parse(readFileSync('public/licenses.json','utf8'));
 validateLicenses(notices);
 const keys=new Set(notices.notices.map(n=>`${n.ecosystem}:${n.name}:${n.version}`));
-if(notices.chest!==readFileSync('LICENSE','utf8'))throw new Error('Regenerate license notices: npm run licenses');
+if(!sameLicenseText(notices.chest,readFileSync('LICENSE','utf8')))throw new Error('Regenerate license notices: npm run licenses');
 for(const file of ['core/Cargo.lock','src-tauri/Cargo.lock']){
  for(const pkg of readFileSync(file,'utf8').split('[[package]]')){
   if(!/^source = "registry/m.test(pkg))continue;

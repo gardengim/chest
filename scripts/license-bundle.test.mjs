@@ -1,6 +1,11 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {packLicenses,validateLicenses} from './license-bundle.mjs';
+import {packLicenses,sameLicenseText,validateLicenses} from './license-bundle.mjs';
+test('license comparison permits checkout line endings but rejects content changes',()=>{
+  assert.ok(sameLicenseText('Copyright\nMIT\n','Copyright\r\nMIT\r\n'));
+  assert.equal(sameLicenseText('Copyright Alice\nMIT','Copyright Bob\r\nMIT'),false);
+  assert.equal(sameLicenseText('MIT\n','MIT'),false);
+});
 test('license packing preserves every notice exactly while sharing identical text',()=>{
   const original={chest:'MIT',notices:[{name:'a',texts:['Copyright Alice\nMIT','Apache']},{name:'b',texts:['Copyright Bob\nMIT','Apache']},{name:'c',texts:[]}]};
   const packed=packLicenses(original);validateLicenses(packed);
