@@ -1,0 +1,491 @@
+{
+  "auditedCommit": "f25d523c53d8dbce465e238afda50cdd5b78624d",
+  "date": "2026-10-14 America/Los_Angeles",
+  "node": "26.11.1",
+  "rust": "1.95.0",
+  "chrome": "155.0.8059.40",
+  "measurements": {
+    "browser": {
+      "accessibility": [
+        {
+          "mode": "dark",
+          "state": "settings",
+          "violations": []
+        },
+        {
+          "mode": "dark",
+          "state": "language-dropdown",
+          "violations": []
+        },
+        {
+          "mode": "light",
+          "state": "settings",
+          "violations": []
+        },
+        {
+          "mode": "light",
+          "state": "language-dropdown",
+          "violations": []
+        }
+      ],
+      "performance": [
+        {
+          "count": 100,
+          "readyMs": 74.39999997615814,
+          "filterMs": 28.66516700000011,
+          "domNodes": 1794,
+          "heapBytes": 6576216,
+          "idleRendererTaskSeconds": 0.018411999999999998,
+          "idleSeconds": 5,
+          "boundary": "Production Chromium; mocked IPC; no real images, downloads or game processes; heap after forced GC"
+        },
+        {
+          "count": 500,
+          "readyMs": 131.60000002384186,
+          "filterMs": 88.9028330000001,
+          "domNodes": 7614,
+          "heapBytes": 20345444,
+          "idleRendererTaskSeconds": 0.050755999999999996,
+          "idleSeconds": 5,
+          "boundary": "Production Chromium; mocked IPC; no real images, downloads or game processes; heap after forced GC"
+        },
+        {
+          "count": 1000,
+          "readyMs": 196,
+          "filterMs": 185.12924999999814,
+          "domNodes": 15114,
+          "heapBytes": 37776960,
+          "idleRendererTaskSeconds": 0.102654,
+          "idleSeconds": 5,
+          "boundary": "Production Chromium; mocked IPC; no real images, downloads or game processes; heap after forced GC"
+        }
+      ]
+    },
+    "cardAccessibility": [
+      {
+        "mode": "light",
+        "violations": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": [
+              {
+                "target": [
+                  ".svelte-pl0yo4:nth-child(1)"
+                ],
+                "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.44 (foreground color: #535b53, background color: #cccecd, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+              },
+              {
+                "target": [
+                  ".svelte-pl0yo4:nth-child(3)"
+                ],
+                "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.44 (foreground color: #535b53, background color: #cccecd, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+              },
+              {
+                "target": [
+                  ".instance-summary"
+                ],
+                "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.44 (foreground color: #535b53, background color: #cccecd, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+              },
+              {
+                "target": [
+                  ".shared-card-actions > button[data-shape=\"button\"]:nth-child(1)"
+                ],
+                "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.2 (foreground color: #252825, background color: #868984, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+              },
+              {
+                "target": [
+                  "button[data-shape=\"button\"]:nth-child(2)"
+                ],
+                "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.2 (foreground color: #252825, background color: #868984, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "mode": "dark",
+        "violations": []
+      }
+    ],
+    "nativeEmptyStartup": {
+      "instances": 0,
+      "samples": [
+        {
+          "processToLibraryMs": 966.8075409717858,
+          "stages": [
+            {
+              "elapsed_ms": 115.80345799999999,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 206.93425,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 345.50683300000003,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 677.2402079999999,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 498.97700001019984,
+          "stages": [
+            {
+              "elapsed_ms": 102.164083,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 187.982291,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 280.335583,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 487.05575,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 510.79525006935,
+          "stages": [
+            {
+              "elapsed_ms": 89.710334,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 176.839959,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 265.11454200000003,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 503.94070899999997,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 510.79525006935,
+      "boundary": "Parent Popen to native receipt of library-rendered IPC after two animation frames; no Finder/LaunchServices; test-profile isolation enabled"
+    },
+    "native1000Startup": {
+      "instances": 1000,
+      "samples": [
+        {
+          "processToLibraryMs": 873.6477500060573,
+          "stages": [
+            {
+              "elapsed_ms": 97.465125,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 193.56725,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 307.900917,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 866.086417,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 819.103250047192,
+          "stages": [
+            {
+              "elapsed_ms": 105.901375,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 198.921292,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 301.622584,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 801.7565840000001,
+              "stage": "library-rendered"
+            }
+          ]
+        },
+        {
+          "processToLibraryMs": 791.3119170116261,
+          "stages": [
+            {
+              "elapsed_ms": 102.376125,
+              "stage": "setup"
+            },
+            {
+              "elapsed_ms": 189.55891599999998,
+              "stage": "core-ready"
+            },
+            {
+              "elapsed_ms": 291.612416,
+              "stage": "window-built"
+            },
+            {
+              "elapsed_ms": 785.235,
+              "stage": "library-rendered"
+            }
+          ]
+        }
+      ],
+      "medianProcessToLibraryMs": 819.103250047192,
+      "boundary": "Parent Popen to native receipt of library-rendered IPC after two animation frames; no Finder/LaunchServices; test-profile isolation enabled"
+    },
+    "nativeMainProcessIdle": {
+      "seconds": 30.26317708392162,
+      "meanRssMiB": 97.82963709677419,
+      "peakRssMiB": 110.140625,
+      "idleCpuPercent": 0.29739111577883753,
+      "samples": [
+        {
+          "rssKiB": 112752,
+          "cpuSeconds": 0.32,
+          "reportedCpuPercent": 0.1
+        },
+        {
+          "rssKiB": 112784,
+          "cpuSeconds": 0.33,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 112784,
+          "cpuSeconds": 0.33,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 112560,
+          "cpuSeconds": 0.33,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102064,
+          "cpuSeconds": 0.34,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102352,
+          "cpuSeconds": 0.36,
+          "reportedCpuPercent": 2.2
+        },
+        {
+          "rssKiB": 102368,
+          "cpuSeconds": 0.37,
+          "reportedCpuPercent": 1.4
+        },
+        {
+          "rssKiB": 102384,
+          "cpuSeconds": 0.38,
+          "reportedCpuPercent": 1.5
+        },
+        {
+          "rssKiB": 102784,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 1.4
+        },
+        {
+          "rssKiB": 102768,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102768,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102768,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102768,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102560,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102496,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102464,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102464,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102464,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102544,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 102544,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 101600,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 100896,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 100896,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 100896,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 100896,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 92784,
+          "cpuSeconds": 0.4,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 85264,
+          "cpuSeconds": 0.41,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 82736,
+          "cpuSeconds": 0.41,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 82704,
+          "cpuSeconds": 0.41,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 82704,
+          "cpuSeconds": 0.41,
+          "reportedCpuPercent": 0.0
+        },
+        {
+          "rssKiB": 82688,
+          "cpuSeconds": 0.41,
+          "reportedCpuPercent": 0.0
+        }
+      ],
+      "boundary": "Main release executable only; excludes WebKit XPC/GPU/network processes and game JVM. Fresh empty profile; no manual interaction. Short idle sample, not soak."
+    },
+    "size": {
+      "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+      "frontendBytes": 2029794,
+      "releaseExecutableBytes": 12410288,
+      "largestFrontendFiles": [
+        {
+          "path": "dist/licenses.json",
+          "bytes": 1295820,
+          "gzipBytes": 121483
+        },
+        {
+          "path": "dist/assets/index-C2NZqxdq.js",
+          "bytes": 200224,
+          "gzipBytes": 69382
+        },
+        {
+          "path": "dist/assets/rich-description-gp-3_lvn.js",
+          "bytes": 78545,
+          "gzipBytes": 25749
+        },
+        {
+          "path": "dist/assets/index-BoyzglHY.css",
+          "bytes": 69106,
+          "gzipBytes": 12862
+        },
+        {
+          "path": "dist/assets/About-D6COAYH0.js",
+          "bytes": 62532,
+          "gzipBytes": 19787
+        },
+        {
+          "path": "dist/assets/ja-DQ1-EtgN.js",
+          "bytes": 32713,
+          "gzipBytes": 11100
+        },
+        {
+          "path": "dist/assets/InstancePage-BZqWWoPA.js",
+          "bytes": 31462,
+          "gzipBytes": 10885
+        },
+        {
+          "path": "dist/assets/ko-CYQr8Uxb.js",
+          "bytes": 29723,
+          "gzipBytes": 10664
+        },
+        {
+          "path": "dist/assets/es-DlhNvBTR.js",
+          "bytes": 28634,
+          "gzipBytes": 10341
+        },
+        {
+          "path": "dist/assets/zh-Hant-BREQ4xwe.js",
+          "bytes": 27033,
+          "gzipBytes": 10601
+        },
+        {
+          "path": "dist/assets/zh-Hans-DLRzrl-J.js",
+          "bytes": 26971,
+          "gzipBytes": 10562
+        },
+        {
+          "path": "dist/assets/Explore-MInVEXXD.js",
+          "bytes": 23137,
+          "gzipBytes": 8424
+        }
+      ],
+      "sourceCounts": {
+        "svelteComponents": 56,
+        "typescriptModules": 30
+      },
+      "note": "Fresh local unsigned macOS arm64 .app bundle; no updater artifacts. Signed installer, other platforms, and game data excluded.",
+      "unsignedMacAppLogicalBytes": 12708018,
+      "unsignedMacAppExecutableSha256": "9887f42613cf5de61c62659a158d8dc7e8f3360469e2e298e03abd19e6572da6"
+    }
+  },
+  "coreScanText": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s\n     Running `core/target/debug/examples/measure_library`\n100 instances: core startup 120.36 ms; missing-icon scan median 0.35 ms\n500 instances: core startup 76.26 ms; missing-icon scan median 1.64 ms\n1000 instances: core startup 77.15 ms; missing-icon scan median 3.37 ms\n"
+}
