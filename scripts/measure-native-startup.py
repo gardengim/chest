@@ -20,6 +20,12 @@ import platform
 import shutil
 import statistics
 
+def ignore_already_removed(_function, _path, error):
+    # WebView may remove its own lockfiles during profile teardown. Ignore only
+    # an already-removed entry; permissions and other cleanup failures still fail.
+    if not isinstance(error[1], FileNotFoundError):
+        raise error[1]
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--executable', required=True, type=Path)
 parser.add_argument('--instances', type=int, default=0)
@@ -132,4 +138,4 @@ finally:
                 if owned.is_symlink() or owned.resolve().parent != stores.resolve():
                     raise RuntimeError('Refusing to clean an unconfined WebView profile')
                 shutil.rmtree(owned)
-        shutil.rmtree(profile)
+        shutil.rmtree(profile, onerror=ignore_already_removed)

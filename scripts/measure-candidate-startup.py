@@ -61,7 +61,7 @@ with tempfile.TemporaryDirectory(prefix='chest-candidate-startup-') as directory
                        '--instances', str(count), '--samples', '3',
                        '--output', str(args.output / f'native-{count}.json')]
             if platform.system() == 'Linux':
-                command = ['xvfb-run', '-a', *command]
+                command = ['xvfb-run', '-a', 'dbus-run-session', '--', *command]
             subprocess.run(command, check=True)
         (args.output / 'identity.json').write_text(json.dumps({
             'candidateCommit': inventory['commit'], 'platform': platform.platform(),
