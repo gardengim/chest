@@ -1,3 +1,4 @@
+import {settleFiniteAnimations} from './animation-helpers';
 import {test,expect,type Page} from '@playwright/test';
 import {readFile} from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
@@ -24,7 +25,7 @@ async function effects(page:Page){return page.evaluate(()=>{
   return Object.fromEntries(['--pixel','--stroke','--frame','--edge','--bevel-highlight','--bevel-shadow','--bevel-raised','--shadow-overlay','--card-min','--card-gap'].map(key=>[key,css.getPropertyValue(key)]));
 });}
 async function settlePalette(page:Page){
-  await page.evaluate(()=>Promise.all(document.getAnimations().filter(animation=>animation.effect?.getTiming().iterations!==Infinity).map(animation=>animation.finished.catch(()=>{}))));
+  await settleFiniteAnimations(page);
 }
 
 test('mode radios and scheme dropdown are independent, persist and export both palettes without a preference',async({page})=>{

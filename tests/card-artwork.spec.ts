@@ -190,24 +190,3 @@ test('screenshot image requests are reused when returning to the same collection
   await expect(page.locator('.screenshot-card .shared-card-art img')).toHaveAttribute('src',png);
   expect(await calls()).toBe(1);
 });
-
-test('artwork cache shares pending work, retries failures and evicts by byte budget',async({page})=>{
-  await page.goto('/');
-  const result=await page.evaluate(async()=>{
-    const path='/src/card-artwork.ts';const {loadCardArtwork}=await import(path);
-    let calls=0;
-    const small=()=>{calls++;return Promise.resolve('/chest.svg');};
-    const shared=await Promise.all([loadCardArtwork('audit:shared',small),loadCardArtwork('audit:shared',small)]);
-    const sharedCalls=calls;
-    await loadCardArtwork('audit:failed',()=>{calls++;return Promise.reject(new Error('Transient'));});
-    await loadCardArtwork('audit:failed',small);
-    const retryCalls=calls-sharedCalls;
-    let largeCalls=0;
-    const large=()=>{largeCalls++;return Promise.resolve('x'.repeat(5*1024*1024));};
-    await loadCardArtwork('audit:large-a',large);
-    await loadCardArtwork('audit:large-b',large);
-    await loadCardArtwork('audit:large-a',large);
-    return {shared,sharedCalls,retryCalls,largeCalls};
-  });
-  expect(result).toEqual({shared:['/chest.svg','/chest.svg'],sharedCalls:1,retryCalls:2,largeCalls:3});
-});

@@ -5,7 +5,7 @@ test('project dialogs share overlay colors, restore focus, and clean up; missing
   await page.route('**/broken-art.png', route => route.abort());
   await page.addInitScript(() => {
     const w=window as any;w.isTauri=true;
-    const broken='http://127.0.0.1:1420/broken-art.png';
+    const broken=`${location.origin}/broken-art.png`;
     w.__icons={world:broken};
     const callbacks=new Map<number,Function>();const listeners=new Map<string,number>();let n=0;
     w.__emit=(payload:any)=>callbacks.get(listeners.get('activity')!)?.({event:'activity',payload});

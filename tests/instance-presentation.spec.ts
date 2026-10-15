@@ -38,7 +38,7 @@ test('activity colors follow tabs and groups; console selects text and settings 
   const smallIssue=group.locator('[data-member-id="crashed"]');
   expect(await smallRunning.evaluate(n=>getComputedStyle(n,'::before').content)).toBe('none');
   expect(await smallIssue.evaluate(n=>getComputedStyle(n,'::before').content)).toBe('none');
-  expect(await smallRunning.locator('.artwork').evaluate(n=>getComputedStyle(n).filter)).toBe('none');
+  await expect(smallRunning.locator('.artwork')).toHaveCSS('filter','none');
   expect(await group.evaluate(n=>getComputedStyle(n,'::after').animationName)).toBe('none');
   await page.emulateMedia({reducedMotion:'no-preference'});
   expect(await group.evaluate(n=>getComputedStyle(n,'::after').animationName)).toBe('status-background-pulse');
@@ -70,7 +70,7 @@ test('activity colors follow tabs and groups; console selects text and settings 
   await page.mouse.move(600,150);
   // Grouped members keep their own shallow bevel, including on hover.
   for(const button of [running,crashed]) {
-    expect(await button.locator('.artwork').evaluate(n=>getComputedStyle(n).filter)).toBe('none');
+    await expect(button.locator('.artwork')).toHaveCSS('filter','none');
     expect(await button.evaluate(n=>getComputedStyle(n,'::after').boxShadow)).toContain('rgba(255, 255, 255, 0.25)');
     const frame=await button.evaluate(n=>getComputedStyle(n,'::before').clipPath);
     await button.hover();

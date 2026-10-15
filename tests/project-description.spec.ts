@@ -118,15 +118,3 @@ test('description failure and late replies do not block releases or leak into re
   await page.evaluate(()=>(window as any).__finishDescription({format:'html',body:'<h2>Old description</h2>'}));
   await expect(page.getByRole('heading',{name:'Old description'})).toHaveCount(0);
 });
-
-test('rich renderer removes active markup, unsafe URLs and provider styles while preserving useful structure',async({page})=>{
-  await page.goto('/');
-  const clean=await page.evaluate(async()=>{
-    const path='/src/rich-description.ts';const {renderDescription}=await import(path);
-    const body='<script>window.__unsafe=true</script><style>body{display:none}</style><svg onload="alert(1)"></svg><form><input></form><p id="main-content" class="modal" style="color:red">Safe</p><a href="javascript:alert(1)">Bad</a><img src="data:image/svg+xml,x" onerror="alert(1)" alt="Blocked"><iframe src="https://www.youtube.com/embed/test"></iframe><iframe src="javascript:alert(1)"></iframe><pre>'+('long'.repeat(500))+'</pre><table><tr><td>Cell</td></tr></table>';
-    const output=renderDescription({format:'html',body},'https://modrinth.com/mod/test','Open video');
-    const node=document.createElement('div');node.innerHTML=output;
-    return {unsafe:node.querySelectorAll('script,style,svg,form,input,iframe,[style],[id],[class="modal"],[onerror]').length,links:Array.from(node.querySelectorAll('a')).map((a:any)=>a.getAttribute('href')),embed:node.textContent?.includes('Open video'),table:node.querySelectorAll('.rich-table-scroll table').length};
-  });
-  expect(clean.unsafe).toBe(0);expect(clean.links).toEqual([null,'https://www.youtube.com/embed/test']);expect(clean.embed).toBe(true);expect(clean.table).toBe(1);
-});

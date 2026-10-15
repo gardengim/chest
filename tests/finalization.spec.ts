@@ -1,3 +1,4 @@
+import {settleFiniteAnimations} from './animation-helpers';
 import {test,expect,type Page} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
@@ -73,7 +74,7 @@ for(const mode of ['light','dark'])test(`image-free world page has accessible co
   await page.locator('.instance-card').first().click();
   await page.getByRole('tab',{name:'Worlds',exact:true}).click();
   await expect(page.getByRole('button',{name:'Play',exact:true})).toBeEnabled();
-  await page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
+  await settleFiniteAnimations(page);
   const result=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
   expect(result.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.failureSummary)}))).toEqual([]);
 });

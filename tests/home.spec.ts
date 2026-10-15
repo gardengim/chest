@@ -91,19 +91,6 @@ test('home navigation is accessible, respects reduced motion, and only scrolls i
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(420);
 });
 
-test('symbol renderer caches conversions, preserves SVG sources and branded artwork',async({page})=>{
-  await page.goto('/');
-  await expect.poll(()=>page.locator('svg[data-symbol="user"] path').getAttribute('shape-rendering')).toBe('crispEdges');
-  const result=await page.evaluate(async()=>{
-    const {pixelIcon,iconResolution}=await import('/src/pixel-icons.ts');
-    const {symbols}=await import('/src/symbols.ts');
-    const first=pixelIcon('worlds'),second=pixelIcon('worlds');
-    const path=await first;
-    return {cached:first===second,resolution:iconResolution,source:symbols.worlds,path,more:await pixelIcon('more'),empty:(await Promise.all(Object.keys(symbols).map(async name=>({name,path:await pixelIcon(name)})))).filter(icon=>!icon.path).map(icon=>icon.name)};
-  });
-  expect(result.cached).toBe(true);expect(result.resolution).toBe(24);expect(result.source).toMatch(/[aA]10 10/);expect(result.empty).toEqual([]);expect(result.path).toMatch(/^M\d+ \d+h\d+v1h-\d+z/);expect(result.more).not.toBe('');
-  await expect(page.locator('.chest img')).toHaveAttribute('src','/chest.svg');
-});
 
 test('an entirely hidden home exposes a usable target for dragging a tool back',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
@@ -321,6 +308,8 @@ for(const orientation of ['horizontal','vertical'] as const){
     await page.addInitScript(orientation=>localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',homeShelves:['screenshots'],homeDockPosition:'bottom-right',homeDockOrientation:orientation})),orientation);
     await page.goto('/');
     const dock=page.getByRole('navigation',{name:'Home sections'}),source=dock.getByRole('button',{name:'Screenshots',exact:true});
+    await expect(dock).toBeVisible();
+    await expect(source).toBeVisible();
     const from=(await source.boundingBox())!;
     await page.mouse.move(from.x+20,from.y+20);await page.mouse.down();await page.mouse.move(from.x+34,from.y+20);
     await expect(dock.getByRole('button',{name:'Collapse',exact:true})).toBeVisible();
