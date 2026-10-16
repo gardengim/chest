@@ -9,5 +9,27 @@
 *{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:clamp(1rem,5vw,4rem);background:var(--back);color:var(--text)}main{width:min(100%,32rem);padding:clamp(1.5rem,5vw,3rem);border:.125rem solid var(--edge);background:var(--surface);box-shadow:inset .125rem .125rem #fff5,inset -.125rem -.125rem #0005,.4rem .4rem #0003}h1{margin:0 0 1rem;font-size:1.75rem}p{margin:0}
 </style>
 <main><h1>Chest</h1><p>You can return to Chest and close this tab.</p></main>
-<script>setTimeout(() => window.close(), 1500);</script>
+<script>
+const messages={
+ en:['Return to Chest','You can return to Chest and close this tab.'],
+ ko:['Chest로 돌아가기','Chest로 돌아가서 이 탭을 닫아도 됩니다.'],
+ es:['Volver a Chest','Puedes volver a Chest y cerrar esta pestaña.'],
+ ja:['Chestに戻る','Chestに戻って、このタブを閉じてください。'],
+ 'zh-Hans':['返回 Chest','你可以返回 Chest 并关闭此标签页。'],
+ 'zh-Hant':['返回 Chest','你可以返回 Chest 並關閉此分頁。'],
+ ar:['العودة إلى Chest','يمكنك العودة إلى Chest وإغلاق علامة التبويب هذه.']
+};
+const languages=navigator.languages?.length?navigator.languages:[navigator.language];
+let language='en';
+for(const preference of languages){
+ const parts=preference.toLowerCase().replaceAll('_','-').split('-');
+ const code=parts[0]==='zh'?(parts.includes('hant')?'zh-Hant':parts.includes('hans')?'zh-Hans':parts.some(part=>['tw','hk','mo'].includes(part))?'zh-Hant':'zh-Hans'):parts[0];
+ if(Object.hasOwn(messages,code)){language=code;break;}
+}
+document.documentElement.lang=language;
+document.documentElement.dir=language==='ar'?'rtl':'ltr';
+document.title=messages[language][0];
+document.querySelector('main p').textContent=messages[language][1];
+setTimeout(() => window.close(), 1500);
+</script>
 </html>

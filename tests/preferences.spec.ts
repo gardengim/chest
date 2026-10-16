@@ -4,7 +4,7 @@ test('Korean preferences persist, translate navigation, and keep instance data u
   await page.goto('/');await page.evaluate(()=>{localStorage.clear();localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({theme:'light',locale:'en'}));});await page.reload();
   await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
-  await expect(page.getByLabel('Theme',{exact:true})).toHaveCount(0);
+  await expect(page.getByRole('combobox',{name:'Theme',exact:true})).toHaveCount(1);
   expect(await page.locator('html').evaluate(node=>getComputedStyle(node).colorScheme)).toBe('dark');
   await page.getByLabel('Language',{exact:true}).selectOption('ko');
     await page.locator('.settings-actions button[type=submit]').click();

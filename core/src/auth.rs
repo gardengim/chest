@@ -18,8 +18,9 @@ use tokio::{
 use uuid::Uuid;
 fn callback_response() -> String {
     let message = include_str!("auth-callback.html");
+    let script = message.split_once("<script>").and_then(|(_, rest)| rest.split_once("</script>")).map_or("", |(script, _)| script);
     format!("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-{}'; base-uri 'none'; frame-ancestors 'none'\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{message}",
-        base64::engine::general_purpose::STANDARD.encode(Sha256::digest(b"setTimeout(() => window.close(), 1500);")), message.len())
+        base64::engine::general_purpose::STANDARD.encode(Sha256::digest(script.as_bytes())), message.len())
 }
 const TOKEN: &str = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
 const SCOPE: &str = "XboxLive.signin offline_access";

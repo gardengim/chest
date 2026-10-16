@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
@@ -58,4 +59,19 @@ test('known installation progress is localized while unknown diagnostics are pre
 test('Arabic locale detection and writing direction are explicit',()=>{
   assert.equal(resolveLocale('ar-SA'),'ar');assert.equal(detectLocale(['ar-EG','en']),'ar');
   for(const language of Object.keys(languages))assert.equal(localeDirection(language),language==='ar'?'rtl':'ltr');
+});
+
+test('sign-in return page localizes browser preferences, Chinese scripts and Arabic direction',async()=>{
+  const html=await readFile(new URL('core/src/auth-callback.html',root),'utf8');
+  const script=html.split('<script>')[1].split('</script>')[0];
+  const cases=[...Object.keys(languages).map(code=>[[code],code]),[['fr-FR','ko-KR'],'ko'],[['zh-Hant-CN'],'zh-Hant'],[['zh-Hans-TW'],'zh-Hans'],[['zh-HK'],'zh-Hant'],[['fr-FR'],'en']];
+  for(const [preferences,expected] of cases){
+    const paragraph={textContent:''},document={documentElement:{},title:'',querySelector:()=>paragraph};
+    runInNewContext(script,{navigator:{languages:preferences,language:preferences[0]},document,setTimeout:()=>{}});
+    assert.equal(document.documentElement.lang,expected);
+    assert.equal(document.documentElement.dir,localeDirection(expected));
+    assert.ok(document.title.includes('Chest'));
+    assert.ok(paragraph.textContent.includes('Chest'));
+    if(expected!=='en')assert.ok(!paragraph.textContent.startsWith('You can return'));
+  }
 });

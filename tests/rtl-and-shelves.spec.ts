@@ -66,7 +66,7 @@ test('Arabic mirrors the rail, dropdowns, tabs and horizontal scrollbar without 
   await expect(bar).toHaveAttribute('aria-valuenow','0');
   const bounds=(await bar.boundingBox())!,thumb=(await bar.locator('.thumb').boundingBox())!;
   expect(Math.abs(thumb.x+thumb.width-bounds.x-bounds.width)).toBeLessThan(2);
-  await shelf.getByRole('button',{name:'النسخ التالية',exact:true}).click();
+  await shelf.getByRole('button',{name:'التالي: النسخ',exact:true}).click();
   await expect.poll(()=>body.evaluate(node=>node.scrollLeft)).toBeLessThan(0);
   await bar.focus();await page.keyboard.press('End');
   await expect.poll(()=>body.evaluate(node=>Math.abs(-node.scrollLeft+node.clientWidth-node.scrollWidth))).toBeLessThan(2);
