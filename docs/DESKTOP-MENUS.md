@@ -13,14 +13,13 @@ open. Settings and About use the existing settings tabs; updates use the existin
 updater dialog and updater state. Report an Issue uses the existing project-link
 handler. Native failures emit `desktop-menu-error` and use the app error display.
 
-The Developer menu exists only with `debug_assertions`:
+The Develop menu is hidden by default. Enable Develop settings in Settings → Settings; Save persists the choice, while Discard restores it:
 
 - Toggle Web Inspector: Command–Option–I on macOS, Control–Shift–I elsewhere.
 - Reload UI: Command/Control–R. This reloads the WebView, including unsaved UI state.
 - Open Data Folder: uses the active profile's existing folder handler.
 
-The WebView explicitly enables devtools only in development builds. No devtools
-Cargo feature or production inspector command is added.
+The WebView and Tauri devtools feature support the opt-in inspector in optimized builds too. Turning Develop settings off closes an open inspector. Offline authentication remains restricted to debug builds.
 
 Window commands use Tauri's window methods because several predefined native
 menu items are unsupported on Linux or Windows. Edit uses native Cut, Copy,
@@ -35,5 +34,5 @@ previews and Discard. Menu actions and keyboard shortcuts retain their stable ID
 Verify native menus on each OS before release: editing in a focused text field,
 new-instance draft protection, Settings/About/update navigation, zoom reset,
 fullscreen, minimize/maximize/close, and developer inspector toggling. Confirm the
-Developer menu is absent in release builds. Browser integration tests cover the
+Develop menu is absent by default and follows the saved switch in release builds. Browser integration tests cover the
 frontend event handling; they do not exercise native OS menu interaction.

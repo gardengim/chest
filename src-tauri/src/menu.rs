@@ -1,10 +1,11 @@
-//! Native menus share one action path across desktop platforms. Inspector and
-//! reload actions are compiled only into development builds.
+//! Native menus share one action path across desktop platforms. Develop
+//! tools are exposed only after the user opts into Develop settings.
 use tauri::{menu::{Menu, MenuBuilder, MenuItem, SubmenuBuilder}, App, AppHandle, Emitter, Manager, Wry};
 use std::{collections::HashMap,sync::Mutex};
 
 struct Zoom(Mutex<f64>);
 struct Labels(Mutex<HashMap<String,String>>);
+struct Develop(Mutex<bool>);
 
 pub fn label(app:&AppHandle,key:&str)->String {
     app.try_state::<Labels>().and_then(|labels|labels.0.lock().ok()?.get(key).cloned()).unwrap_or_else(||key.to_string())
@@ -14,7 +15,7 @@ fn item(app: &AppHandle, id: &str, label: &str, shortcut: Option<&str>) -> tauri
     MenuItem::with_id(app, id, label, true, shortcut)
 }
 
-fn build(app: &AppHandle, labels: &HashMap<String,String>) -> tauri::Result<Menu<Wry>> {
+fn build(app: &AppHandle, labels: &HashMap<String,String>, develop: bool) -> tauri::Result<Menu<Wry>> {
     let tr = |key: &str| labels.get(key).cloned().unwrap_or_else(||key.to_string());
     let settings = item(app, "settings", &tr("Settings…"), Some("CmdOrCtrl+Comma"))?;
     let updates = item(app, "updates", &tr("Check for updates…"), None)?;
@@ -60,14 +61,13 @@ fn build(app: &AppHandle, labels: &HashMap<String,String>) -> tauri::Result<Menu
     #[cfg(not(target_os = "macos"))]
     let help = help.separator().item(&updates).item(&about);
     let menu = menu.item(&file.build()?).item(&edit).item(&view).item(&window.build()?);
-    #[cfg(debug_assertions)]
-    let menu = {
+    let menu = if develop {
         let inspector = if cfg!(target_os = "macos") { "Super+Alt+I" } else { "Ctrl+Shift+I" };
-        menu.item(&SubmenuBuilder::new(app, tr("Developer"))
+        menu.item(&SubmenuBuilder::new(app, tr("Develop"))
             .item(&item(app, "inspector", &tr("Toggle Web Inspector"), Some(inspector))?)
             .item(&item(app, "reload-ui", &tr("Reload UI"), Some("CmdOrCtrl+R"))?)
             .separator().item(&item(app, "data-folder", &tr("Open data folder"), None)?).build()?)
-    };
+    } else { menu };
     menu.item(&help.build()?).build()
 }
 
@@ -91,21 +91,19 @@ fn handle(app: &AppHandle, id: &str) -> tauri::Result<()> {
         "undo" => window.eval("document.execCommand('undo')")?,
         #[cfg(not(target_os = "macos"))]
         "redo" => window.eval("document.execCommand('redo')")?,
-        #[cfg(debug_assertions)]
-        "inspector" => { if window.is_devtools_open() { window.close_devtools(); } else { window.open_devtools(); } }
-        #[cfg(debug_assertions)]
-        "reload-ui" => window.reload()?,
-        #[cfg(debug_assertions)]
-        "data-folder" => window.emit("desktop-menu", id)?,
+        "inspector" if *app.state::<Develop>().0.lock().unwrap_or_else(|e|e.into_inner()) => { if window.is_devtools_open() { window.close_devtools(); } else { window.open_devtools(); } }
+        "reload-ui" if *app.state::<Develop>().0.lock().unwrap_or_else(|e|e.into_inner()) => window.reload()?,
+        "data-folder" if *app.state::<Develop>().0.lock().unwrap_or_else(|e|e.into_inner()) => window.emit("desktop-menu", id)?,
         _ => {}
     }
     Ok(())
 }
 
 pub fn install(app: &mut App) -> tauri::Result<()> {
+    app.manage(Develop(Mutex::new(false)));
     app.manage(Zoom(Mutex::new(1.0)));
     app.manage(Labels(Mutex::new(HashMap::new())));
-    app.set_menu(build(app.handle(), &HashMap::new())?)?;
+    app.set_menu(build(app.handle(), &HashMap::new(), false)?)?;
     app.on_menu_event(|app, event| {
         if let Err(error) = handle(app, event.id().as_ref()) {
             let _ = app.emit_to("main", "desktop-menu-error", error.to_string());
@@ -115,9 +113,11 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-pub fn set_menu_labels(app:AppHandle,labels:HashMap<String,String>)->Result<(),String>{
+pub fn set_menu_labels(app:AppHandle,labels:HashMap<String,String>,develop:bool)->Result<(),String>{
     if labels.len()>100 || labels.values().any(|text|text.len()>1024){return Err("Invalid menu labels".into());}
-    app.set_menu(build(&app,&labels).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+    app.set_menu(build(&app,&labels,develop).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+    *app.state::<Develop>().0.lock().map_err(|e|e.to_string())?=develop;
+    if !develop { if let Some(window)=app.get_webview_window("main") { window.close_devtools(); } }
     *app.state::<Labels>().0.lock().map_err(|e|e.to_string())?=labels;
     Ok(())
 }

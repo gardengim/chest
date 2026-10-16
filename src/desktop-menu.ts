@@ -13,7 +13,7 @@ export async function subscribeDesktopMenu(onaction:(action:DesktopMenuAction)=>
   }catch(error){actions();throw error;}
 }
 
-export const desktopMenuLabels=['Settings…','Check for updates…','About Chest','Quit Chest','File','New instance…','Edit','Undo','Redo','Cut','Copy','Paste','Select all','View','Home','Instances','Servers','Worlds','News','Screenshots','Explore','Zoom in','Zoom out','Actual size','Toggle full screen','Window','Minimize','Maximize / Restore','Close window','Help','Report an issue…','Developer','Toggle Web Inspector','Reload UI','Open data folder','Services','Hide Chest','Hide others','Show all','Bring all to front','World backup','Color scheme','Content','Chest archive'] as const;
-export async function translateDesktopMenu(translate:(key:string)=>string){
-  if(native)await invoke('set_menu_labels',{labels:Object.fromEntries(desktopMenuLabels.map(key=>[key,translate(key)]))});
+export const desktopMenuLabels=['Settings…','Check for updates…','About Chest','Quit Chest','File','New instance…','Edit','Undo','Redo','Cut','Copy','Paste','Select all','View','Home','Instances','Servers','Worlds','News','Screenshots','Explore','Zoom in','Zoom out','Actual size','Toggle full screen','Window','Minimize','Maximize / Restore','Close window','Help','Report an issue…','Develop','Toggle Web Inspector','Reload UI','Open data folder','Services','Hide Chest','Hide others','Show all','Bring all to front','World backup','Theme','Content','Chest archive'] as const;
+export async function translateDesktopMenu(translate:(key:string)=>string,develop=false){
+  if(native)await invoke('set_menu_labels',{develop,labels:Object.fromEntries(desktopMenuLabels.map(key=>[key,translate(key)]))});
 }

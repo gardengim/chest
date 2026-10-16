@@ -10,11 +10,11 @@
   import AppUpdater from './AppUpdater.svelte';
   import {appUpdate,initializeUpdater,checkForUpdates} from './app-updater';
   import {subscribeDesktopMenu,translateDesktopMenu,type DesktopMenuAction} from './desktop-menu';
-  import {locale,autoUpdateChecks,reduceMotion,defaultInstanceLocation} from './preferences';
+  import {developSettings,locale,autoUpdateChecks,reduceMotion,defaultInstanceLocation} from './preferences';
   import {currentScheme,appearanceMode} from './themes';
   import {readSettings,beginSettingsEdit,commitSettingsEdit,discardSettingsEdit,restoreDefaultSettings,type SettingsValues} from './settings-edit';
   let appUpdateDialog=$state(false);
-  $effect(()=>{const translate=$t;if(native)void translateDesktopMenu(translate).catch(()=>{});});
+  $effect(()=>{const translate=$t;if(native)void translateDesktopMenu(translate,$developSettings).catch(()=>{});});
   import { t } from './i18n';
   import {activityText} from './activity-text';
   import Button from './Button.svelte';
@@ -65,7 +65,7 @@
   let exitBlocked=$state(false);
   let exitConfirmation=$state<ExitAction|null>(null);
   const settingsValues=$derived<SettingsValues>({memory:settingsDraft.memory,javaPath:settingsDraft.javaPath,locale:$locale,
-    autoUpdateChecks:$autoUpdateChecks,doubleClickLaunch:$doubleClickLaunch,reduceMotion:$reduceMotion,
+    developSettings:$developSettings,autoUpdateChecks:$autoUpdateChecks,doubleClickLaunch:$doubleClickLaunch,reduceMotion:$reduceMotion,
     defaultInstanceLocation:$defaultInstanceLocation,scheme:$currentScheme,mode:$appearanceMode});
   const settingsDirty=$derived(!!settingsBaseline && JSON.stringify(settingsValues)!==JSON.stringify(settingsBaseline));
   function beginSettingsSession(){

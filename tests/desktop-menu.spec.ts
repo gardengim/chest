@@ -7,7 +7,7 @@ async function fixture(page:Page){
     w.__menuEvent=(action:string,event='desktop-menu')=>callbacks.get(listeners.get(event)!)?.({event,payload:action});
     w.__TAURI_INTERNALS__={transformCallback:(fn:Function)=>{callbacks.set(++sequence,fn);return sequence;},invoke:async(name:string,args:any)=>{
       w.__menuCalls.push(name);
-      if(name==='set_menu_labels'){w.__menuLabels=args.labels;return;}
+      if(name==='set_menu_labels'){w.__menuLabels=args.labels;w.__menuDevelop=args.develop;return;}
       if(name==='plugin:event|listen'){listeners.set(args.event,args.handler);return ++sequence;}
       if(name==='get_config')return {instances:[],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
       if(name==='get_debug_launch')return {available:false,enabled:false};
@@ -65,4 +65,16 @@ test('native menu labels follow language previews and revert on Discard',async({
   await expect.poll(()=>page.evaluate(()=>(window as any).__menuLabels?.['File'])).toBe('檔案');
   await page.locator('.settings-actions button').nth(1).click();
   await expect.poll(()=>page.evaluate(()=>(window as any).__menuLabels?.['Settings…'])).toBe('Settings…');
+});
+
+test('Develop settings previews the menu and tab and Discard restores the saved preference',async({page})=>{
+  await fixture(page);await menu(page,'settings');
+  await expect(page.getByRole('tab',{name:'Develop',exact:true})).toHaveCount(0);
+  await page.getByRole('switch',{name:'Develop settings',exact:true}).check();
+  await expect(page.getByRole('tab',{name:'Develop',exact:true})).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>(window as any).__menuDevelop)).toBe(true);
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-ui-preferences-v1')||'{}').developSettings)).toBeUndefined();
+  await page.locator('.settings-actions').getByRole('button',{name:'Discard',exact:true}).click();
+  await expect(page.getByRole('tab',{name:'Develop',exact:true})).toHaveCount(0);
+  await expect.poll(()=>page.evaluate(()=>(window as any).__menuDevelop)).toBe(false);
 });

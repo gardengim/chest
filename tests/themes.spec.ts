@@ -18,7 +18,7 @@ async function settings(page:Page){
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
 }
 async function importScheme(page:Page,scheme:unknown,name='scheme.json'){
-  await page.getByLabel('Import color scheme file').setInputFiles({name,mimeType:name.endsWith('.css')?'text/css':'application/json',buffer:Buffer.from(typeof scheme==='string'?scheme:JSON.stringify(scheme))});
+  await page.getByLabel('Import theme file').setInputFiles({name,mimeType:name.endsWith('.css')?'text/css':'application/json',buffer:Buffer.from(typeof scheme==='string'?scheme:JSON.stringify(scheme))});
 }
 async function effects(page:Page){return page.evaluate(()=>{
   const css=getComputedStyle(document.documentElement);
@@ -35,7 +35,7 @@ test('mode radios and scheme dropdown are independent, persist and export both p
   await page.getByRole('radio',{name:'System',exact:true}).check();
   const paired={version:2,name:'Forest',palettes:{light:{page:'#f0f5ed'},dark:{page:'#182118'}}};
   await importScheme(page,paired);
-  await expect(page.getByRole('combobox',{name:'Color scheme',exact:true})).toHaveValue('1');
+  await expect(page.getByRole('combobox',{name:'Theme',exact:true})).toHaveValue('1');
   await expect(page.locator('html')).toHaveCSS('background-color','rgb(24, 33, 24)');
   await page.emulateMedia({colorScheme:'light'});
   await expect(page.locator('html')).toHaveCSS('background-color','rgb(240, 245, 237)');
@@ -45,23 +45,23 @@ test('mode radios and scheme dropdown are independent, persist and export both p
   await expect(page.locator('html')).toHaveCSS('color-scheme','dark');
   expect(await effects(page)).toEqual(protectedEffects);
   expect(await page.evaluate(()=>localStorage.getItem('chest-color-scheme-v1'))).toBeNull();
-  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Export scheme',exact:true}).click();
+  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Export theme',exact:true}).click();
   const exported=JSON.parse(await readFile((await (await downloaded).path())!,'utf8'));
   expect(exported).toMatchObject(paired);expect(exported).not.toHaveProperty('mode');
   expect(exported.palettes.light['page-text']).toBe('#252825');
   expect(exported.palettes.dark['page-text']).toBe('#ececed');
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
-  await page.getByRole('combobox',{name:'Color scheme',exact:true}).selectOption('0');
+  await page.getByRole('combobox',{name:'Theme',exact:true}).selectOption('0');
   await expect(page.getByRole('radio',{name:'Dark',exact:true})).toBeChecked();
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   await page.reload();await settings(page);
-  await page.getByRole('combobox',{name:'Color scheme',exact:true}).selectOption({label:'Forest'});
+  await page.getByRole('combobox',{name:'Theme',exact:true}).selectOption({label:'Forest'});
   await expect(page.locator('html')).toHaveCSS('background-color','rgb(24, 33, 24)');
   await page.getByRole('radio',{name:'Light',exact:true}).check();
   await page.locator('.settings-actions').getByRole('button',{name:'Discard',exact:true}).click();
-  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
+  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
   await expect(page.getByRole('radio',{name:'Dark',exact:true})).toBeChecked();
-  await page.getByRole('combobox',{name:'Color scheme',exact:true}).selectOption({label:'Forest'});
+  await page.getByRole('combobox',{name:'Theme',exact:true}).selectOption({label:'Forest'});
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   await page.getByRole('radio',{name:'System',exact:true}).check();
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
@@ -74,7 +74,7 @@ test('mode radios and scheme dropdown are independent, persist and export both p
 
 test('built-in Chest has accessible light and dark radio controls and responsive dropdown',async({page},info)=>{
   await page.goto('/');await settings(page);
-  const picker=page.getByRole('combobox',{name:'Color scheme',exact:true});
+  const picker=page.getByRole('combobox',{name:'Theme',exact:true});
   const mode=page.getByRole('radiogroup',{name:'Appearance mode',exact:true});
   await expect(mode.getByRole('radio')).toHaveCount(3);
   const [dropdown,selector]=await Promise.all([picker.boundingBox(),mode.boundingBox()]);
@@ -88,7 +88,7 @@ test('built-in Chest has accessible light and dark radio controls and responsive
   }
   await page.getByRole('radio',{name:'Light',exact:true}).check();await settlePalette(page);
   await page.screenshot({path:info.outputPath('appearance-controls.png')});
-  await picker.click();await expect(page.getByRole('listbox',{name:'Available choices'}).getByRole('option',{name:'Chest',exact:true})).toBeVisible();
+  await picker.click();await expect(page.getByRole('listbox',{name:'Available choices'}).getByRole('option',{name:'Chest Default',exact:true})).toBeVisible();
   await page.keyboard.press('Escape');
   await page.setViewportSize({width:320,height:640});
   await page.addStyleTag({content:'html {font-size:28px !important}'});
@@ -111,7 +111,7 @@ test('paired schemes reject missing palettes, invalid legacy modes and protected
   ]){
     await importScheme(page,bad);
     await expect(page.locator('.color-scheme-settings [role=alert]')).toBeVisible();
-    await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
+    await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
   }
 });
 
@@ -142,17 +142,17 @@ test('JSON scheme preview is reversible, persists only on Save, exports and rese
   await expect(page.getByRole('scrollbar',{name:'Scroll page',exact:true})).toHaveCSS('background-color','rgb(213, 222, 237)');
   expect(await effects(page)).toEqual(protectedEffects);
   await page.locator('.settings-actions').getByRole('button',{name:'Discard',exact:true}).click();
-  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
+  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
   await importScheme(page,light);await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   await page.reload();await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Paper');
   await settings(page);
-  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Export scheme',exact:true}).click();
+  const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'Export theme',exact:true}).click();
   const download=await downloaded;const exported=JSON.parse(await readFile((await download.path())!,'utf8'));
   expect(exported.version).toBe(2);expect(exported.name).toBe('Paper');expect(exported.palettes.light.page).toBe(light.colors.page);
   expect(exported).not.toHaveProperty('mode');expect(exported.palettes.light).not.toHaveProperty('frame');
   await page.getByRole('button',{name:'Restore defaults',exact:true}).click();
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
-  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
+  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
   expect(await page.evaluate(()=>localStorage.getItem('chest-color-scheme-v1'))).toBeNull();
 });
 
@@ -163,10 +163,10 @@ test('CSS imports use palette declarations only, and leaving an unapplied previe
   await expect(page.locator('html')).toHaveCSS('background-color','rgb(33, 15, 56)');
   await page.getByRole('button',{name:'Chest home',exact:true}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Discard',exact:true}).click();
-  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
-  await settings(page);await page.getByText('Paste a color scheme',{exact:true}).click();
-  await page.getByLabel('Scheme contents',{exact:true}).fill('--theme-page: #102030;');
-  await page.getByRole('button',{name:'Preview scheme',exact:true}).click();
+  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
+  await settings(page);await page.getByText('Paste a theme',{exact:true}).click();
+  await page.getByLabel('Theme contents',{exact:true}).fill('--theme-page: #102030;');
+  await page.getByRole('button',{name:'Preview theme',exact:true}).click();
   await expect(page.locator('html')).toHaveCSS('background-color','rgb(16, 32, 48)');
 });
 
@@ -187,7 +187,7 @@ test('invalid or protected imports cannot modify styling, storage or active prev
   for(const scheme of bad){
     await importScheme(page,scheme,typeof scheme==='string' && !scheme.startsWith('{')?'bad.css':'bad.json');
     await expect(page.locator('.color-scheme-settings [role=alert]')).toBeVisible();
-    await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
+    await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
     expect(await effects(page)).toEqual(before);
   }
   expect(await page.evaluate(()=>localStorage.getItem('chest-color-scheme-v1'))).toBeNull();
@@ -198,7 +198,7 @@ test('invalid or protected imports cannot modify styling, storage or active prev
 test('corrupt stored schemes fall back safely and valid schemes apply before application mount',async({page})=>{
   await page.goto('/');
   await page.evaluate(()=>localStorage.setItem('chest-color-scheme-v1',JSON.stringify({version:1,name:'Unsafe',mode:'dark',colors:{'bevel-shadow':'red'}})));
-  await page.reload();await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
+  await page.reload();await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
   await page.evaluate(scheme=>localStorage.setItem('chest-color-scheme-v1',JSON.stringify(scheme)),light);
   await page.addInitScript(()=>{
     const observer=new MutationObserver(()=>{
@@ -309,13 +309,13 @@ test('desktop import and export use native dialogs, preserve cancellation and ex
     }};
   },light);
   await page.goto('/');await settings(page);
-  await page.getByRole('button',{name:'Import scheme',exact:true}).click();
+  await page.getByRole('button',{name:'Import theme',exact:true}).click();
   await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Paper');
-  await page.getByRole('button',{name:'Export scheme',exact:true}).click();
+  await page.getByRole('button',{name:'Export theme',exact:true}).click();
   expect(await page.evaluate(()=>JSON.parse((window as any).__exported))).toMatchObject({version:2,name:'Paper',palettes:{light:{page:'#f3f5fb'}}});
   expect(await page.evaluate(()=>localStorage.getItem('chest-color-scheme-v1'))).toBeNull();
   await page.locator('.settings-actions').getByRole('button',{name:'Discard',exact:true}).click();
   await page.evaluate(()=>(window as any).__schemeFile=null);
-  await page.getByRole('button',{name:'Import scheme',exact:true}).click();
-  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest');
+  await page.getByRole('button',{name:'Import theme',exact:true}).click();
+  await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
 });

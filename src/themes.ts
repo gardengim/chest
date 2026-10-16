@@ -39,7 +39,7 @@ export const lightScheme:SingleScheme={version:1,name:'Chest Light',mode:'light'
   console:'#f1f4ed','console-text':'#30432a',
   'scroll-thumb':'#697568',
 }};
-export const defaultScheme:ColorScheme={version:2,name:'Chest',palettes:{light:{...lightScheme.colors},dark:{...defaultColors}}};
+export const defaultScheme:ColorScheme={version:2,name:'Chest Default',palettes:{light:{...lightScheme.colors},dark:{...defaultColors}}};
 export const builtInSchemes:ColorScheme[]=[defaultScheme];
 export const schemeStorageKey='chest-color-scheme-v1';
 export const modeStorageKey='chest-appearance-mode-v1';
@@ -56,43 +56,43 @@ function color(value:unknown):value is string{
   return CSS.supports('color',value);
 }
 function validatePalette(value:unknown,defaults:Palette):Palette{
-  if(!record(value))return error('Invalid color scheme structure.');
+  if(!record(value))return error('Invalid theme structure.');
   const colors:Palette={...defaults};
   for(const [role,entry] of Object.entries(value)){
-    if(!roles.has(role))return error('The scheme contains an unknown or protected setting.');
-    if(!color(entry))return error('The scheme contains an invalid color.');
+    if(!roles.has(role))return error('The theme contains an unknown or protected setting.');
+    if(!color(entry))return error('The theme contains an invalid color.');
     colors[role as ColorRole]=entry.trim();
   }
   return colors;
 }
 export function validateScheme(value:unknown):ColorScheme{
-  if(!record(value))return error('Invalid color scheme structure.');
-  if(value.version!==1 && value.version!==2)return error('Unsupported color scheme version.');
+  if(!record(value))return error('Invalid theme structure.');
+  if(value.version!==1 && value.version!==2)return error('Unsupported theme version.');
   const fields=value.version===1?['version','name','mode','colors']:['version','name','mode','palettes'];
-  if(Object.keys(value).some(key=>!fields.includes(key)))return error('Invalid color scheme structure.');
-  if(typeof value.name!=='string' || !value.name.trim() || value.name.length>120)return error('Enter a color scheme name of up to 120 characters.');
+  if(Object.keys(value).some(key=>!fields.includes(key)))return error('Invalid theme structure.');
+  if(typeof value.name!=='string' || !value.name.trim() || value.name.length>120)return error('Enter a theme name of up to 120 characters.');
   const name=value.name.trim();
   if(value.version===1){
-    if(value.mode!=='light' && value.mode!=='dark')return error('Color scheme mode must be light or dark.');
+    if(value.mode!=='light' && value.mode!=='dark')return error('Theme mode must be light or dark.');
     const colors=validatePalette(value.colors,defaultColors);
     // Earlier built-in names represent the same paired Chest palette.
     if((name==='Chest' && JSON.stringify(colors)===JSON.stringify(defaultColors)) || (name==='Chest Light' && JSON.stringify(colors)===JSON.stringify(lightScheme.colors)))return defaultScheme;
     return {version:2,name,palettes:{...defaultScheme.palettes,[value.mode]:colors}};
   }
   // Accept the earlier v2 mode field for compatibility, but never import a preference.
-  if(value.mode!==undefined && value.mode!=='light' && value.mode!=='dark' && value.mode!=='system')return error('Color scheme mode must be light, dark or system.');
-  if(!record(value.palettes) || Object.keys(value.palettes).some(key=>key!=='light' && key!=='dark'))return error('Invalid color scheme structure.');
-  return {version:2,name:name==='Chest Adaptive'?'Chest':name,palettes:{
+  if(value.mode!==undefined && value.mode!=='light' && value.mode!=='dark' && value.mode!=='system')return error('Theme mode must be light, dark or system.');
+  if(!record(value.palettes) || Object.keys(value.palettes).some(key=>key!=='light' && key!=='dark'))return error('Invalid theme structure.');
+  return {version:2,name:['Chest Adaptive','Chest'].includes(name)?'Chest Default':name,palettes:{
     light:validatePalette(value.palettes.light,lightScheme.colors),
     dark:validatePalette(value.palettes.dark,defaultColors),
   }};
 }
-export function parseScheme(source:string,name='Imported scheme'):ColorScheme{
-  if(new TextEncoder().encode(source).length>schemeSizeLimit)return error('Color schemes must not exceed 64 KB.');
+export function parseScheme(source:string,name='Imported theme'):ColorScheme{
+  if(new TextEncoder().encode(source).length>schemeSizeLimit)return error('Themes must not exceed 64 KB.');
   const trimmed=source.trim();
   if(trimmed.startsWith('{')){
     let value:unknown;
-    try{value=JSON.parse(trimmed);}catch{return error('Could not read the color scheme.');}
+    try{value=JSON.parse(trimmed);}catch{return error('Could not read the theme.');}
     return validateScheme(value);
   }
   // CSS is a data format here, never an injected stylesheet. One :root block
@@ -100,23 +100,23 @@ export function parseScheme(source:string,name='Imported scheme'):ColorScheme{
   let declarations=trimmed.replace(/\/\*[\s\S]*?\*\//g,'').trim();
   if(declarations.startsWith(':root')){
     const match=declarations.match(/^:root\s*\{([^{}]*)\}\s*$/);
-    if(!match)return error('CSS schemes must contain only palette declarations.');
+    if(!match)return error('CSS themes must contain only palette declarations.');
     declarations=match[1];
   }
   const colors:Record<string,string>={},declared=new Set<string>();let mode:'light'|'dark'='dark';let found=false;
   for(const declaration of declarations.split(';').map(item=>item.trim()).filter(Boolean)){
     const match=declaration.match(/^(--theme-[a-z-]+)\s*:\s*(.+)$/);
-    if(!match)return error('CSS schemes must contain only palette declarations.');
+    if(!match)return error('CSS themes must contain only palette declarations.');
     const role=match[1].slice('--theme-'.length);
-    if(declared.has(role))return error('CSS schemes must contain only palette declarations.');
+    if(declared.has(role))return error('CSS themes must contain only palette declarations.');
     declared.add(role);
     if(role==='mode'){
-      if(match[2]!=='light' && match[2]!=='dark')return error('Color scheme mode must be light or dark.');
+      if(match[2]!=='light' && match[2]!=='dark')return error('Theme mode must be light or dark.');
       mode=match[2];continue;
     }
     colors[role]=match[2];found=true;
   }
-  if(!found)return error('Could not read the color scheme.');
+  if(!found)return error('Could not read the theme.');
   return validateScheme({version:1,name,mode,colors});
 }
 function savedAppearance(){

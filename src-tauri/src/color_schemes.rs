@@ -6,12 +6,12 @@ pub fn read(path: &Path) -> Result<String, String> {
     let mut source = String::new();
     fs::File::open(path).map_err(|e| e.to_string())?
         .take(LIMIT as u64 + 1).read_to_string(&mut source).map_err(|e| e.to_string())?;
-    if source.len() > LIMIT { return Err("Color schemes must be smaller than 64 KB.".into()); }
+    if source.len() > LIMIT { return Err("Themes must not exceed 64 KB.".into()); }
     Ok(source)
 }
 
 pub fn write(path: &Path, source: &str) -> Result<(), String> {
-    if source.len() > LIMIT { return Err("Color schemes must be smaller than 64 KB.".into()); }
+    if source.len() > LIMIT { return Err("Themes must not exceed 64 KB.".into()); }
     // Export is normalized JSON. Never truncate an existing file for bad input
     // or a failed write: publish a complete sibling file with an atomic rename.
     serde_json::from_str::<serde_json::Value>(source).map_err(|e| e.to_string())?;

@@ -328,17 +328,17 @@ async fn choose_instance_location(app: tauri::AppHandle) -> Result<Option<String
 struct ImportedColorScheme { name: String, source: String }
 #[tauri::command]
 async fn import_color_scheme(app: tauri::AppHandle) -> Result<Option<ImportedColorScheme>, String> {
-    let Some(path) = app.dialog().file().add_filter(ui_text(&app,"Color scheme"), &["json", "css"]).blocking_pick_file() else { return Ok(None); };
+    let Some(path) = app.dialog().file().add_filter(ui_text(&app,"Theme"), &["json", "css"]).blocking_pick_file() else { return Ok(None); };
     let path = path.into_path().map_err(err)?;
     tokio::task::spawn_blocking(move || {
         let source = color_schemes::read(&path)?;
-        let name = path.file_stem().and_then(|name| name.to_str()).unwrap_or("Imported scheme").chars().take(120).collect();
+        let name = path.file_stem().and_then(|name| name.to_str()).unwrap_or("Imported theme").chars().take(120).collect();
         Ok(Some(ImportedColorScheme {name, source}))
     }).await.map_err(err)?
 }
 #[tauri::command]
 async fn export_color_scheme(app: tauri::AppHandle, source: String) -> Result<bool, String> {
-    let Some(path) = app.dialog().file().set_file_name("chest-color-scheme.json").add_filter(ui_text(&app,"Color scheme"), &["json"]).blocking_save_file() else { return Ok(false); };
+    let Some(path) = app.dialog().file().set_file_name("chest-theme.json").add_filter(ui_text(&app,"Theme"), &["json"]).blocking_save_file() else { return Ok(false); };
     let path = path.into_path().map_err(err)?;
     tokio::task::spawn_blocking(move || color_schemes::write(&path, &source)).await.map_err(err)??;
     Ok(true)
@@ -611,7 +611,7 @@ pub fn run() {
             app.manage(Arc::new(core));
             app.state::<startup::Trace>().mark("core-ready");
             let config = app.config().app.windows[0].clone();
-            let mut window = tauri::WebviewWindowBuilder::from_config(app, &config)?.devtools(cfg!(debug_assertions));
+            let mut window = tauri::WebviewWindowBuilder::from_config(app, &config)?.devtools(true);
             if let Some(monitor) = app.primary_monitor()? {
                 let size = monitor.size().to_logical::<f64>(monitor.scale_factor());
                 window = window.inner_size(size.width * 0.8, size.height * 0.8).center();

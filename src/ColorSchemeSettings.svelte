@@ -17,7 +17,7 @@
   let alive=true;
   onDestroy(()=>{alive=false;});
   function inspect(text:string,name?:string){
-    error='';try{preview(text,name || $t('Imported scheme'));}catch(reason){error=reason instanceof Error?reason.message:String(reason);}
+    error='';try{preview(text,name || $t('Imported theme'));}catch(reason){error=reason instanceof Error?reason.message:String(reason);}
   }
   async function chooseFile(){
     if(!native){picker.click();return;}
@@ -27,37 +27,37 @@
   async function importFile(event:Event){
     const input=event.currentTarget as HTMLInputElement,file=input.files?.[0];input.value='';
     if(!file)return;
-    if(file.size>schemeSizeLimit){error='Color schemes must not exceed 64 KB.';return;}
+    if(file.size>schemeSizeLimit){error='Themes must not exceed 64 KB.';return;}
     reading=true;error='';
-    try{const text=await file.text();if(alive)inspect(text,file.name.replace(/\.(json|css)$/i,'').slice(0,120) || undefined);}catch{if(alive)error='Could not read the color scheme.';}finally{if(alive)reading=false;}
+    try{const text=await file.text();if(alive)inspect(text,file.name.replace(/\.(json|css)$/i,'').slice(0,120) || undefined);}catch{if(alive)error='Could not read the theme.';}finally{if(alive)reading=false;}
   }
   async function exportFile(){
     error='';
     if(native){saving=true;try{await api.exportColorScheme(exportScheme());}catch(reason){if(alive)error=reason instanceof Error?reason.message:String(reason);}finally{if(alive)saving=false;}return;}
     const url=URL.createObjectURL(new Blob([exportScheme()],{type:'application/json'}));
-    const link=document.createElement('a');link.href=url;link.download='chest-color-scheme.json';link.click();
+    const link=document.createElement('a');link.href=url;link.download='chest-theme.json';link.click();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
 </script>
 <div class="color-scheme-settings" aria-labelledby="color-scheme-title">
   <h3 id="color-scheme-title">{$t('Appearance')}</h3>
   <div class="appearance-controls">
-  <label class="scheme-picker">{$t('Color scheme')}
+  <label class="scheme-picker">{$t('Theme')}
     <Select value={schemeSelection} disabled={reading || saving} onchange={event=>{const scheme=$availableSchemes[Number(event.currentTarget.value)];if(scheme)inspect(JSON.stringify(scheme));}}>
-      {#each $availableSchemes as scheme,index}<option value={String(index)}>{scheme.name}</option>{/each}
+      {#each $availableSchemes as scheme,index}<option value={String(index)}>{scheme=== $availableSchemes[0] ? $t(scheme.name) : scheme.name}</option>{/each}
     </Select>
   </label>
   <SegmentedControl options={modeOptions} bind:value={$appearanceMode} label={$t('Appearance mode')}/>
   </div>
-  <input class="scheme-file" bind:this={picker} type="file" accept=".json,.css,application/json,text/css" aria-label={$t('Import color scheme file')} onchange={importFile}/>
+  <input class="scheme-file" bind:this={picker} type="file" accept=".json,.css,application/json,text/css" aria-label={$t('Import theme file')} onchange={importFile}/>
   <div class="form-actions">
-    <Button disabled={reading || saving} onclick={chooseFile}>{$t(reading?'Loading…':'Import scheme')}</Button>
-    <Button disabled={reading || saving} onclick={exportFile}>{$t(saving?'Saving…':'Export scheme')}</Button>
+    <Button disabled={reading || saving} onclick={chooseFile}>{$t(reading?'Loading…':'Import theme')}</Button>
+    <Button disabled={reading || saving} onclick={exportFile}>{$t(saving?'Saving…':'Export theme')}</Button>
   </div>
   <details>
-    <summary>{$t('Paste a color scheme')}</summary>
-    <label>{$t('Scheme contents')}<textarea rows={6} maxlength={schemeSizeLimit} bind:value={source} spellcheck="false"></textarea></label>
-    <Button disabled={!source.trim() || reading || saving} onclick={()=>inspect(source)}>{$t('Preview scheme')}</Button>
+    <summary>{$t('Paste a theme')}</summary>
+    <label>{$t('Theme contents')}<textarea rows={6} maxlength={schemeSizeLimit} bind:value={source} spellcheck="false"></textarea></label>
+    <Button disabled={!source.trim() || reading || saving} onclick={()=>inspect(source)}>{$t('Preview theme')}</Button>
   </details>
   {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
   {#if $previewScheme}

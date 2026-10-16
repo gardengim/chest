@@ -7,7 +7,7 @@
   import StorageUsage from './StorageUsage.svelte';
   import { t } from './i18n';
   import Select from './Select.svelte';
-  import { languages,locale,autoUpdateChecks,doubleClickLaunch,reduceMotion,defaultInstanceLocation } from './preferences';
+  import { developSettings,languages,locale,autoUpdateChecks,doubleClickLaunch,reduceMotion,defaultInstanceLocation } from './preferences';
   import Button from './Button.svelte';
   import Tabs from './Tabs.svelte';
   import RuntimeFields from './RuntimeFields.svelte';
@@ -35,9 +35,9 @@
   }
   let debugPending=$state(false);
   async function toggleOffline(){debugPending=true;try{await ontoggleOffline();}finally{debugPending=false;}}
-  const development=$derived(native && debugLaunch.available);
-  const tabs=$derived<readonly SettingsTab[]>(development?['Accounts','Settings','Development','About']:['Accounts','Settings','About']);
-  $effect(()=>{if(tab==='Development' && !development)onselectTab('Accounts');});
+  const development=$derived(native && $developSettings);
+  const tabs=$derived<readonly SettingsTab[]>(development?['Accounts','Settings','Develop','About']:['Accounts','Settings','About']);
+  $effect(()=>{if(tab==='Develop' && !development)onselectTab('Settings');});
   let applicationPending=$state(false);
   async function saveApplicationId(){
     applicationPending=true;
@@ -74,16 +74,18 @@
     <Button tone="accent" disabled={signingIn || !native || !config.client_id} onclick={onsignin}>
       <Icon name="user" size={17}/>{$t("Sign in")}</Button>
     {#if !config.client_id}
-      <p class="hint">{$t('Microsoft sign-in is not configured.')}{#if development} <Button shape="plain" onclick={()=>onselectTab('Development')}>{$t('Microsoft application setup')}</Button>{/if}</p>
+      <p class="hint">{$t('Microsoft sign-in is not configured.')}{#if development} <Button shape="plain" onclick={()=>onselectTab('Develop')}>{$t('Microsoft application setup')}</Button>{/if}</p>
     {/if}
   </section>
-  {:else if tab==='Development' && development}
+  {:else if tab==='Develop' && development}
   <section class="panel">
+    {#if debugLaunch.available}
     <h2>{$t('Debugging')}</h2>
     <h3>{$t('Offline debugging')}</h3>
     <p class="muted">{$t('Single-player testing as ChestDebug. No multiplayer or Realms.')}</p>
     <Button disabled={debugPending} selected={debugLaunch.enabled} onclick={toggleOffline}>{$t(debugLaunch.enabled?'Disable':'Enable')}</Button>
     {#if debugLaunch.enabled}<p class="hint">{$t('Enabled for this session.')}</p>{/if}
+    {/if}
   </section>
   <form class="panel" onsubmit={event=>{event.preventDefault();void saveApplicationId();}}>
     <h2>{$t('Microsoft application setup')}</h2>
@@ -100,6 +102,7 @@
         <label>{$t('Language')}<Select aria-label={$t('Language')} bind:value={$locale}>{#each Object.entries(languages) as [code,name]}<option value={code} lang={code}>{name}</option>{/each}</Select></label>
         <ColorSchemeSettings/>
         <label class="setting-toggle"><input type="checkbox" bind:checked={$doubleClickLaunch}/>{$t('Double-click to launch')}</label>
+        <label class="setting-toggle"><input type="checkbox" role="switch" bind:checked={$developSettings}/>{$t('Develop settings')}</label>
         <label class="setting-toggle"><input type="checkbox" bind:checked={$reduceMotion}/>{$t('Reduce motion')}</label>
       </section>
       <section class="panel default-settings" aria-labelledby="default-settings-title">

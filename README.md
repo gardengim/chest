@@ -115,8 +115,8 @@ tracked separately in [validation](VALIDATION.md).
 Developers maintaining a separate build can register their own public desktop client
 for **personal Microsoft accounts**, with the loopback redirect `http://localhost/callback`,
 authorization code + PKCE, no client secret, and `XboxLive.signin offline_access` scopes.
-The override is under **Settings → Development → Microsoft application setup**, visible
-only in development builds. `CHEST_CLIENT_ID` can supply an initial override for a fresh
+The override is under **Settings → Develop → Microsoft application setup**, visible
+when Develop settings is enabled. `CHEST_CLIENT_ID` can supply an initial override for a fresh
 configuration. Microsoft/Xbox/Minecraft service approval remains necessary; a UUID alone
 does not establish access. See [the registration guide](docs/MICROSOFT-REGISTRATION.md).
 
@@ -170,7 +170,7 @@ See [docs/UI-AUDIT.md](docs/UI-AUDIT.md) for the frontend consolidation audit, [
 
 ### Offline launch for development
 
-Development builds expose **Accounts & settings → Accounts → Enable offline debugging**.
+Development builds expose **Settings → Develop → Offline debugging**.
 It takes effect immediately for this app session. Installed instances then launch with
 the stable local identity `ChestDebug`, without Microsoft/Xbox authentication.
 This supports single-player and launch/mod debugging; authenticated multiplayer and

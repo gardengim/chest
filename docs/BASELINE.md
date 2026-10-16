@@ -103,8 +103,8 @@ interaction decisions and do not imply that this baseline is release-ready.
 
 ### Launcher feature extensions
 
-Settings has Accounts, Settings and About tabs, plus Development in debug builds.
-Development owns offline testing and the Microsoft application override; ordinary users
+Settings has Accounts, Settings and About tabs, plus Develop when Develop settings is enabled.
+Develop owns debug-build-only offline testing and the Microsoft application override; ordinary users
 use Chest's bundled public client ID. Chest is MIT licensed; About shows
 project links and searchable dependency licenses. Installed release builds can create
 desktop shortcuts for instances. These hand off to the running normal-profile launcher;

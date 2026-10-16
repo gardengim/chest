@@ -75,7 +75,7 @@ fresh configurations and existing empty IDs. On October 14 the owner reported
 successful sign-in using this ID; refresh, entitlement and platform acceptance
 still need their own test records.
 
-For development overrides, use Settings → Development → Microsoft application
+For development overrides, use Settings → Develop → Microsoft application
 setup, then save. Explicit nonempty saved IDs take precedence. `CHEST_CLIENT_ID`
 overrides the built-in default only when no nonempty saved ID exists.
 

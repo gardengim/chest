@@ -2,6 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 
 async function fixture(page:Page,development=true){
   await page.addInitScript((development)=>{
+    localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({developSettings:true}));
     const w=window as any;w.isTauri=true;
     let enabled=false;
     const account={id:'2b4f29ac7a2f366dacf8457b8011111e',name:'ChestDebug'};
@@ -27,7 +28,7 @@ test('development offline mode enables launch without sign-in and leaves real ac
   await fixture(page);
   await page.getByRole('button',{name:'Settings'}).click();
   await expect(page.getByRole('button',{name:'Enable',exact:true})).toHaveCount(0);
-  await page.getByRole('tab',{name:'Development',exact:true}).click();
+  await page.getByRole('tab',{name:'Develop',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Debugging',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Enable',exact:true}).click();
   await expect(page.getByText('Enabled for this session.')).toBeVisible();
@@ -49,15 +50,15 @@ test('browser preview does not offer offline debug mode',async({page})=>{
   await page.goto('/');
   await page.getByRole('button',{name:'Settings'}).click();
   await expect(page.getByRole('button',{name:'Enable',exact:true})).toHaveCount(0);
-  await expect(page.getByRole('tab',{name:'Development',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('tab',{name:'Develop',exact:true})).toHaveCount(0);
 });
 
 
-test('native release settings do not expose the Development tab or offline debugging',async({page})=>{
+test('native release Develop tab never exposes offline debugging',async({page})=>{
   await fixture(page,false);
   await page.getByRole('button',{name:'Settings',exact:true}).click();
-  await expect(page.getByRole('tab',{name:'Development',exact:true})).toHaveCount(0);
-  await expect(page.getByRole('tab')).toHaveCount(3);
+  await page.getByRole('tab',{name:'Develop',exact:true}).click();
+  await expect(page.getByRole('tab')).toHaveCount(4);
   await expect(page.getByRole('button',{name:'Enable',exact:true})).toHaveCount(0);
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Offline debugging',exact:true})).toHaveCount(0);

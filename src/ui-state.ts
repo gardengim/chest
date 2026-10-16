@@ -21,4 +21,4 @@ export interface SettingsFormState { pending: boolean; clientId: string; javaPat
 import {defaultLaunchSettings,type LaunchSettings} from './types';
 export interface LaunchDraft {settings:LaunchSettings;loaded:boolean;loading:boolean;pending:boolean;error:string;account:string;javaArgs:string;gameArgs:string;environment:string;before:string;after:string;baseline:string;}
 export const createLaunchDraft=():LaunchDraft=>({settings:defaultLaunchSettings(),loaded:false,loading:false,pending:false,error:'',account:'',javaArgs:'',gameArgs:'',environment:'',before:'',after:'',baseline:''});
-export type SettingsTab='Accounts'|'Settings'|'Development'|'About';
+export type SettingsTab='Accounts'|'Settings'|'Develop'|'About';

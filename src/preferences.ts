@@ -20,6 +20,7 @@ export const homeShelves=writable(normalizeShelves(saved.homeShelves));
 export const homeHiddenOrder=writable(normalizeShelves(saved.homeHiddenOrder || [...homeSections]));
 export const homeDockPosition=writable(normalizeDockPosition(saved.homeDockPosition));
 export const homeDockOrientation=writable<DockOrientation>(['horizontal','vertical'].includes(saved.homeDockOrientation)?saved.homeDockOrientation:'auto');
+export const developSettings=writable(saved.developSettings===true);
 export const reduceMotion=writable(saved.reduceMotion===true);
 let editingSettings=false;
 export function beginPreferenceEdit(){editingSettings=true;}
@@ -29,7 +30,7 @@ function apply(){
   document.documentElement.dir=localeDirection(get(locale));
   document.documentElement.toggleAttribute('data-reduce-motion',get(reduceMotion));
   if(editingSettings)return;
-  try{localStorage.setItem(key,JSON.stringify({locale:get(locale),...(JSON.stringify(get(homeHiddenOrder))===JSON.stringify(homeSections)?{}:{homeHiddenOrder:get(homeHiddenOrder)}),...(get(homeDockPosition)===defaultDockPosition?{}:{homeDockPosition:get(homeDockPosition)}),...(get(homeDockOrientation)==='auto'?{}:{homeDockOrientation:get(homeDockOrientation)}),...(JSON.stringify(get(homeShelves))===JSON.stringify(defaultShelves)?{}:{homeShelves:get(homeShelves)}),...(get(autoUpdateChecks)?{}:{autoUpdateChecks:false}),...(get(doubleClickLaunch)?{}:{doubleClickLaunch:false}),...(get(reduceMotion)?{reduceMotion:true}:{}),...(get(defaultInstanceLocation)?{defaultInstanceLocation:get(defaultInstanceLocation)}:{})}));}catch{/* Preferences still apply when storage is unavailable. */}
+  try{localStorage.setItem(key,JSON.stringify({locale:get(locale),...(get(developSettings)?{developSettings:true}:{}),...(JSON.stringify(get(homeHiddenOrder))===JSON.stringify(homeSections)?{}:{homeHiddenOrder:get(homeHiddenOrder)}),...(get(homeDockPosition)===defaultDockPosition?{}:{homeDockPosition:get(homeDockPosition)}),...(get(homeDockOrientation)==='auto'?{}:{homeDockOrientation:get(homeDockOrientation)}),...(JSON.stringify(get(homeShelves))===JSON.stringify(defaultShelves)?{}:{homeShelves:get(homeShelves)}),...(get(autoUpdateChecks)?{}:{autoUpdateChecks:false}),...(get(doubleClickLaunch)?{}:{doubleClickLaunch:false}),...(get(reduceMotion)?{reduceMotion:true}:{}),...(get(defaultInstanceLocation)?{defaultInstanceLocation:get(defaultInstanceLocation)}:{})}));}catch{/* Preferences still apply when storage is unavailable. */}
 }
 locale.subscribe(apply);
 
@@ -44,3 +45,5 @@ homeDockPosition.subscribe(apply);
 homeDockOrientation.subscribe(apply);
 
 homeHiddenOrder.subscribe(apply);
+
+developSettings.subscribe(apply);

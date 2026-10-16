@@ -49,12 +49,14 @@ test('Save persists all settings, restore stages defaults, and Discard restores 
   await page.getByLabel('Memory (MB)',{exact:true}).fill('8192');
   await page.getByRole('radio',{name:'Light',exact:true}).check();
   await page.getByLabel('Double-click to launch',{exact:true}).uncheck();
+  await page.getByRole('switch',{name:'Develop settings',exact:true}).check();
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();
   const notice=page.locator('.notification[role="status"]');
   await expectMessageButtons(page,notice);
   await notice.getByRole('button',{name:'Dismiss notification',exact:true}).click();
   await expect(notice).toHaveCount(0);
   await expect(page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true})).toBeDisabled();
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('chest-ui-preferences-v1')||'{}').developSettings)).toBe(true);
   await page.getByRole('tab',{name:'About',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await page.getByRole('button',{name:'Restore defaults',exact:true}).click();
