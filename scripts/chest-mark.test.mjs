@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {hexagonPoints,chestMark} from './chest-mark.mjs';
+import {hexagonPoints,chestMark,latchFaces} from './chest-mark.mjs';
 import {readFileSync} from 'node:fs';
 test('chest outline is a centered regular hexagon and exported SVG matches the generator',()=>{
   const vertices=hexagonPoints();
@@ -12,4 +12,17 @@ test('chest outline is a centered regular hexagon and exported SVG matches the g
     assert.ok(Math.abs(y+vertices[(i+3)%6][1]-128)<1e-10);
   }
   assert.equal(readFileSync(new URL('../public/chest.svg',import.meta.url),'utf8'),chestMark());
+});
+
+test('latch faces share edges on the cube isometric axes without a distorting transform',()=>{
+  const {top:[a,b,c,d],front,side}=latchFaces();
+  const slope=(p,q)=>(q[1]-p[1])/(q[0]-p[0]);
+  for(const [p,q] of [[a,b],[d,c]])assert.ok(Math.abs(slope(p,q)+1/Math.sqrt(3))<1e-10);
+  for(const [p,q] of [[a,d],[b,c]])assert.ok(Math.abs(slope(p,q)-1/Math.sqrt(3))<1e-10);
+  assert.deepEqual(front.slice(0,2),[d,c]);assert.deepEqual(side.slice(0,2),[a,d]);
+  for(const face of [front,side]){
+    assert.equal(face[3][0],face[0][0]);assert.equal(face[2][0],face[1][0]);
+    assert.equal(face[3][1]-face[0][1],18);assert.equal(face[2][1]-face[1][1],18);
+  }
+  assert.ok(!chestMark().includes('matrix('));
 });

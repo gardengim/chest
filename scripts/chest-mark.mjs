@@ -5,14 +5,22 @@ export function hexagonPoints(cx=64,cy=64,radius=52){
 const number=value=>String(Number(value.toFixed(6)));
 const point=([x,y])=>`${number(x)} ${number(y)}`;
 const polygon=points=>`M${points.map(point).join(' ')}Z`;
+// A slim rectangular prism projected on the cube's two 30-degree axes.
+export function latchFaces(){
+  const axis=Math.sqrt(3)/2,width=8,depth=8/3,height=18;
+  const attachment=[64+26*axis,84-26/2]; // Midpoint of the right-face lid seam.
+  const a=[attachment[0]-width*axis/2,attachment[1]+5-height/2+width/4];
+  const b=[a[0]+width*axis,a[1]-width/2];
+  const d=[a[0]+depth*axis,a[1]+depth/2];
+  const c=[b[0]+depth*axis,b[1]+depth/2];
+  const lower=p=>[p[0],p[1]+height];
+  return {top:[a,b,c,d],front:[d,c,lower(c),lower(d)],side:[a,d,lower(d),lower(a)]};
+}
 export function chestMark(){
   const vertices=hexagonPoints(),center=[64,64];
   const top=[vertices[0],vertices[1],center,vertices[5]];
   const right=[center,vertices[1],vertices[2],vertices[3]];
-  // Latch dimensions use the same 30-degree isometric axes as the cube faces.
-  const x=81,y=69,axis=Math.sqrt(3)/2,length=12,depth=4,height=18;
-  const a=[x,y],b=[x+length*axis,y-length/2],c=[b[0]+depth*axis,b[1]+depth/2],d=[x+depth*axis,y+depth/2];
-  const lower=p=>[p[0],p[1]+height],pivot=[x+8*axis,y+7];
+  const latch=latchFaces();
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <title>Chest</title>
   <desc>A regular hexagonal chest with a lit top, shaded right face, subtly top-lit outline, and silver latch.</desc>
@@ -50,10 +58,10 @@ export function chestMark(){
     <path d="${polygon(vertices)}"/>
     <path d="M${point(vertices[5])} ${point(center)} ${point(vertices[1])}M${point(center)}V${number(vertices[3][1])}M${point([vertices[5][0],vertices[5][1]+20])} ${point([64,84])} ${point([vertices[1][0],vertices[1][1]+20])}"/>
   </g>
-  <g filter="url(#halo)" transform="translate(${point(pivot)}) matrix(${number(2/3)} ${number(1/(3*Math.sqrt(3)))} 0 1 0 0) translate(${point(pivot.map(v=>-v))})">
-    <path fill="#77817D" d="${polygon([a,b,c,lower(c),lower(d),lower(a)])}"/>
-    <path fill="url(#silver)" d="${polygon([d,c,lower(c),lower(d)])}"/>
-    <path fill="#DFE3DD" d="${polygon([a,b,c,d])}"/>
+  <g filter="url(#halo)">
+    <path fill="#77817D" d="${polygon(latch.side)}"/>
+    <path fill="url(#silver)" d="${polygon(latch.front)}"/>
+    <path fill="#DFE3DD" d="${polygon(latch.top)}"/>
   </g>
 </svg>
 `;
