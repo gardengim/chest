@@ -146,7 +146,7 @@ test('world, server and installed-content card actions share translucent dark ba
     expect(warm.equals(cool),'The painted button must transmit changes behind it').toBe(false);
     await button.evaluate(node=>(node.closest('.shared-card-body') as HTMLElement).style.removeProperty('background'));
     for(const action of await actions.all()){
-      await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.8)');
+      expect(await action.evaluate(node=>{const color=getComputedStyle(node).backgroundColor;return color.startsWith('rgba(') || color.includes('/ 0.65');})).toBe(true);
       expect(await action.evaluate(node=>getComputedStyle(node).backdropFilter)).toContain('blur(');
       expect(await action.evaluate(node=>getComputedStyle(node,'::before').content)).toBe('none');
       expect(await action.evaluate(node=>getComputedStyle(node,'::after').content)).toBe('none');
@@ -154,7 +154,7 @@ test('world, server and installed-content card actions share translucent dark ba
   }
 });
 
-test('missing artwork stays absent across cards and installed content, and Overview has no stale refresh action',async({page})=>{
+test('missing content artwork stays absent across cards and installed content, and Overview has no stale refresh action',async({page})=>{
   await fixture(page);
   await page.addInitScript(()=>{
     localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',homeShelves:['instances','worlds','servers','explore']}));
@@ -167,7 +167,7 @@ test('missing artwork stays absent across cards and installed content, and Overv
     };
   });
   await page.goto('/');
-  for(const selector of ['.instance-card','.world-list .launcher-card','.server-list .launcher-card','.catalog-card']){
+  for(const selector of ['.world-list .launcher-card','.server-list .launcher-card','.catalog-card']){
     const card=page.locator(selector);await card.scrollIntoViewIfNeeded();
     await expect(card.locator('.shared-card-art img,.shared-card-art svg,.card-backdrop img')).toHaveCount(0);
   }

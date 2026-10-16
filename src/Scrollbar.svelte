@@ -4,15 +4,16 @@
 <script lang="ts">
   import {locale} from './preferences';
   let {scroller,targetId,orientation='vertical',placement='page',label,onmeasure}:{scroller?:HTMLElement;targetId?:string;orientation?:'vertical'|'horizontal';placement?:'page'|'container';label:string;onmeasure?:(metrics:ScrollMetrics)=>void}=$props();
-  let visible=$state(false),viewport=$state(0),total=$state(0),position=$state(0);
+  let visible=$state(false),viewport=$state(0),total=$state(0),position=$state(0),trackWidth=$state(0),trackHeight=$state(0);
   let target:HTMLElement|null=null;
   let rtl=$state(false);
   let hiding:ReturnType<typeof setTimeout>|undefined;
   const horizontal=$derived(orientation==='horizontal');
   const maximum=$derived(Math.max(0,total-viewport));
-  const thumb=$derived(Math.min(viewport,Math.max(32,viewport*viewport/(total || 1))));
-  const logicalOffset=$derived(maximum?position/maximum*(viewport-thumb):0);
-  const offset=$derived(horizontal && rtl?viewport-thumb-logicalOffset:logicalOffset);
+  const extent=$derived((horizontal?trackWidth:trackHeight) || viewport);
+  const thumb=$derived(Math.min(extent,Math.max(32,extent*viewport/(total || 1))));
+  const logicalOffset=$derived(maximum?position/maximum*(extent-thumb):0);
+  const offset=$derived(horizontal && rtl?extent-thumb-logicalOffset:logicalOffset);
   function reveal(){visible=true;clearTimeout(hiding);hiding=setTimeout(()=>visible=false,1100);}
   $effect(()=>{
     void $locale;
@@ -48,12 +49,12 @@
   });
   function move(value:number){target?.scrollTo(horizontal?{left:value*(rtl?-1:1),behavior:'instant'}:{top:value,behavior:'instant'});}
   function drag(event:PointerEvent){
-    if(event.button!==0 || viewport<=thumb)return;
+    if(event.button!==0 || extent<=thumb)return;
     event.preventDefault();reveal();
     const track=event.currentTarget as HTMLElement,box=track.getBoundingClientRect();
     const coordinate=(event:PointerEvent)=>(horizontal?event.clientX-box.left:event.clientY-box.top);
     const point=coordinate(event),grab=point>=offset && point<=offset+thumb?point-offset:thumb/2;
-    const update=(event:PointerEvent)=>{const fraction=Math.max(0,Math.min(viewport-thumb,coordinate(event)-grab))/(viewport-thumb);move((rtl?1-fraction:fraction)*maximum);};
+    const update=(event:PointerEvent)=>{const fraction=Math.max(0,Math.min(extent-thumb,coordinate(event)-grab))/(extent-thumb);move((rtl?1-fraction:fraction)*maximum);};
     update(event);track.setPointerCapture(event.pointerId);track.onpointermove=update;
     const release=()=>{track.onpointermove=null;track.onpointerup=null;track.onpointercancel=null;};
     track.onpointerup=release;track.onpointercancel=release;
@@ -66,7 +67,7 @@
   }
 </script>
 {#if maximum>1}
-  <div class="pixel-scrollbar" class:visible class:page-scrollbar={!horizontal} data-orientation={orientation} data-placement={placement} role="scrollbar" tabindex="0" aria-label={label} aria-controls={targetId || scroller?.id || undefined} aria-orientation={orientation} aria-valuemin="0" aria-valuemax={maximum} aria-valuenow={Math.round(position)} onpointerdown={drag} onkeydown={keys}>
+  <div class="pixel-scrollbar" bind:clientWidth={trackWidth} bind:clientHeight={trackHeight} class:visible class:page-scrollbar={!horizontal} data-orientation={orientation} data-placement={placement} role="scrollbar" tabindex="0" aria-label={label} aria-controls={targetId || scroller?.id || undefined} aria-orientation={orientation} aria-valuemin="0" aria-valuemax={maximum} aria-valuenow={Math.round(position)} onpointerdown={drag} onkeydown={keys}>
     <div class="thumb" style:width={horizontal?`${thumb}px`:undefined} style:height={horizontal?undefined:`${thumb}px`} style:transform={`translate${horizontal?'X':'Y'}(${offset}px)`}></div>
   </div>
 {/if}

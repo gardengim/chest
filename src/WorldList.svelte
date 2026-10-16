@@ -5,11 +5,14 @@
   import InstanceIcon from './InstanceIcon.svelte';
   import RenameResource from './RenameResource.svelte';
   import InstanceName from './InstanceName.svelte';
+  import MenuItem from './MenuItem.svelte';
   import ContextMenu from './ContextMenu.svelte';
   import {resourceKey} from './resource-navigation';
   import {tick} from 'svelte';
   import {api,native} from './api';
   import {t} from './i18n';
+  import {locale} from './preferences';
+  import {loadCardArtwork} from './card-artwork';
   import type {Instance,WorldEntry} from './types';
   import {showDialog} from './dialog';
   import Button from './Button.svelte';
@@ -27,14 +30,19 @@
   const highlightedPage=$derived(highlight?Math.floor(worlds.findIndex(world=>world.folder===highlight)/pageSize):-1);
   $effect(()=>{if(highlightedPage>=0)page=highlightedPage;});
   let error=$state(''),notice=$state(''),pending=$state(false),selected=$state<WorldEntry|null>(null),target=$state(''),loading=$state(false);
-  let menu=$state<{world:WorldEntry;trigger:HTMLButtonElement;x:number;y:number}|null>(null);
+  let menu=$state<{world:WorldEntry;icon?:string|null;trigger:HTMLButtonElement;x:number;y:number}|null>(null);
   function openMenu(event:MouseEvent|KeyboardEvent,world:WorldEntry){
     if(event instanceof KeyboardEvent && event.key!=='ContextMenu' && !(event.shiftKey && event.key==='F10'))return;
-    event.preventDefault();const trigger=event.currentTarget as HTMLButtonElement;const box=trigger.getBoundingClientRect();menu={world,trigger,x:event instanceof MouseEvent?event.clientX:box.left,y:event instanceof MouseEvent?event.clientY:box.bottom};
+    event.preventDefault();const trigger=event.currentTarget as HTMLButtonElement;const box=trigger.getBoundingClientRect();menu={world,trigger,x:event instanceof MouseEvent?event.clientX:box.left,y:event instanceof MouseEvent?event.clientY:box.bottom};const opened=menu;void loadCardArtwork(`world:${world.instance_id}:${world.folder}`,()=>api.worldIcon(world.instance_id,world.folder)).then(icon=>{if(menu===opened)menu={...opened,icon};});
   }
   function action(work:(world:WorldEntry,trigger:HTMLButtonElement)=>unknown){if(!menu)return;const item=menu;menu=null;item.trigger.focus({preventScroll:true});void work(item.world,item.trigger);}
   let renaming=$state<WorldEntry|null>(null);
   function canPlay(world:WorldEntry){const instance=owners.get(world.instance_id);const [major,minor]=instance?.version.split('.').map(Number) || [];return !!instance?.installed && (major>=2 || major===1 && minor>=20);}
+  function lastPlayed(world:WorldEntry){
+    if(!world.last_played)return '';
+    const date=new Date(world.last_played);
+    return Number.isFinite(date.getTime())?new Intl.DateTimeFormat($locale,{dateStyle:'medium',timeStyle:'short'}).format(date):'';
+  }
   let metadataRequest=0;
   let trigger:HTMLButtonElement|undefined;
   const targets=$derived(instances.filter(instance=>instance.id!==selected?.instance_id && instance.version!=='pending'));
@@ -49,11 +57,13 @@
   async function copy(){if(!selected || !destination)return;const world=selected;await run(async()=>{await api.copyWorld(world.instance_id,world.folder,destination.id);selected=null;notice=$t('World copied.');await onrefresh();await tick();trigger?.focus();});}
 </script>
 {#if error && !selected}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
-{#if notice}<p role="status">{notice}</p>{/if}
+{#if notice}<p class="inline-notice" role="status">{notice}</p>{/if}
 <CardGrid class="world-list" {layout}>
   {#each shown as world (`${world.instance_id}:${world.folder}`)}
     <Card backgroundFromIcon backgroundOpacity={.45} class="resource-card world-card" interactive={showInstance} tabindex={showInstance?undefined:-1} title={world.name} {layout} data-resource-key={resourceKey('world',world.folder)} data-highlighted={highlight===world.folder || undefined} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={()=>onopen?.(world.instance_id,world.folder)} oncontextmenu={event=>openMenu(event,world)} onkeydown={event=>openMenu(event,world)} artworkKey={`world:${world.instance_id}:${world.folder}`} loadIcon={()=>api.worldIcon(world.instance_id,world.folder)}>
-      {#if showInstance}<span class="catalog-author">{#if owners.get(world.instance_id)}<InstanceName instance={owners.get(world.instance_id)!}/>{/if} · {world.version || $t('Unknown')}</span>{/if}
+      {#if showInstance && owners.get(world.instance_id)}<span class="catalog-author"><InstanceName instance={owners.get(world.instance_id)!}/></span>{/if}
+      {#if world.game_mode}<span class="catalog-author">{$t(world.game_mode)}</span>{/if}
+      {#if lastPlayed(world)}<span class="catalog-author">{$t('Last played')}: {lastPlayed(world)}</span>{/if}
       {#snippet actions()}{#if !showInstance}
         <Button disabled={!native || pending || isBusy(world.instance_id) || !canPlay(world)} title={$t('Direct world launch requires Minecraft 1.20 or later')} onclick={()=>run(()=>api.launchResource(world.instance_id,'world',world.folder))}>{$t('Play')}</Button>
         <Button disabled={!native || pending || isBusy(world.instance_id)} onclick={()=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');})}>{$t('Back up')}</Button>
@@ -64,13 +74,16 @@
   {:else}<p class="muted">{$t('No worlds')}</p>{/each}
 </CardGrid>
 {#if full}<Pagination label={$t('Worlds')} {page} {pages} onchange={value=>{menu=null;page=value;}}/>{/if}
-{#if menu}<ContextMenu title={menu.world.name} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
-  {#if onopen}<Button shape="plain" role="menuitem" onclick={()=>action(world=>onopen?.(world.instance_id,world.folder))}>{$t('Open instance')}</Button>{/if}
-  <Button shape="plain" role="menuitem" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>{renaming=world;})}>{$t('Rename')}</Button>
-  <Button shape="plain" role="menuitem" disabled={!native || pending} onclick={()=>action(world=>run(()=>api.openInstanceFile(world.instance_id,'saves',world.folder)))}>{$t('Open folder')}</Button>
-  <Button shape="plain" role="menuitem" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');}))}>{$t('Back up')}</Button>
-  <Button shape="plain" role="menuitem" disabled={!native || pending || isBusy(menu.world.instance_id) || !instances.some(instance=>instance.id!==menu!.world.instance_id && instance.version!=='pending')} onclick={()=>action((world,trigger)=>choose(world,trigger))}>{$t('Copy')}</Button>
-  <Button shape="plain" role="menuitem" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>run(async()=>{const count=await api.applyDatapacks(world.instance_id,world.folder);notice=$t(count===1?'Added {count} data pack.':'Added {count} data packs.',{count});}))}>{$t('Add data packs')}</Button>
+{#if menu}<ContextMenu title={menu.world.name} icon={menu.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
+  <MenuItem icon="play" disabled={!native || pending || isBusy(menu.world.instance_id) || !canPlay(menu.world)} onclick={()=>action(world=>run(()=>api.launchResource(world.instance_id,'world',world.folder)))}>{$t('Play')}</MenuItem>
+  {#if onopen}<MenuItem direction="right" onclick={()=>action(world=>onopen?.(world.instance_id,world.folder))}>{$t('Open instance')}</MenuItem>{/if}
+  <div role="separator"></div>
+  <MenuItem icon="gear" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>{renaming=world;})}>{$t('Rename')}</MenuItem>
+  <MenuItem icon="folder" disabled={!native || pending} onclick={()=>action(world=>run(()=>api.openInstanceFile(world.instance_id,'saves',world.folder)))}>{$t('Open folder')}</MenuItem>
+  <div role="separator"></div>
+  <MenuItem icon="download" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');}))}>{$t('Back up')}</MenuItem>
+  <MenuItem icon="copy" disabled={!native || pending || isBusy(menu.world.instance_id) || !instances.some(instance=>instance.id!==menu!.world.instance_id && instance.version!=='pending')} onclick={()=>action((world,trigger)=>choose(world,trigger))}>{$t('Copy')}</MenuItem>
+  <MenuItem icon="plus" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>run(async()=>{const count=await api.applyDatapacks(world.instance_id,world.folder);notice=$t(count===1?'Added {count} data pack.':'Added {count} data packs.',{count});}))}>{$t('Add data packs')}</MenuItem>
 </ContextMenu>{/if}
 {#if renaming}<RenameResource name={renaming.name} onrename={async name=>{await api.renameResource(renaming!.instance_id,'world',renaming!.folder,name);await onrefresh();}} onclose={()=>renaming=null}/>{/if}
 {#if selected}

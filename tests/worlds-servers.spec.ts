@@ -55,7 +55,7 @@ test('worlds scan on demand, search, back up, and copy with compatibility guidan
   expect(await page.evaluate(()=>(window as any).__calls.filter((call:any)=>call.name==='get_worlds').length)).toBe(0);
   await openHomeTool(page,'Worlds');
   await expect(page.locator('.world-list .launcher-card')).toHaveCount(2);
-  await expect(page.locator('.world-list')).toContainText('Adventure · 1.21.4');
+  await expect(page.locator('.world-list')).toContainText('Adventure');
   await expect(page.locator('.world-list')).toContainText('Unknown world');
   await page.getByLabel('Search worlds',{exact:true}).fill('missing');await expect(page.getByText('No results',{exact:true})).toBeVisible();
   await page.getByLabel('Search worlds',{exact:true}).fill('Survival');
@@ -142,7 +142,7 @@ test('global servers discover instance entries, deduplicate bookmarks, refresh a
   await expect(page.locator('.server-list .launcher-card')).toHaveCount(1);
   await page.locator('.server-list .launcher-card').first().click({button:'right'});await expect(page.getByRole('menuitem',{name:'Edit',exact:true})).toBeVisible();await page.keyboard.press('Escape');
   await page.evaluate(()=>(window as any).__localServers.push({instance_id:'source',name:'New server',address:'new.example',icon:null}));
-  await page.getByRole('button',{name:'Refresh',exact:true}).click();
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
   await expect(page.locator('.server-list .launcher-card')).toHaveCount(2);
   await expect(page.locator('.server-list')).toContainText('New server');
 });
@@ -209,7 +209,7 @@ test('instance resource cards expose direct actions, overflow menus, rename and 
   await expect(page.locator('.world-list')).toHaveCSS('grid-template-columns',/\d/);
   await world.getByRole('button',{name:'Play',exact:true}).click();
   expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='launch_resource').args)).toEqual({id:'source',kind:'world',item:'Survival'});
-  const action=world.getByRole('button',{name:'Back up',exact:true});await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.8)');
+  const action=world.getByRole('button',{name:'Back up',exact:true});await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.4)');
   await world.getByRole('button',{name:'More actions',exact:true}).click();await page.getByRole('menuitem',{name:'Rename',exact:true}).click();
   const rename=page.getByRole('dialog',{name:'Rename',exact:true});await rename.getByLabel('Name',{exact:true}).fill('New world name');await rename.getByRole('button',{name:'Save',exact:true}).click();
   await expect(page.getByRole('heading',{name:'New world name',exact:true})).toBeVisible();

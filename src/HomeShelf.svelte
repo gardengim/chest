@@ -28,5 +28,5 @@
   .home-shelf{min-width:0}
   .shelf-navigation{display:flex;flex-wrap:wrap;max-width:100%;gap:0.71428571rem;align-items:center}
   .shelf-body{min-width:0;container-type:inline-size}
-  .horizontal{overflow-x:auto;overscroll-behavior-x:contain}
+  .horizontal{padding:calc(6 * var(--pixel));margin:calc(-6 * var(--pixel));overflow-x:auto;overscroll-behavior-x:contain}
 </style>

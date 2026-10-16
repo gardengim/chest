@@ -3,7 +3,8 @@
   import CardGrid from './CardGrid.svelte';
   import Toolbar from './Toolbar.svelte';
   import HomeShelf from './HomeShelf.svelte';
-  import {onMount,untrack} from 'svelte';
+  import {untrack} from 'svelte';
+  import {onFocusRefresh} from './focus-refresh';
   import {api} from './api';
   import {t} from './i18n';
   import InstanceName from './InstanceName.svelte';
@@ -27,7 +28,7 @@
   }
   $effect(()=>{if(screenshots!==undefined)return;instances.map(instance=>instance.id).join(',');untrack(()=>{void refresh();});});
   $effect(()=>{page=Math.min(page,pages-1);});
-  onMount(()=>{if(screenshots!==undefined)return;const update=()=>{void refresh();};window.addEventListener('focus',update);return()=>window.removeEventListener('focus',update);});
+  onFocusRefresh(async()=>{if(screenshots===undefined)await refresh();});
   async function choose(screenshot:LibraryScreenshot,thumbnail:string){
     error='';
     const preview={screenshot,source:thumbnail};selected=preview;
@@ -37,10 +38,9 @@
   async function open(){if(!selected)return;try{await api.openInstanceFile(selected.screenshot.instance_id,'screenshots',selected.screenshot.name);}catch(reason){error=String(reason);}}
 </script>
 {#if shelf}<HomeShelf section="screenshots" {full} count={entries.length} moreContent={entries.length>pageSize} {onviewall}>
-  {#snippet tools(heading,navigation)}<Toolbar {heading} {navigation} items={screenshots===undefined || onrefresh?[{id:'refresh',label:$t('Refresh'),content:refreshButton}]:[]}/>{/snippet}
+  {#snippet tools(heading,navigation)}<Toolbar {heading} {navigation}/>{/snippet}
   {@render body()}
-</HomeShelf>{:else}<Toolbar items={onrefresh?[{id:'refresh',label:$t('Refresh'),content:refreshButton}]:[]}>{#snippet status()}{entries.length} {$t('Screenshots')}{/snippet}</Toolbar>{@render body()}{/if}
-{#snippet refreshButton()}<Button disabled={loading || refreshDisabled} onclick={refresh}>{$t('Refresh')}</Button>{/snippet}
+</HomeShelf>{:else}<Toolbar>{#snippet status()}{entries.length} {$t('Screenshots')}{/snippet}</Toolbar>{@render body()}{/if}
 {#snippet body()}
 {#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
 {#if library.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read screenshots from {names}',{names:library.unavailable.join(', ')})}</p>{/if}

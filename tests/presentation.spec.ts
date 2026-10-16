@@ -25,7 +25,7 @@ test('project dialogs share overlay colors, restore focus, and clean up; missing
     }};
   });
   await page.goto('/');
-  await expect(page.locator('.instance-icon img')).toHaveAttribute('src','/minecraft.png');
+  await expect(page.locator('.instance-icon img')).toHaveAttribute('src',/^data:image\/png;base64,/);
   await page.getByRole('tab',{name:'Modpacks',exact:true}).click();
   const card=page.locator('.catalog-card');
   await expect(card.locator('.shared-card-art > img,.shared-card-art > svg')).toHaveCount(0);

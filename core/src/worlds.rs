@@ -12,6 +12,7 @@ pub struct World {
     pub version: Option<String>,
     pub data_version: Option<i32>,
     pub last_played: Option<i64>,
+    pub game_mode: Option<String>,
 }
 #[derive(Serialize, Default)]
 pub struct Worlds {
@@ -25,6 +26,10 @@ struct Level {
 }
 #[derive(Deserialize)]
 struct LevelData {
+    #[serde(rename = "GameType", default)]
+    game_type: Option<i32>,
+    #[serde(rename = "hardcore", default)]
+    hardcore: Option<i8>,
     #[serde(rename = "LevelName", default)]
     name: String,
     #[serde(rename = "Version", default)]
@@ -77,6 +82,7 @@ fn read_world(id: &str, folder: &str, root: &Path) -> World {
         version: None,
         data_version: None,
         last_played: None,
+        game_mode: None,
     };
     // Bad or unfamiliar metadata leaves the world visible with unknown compatibility.
     let metadata = (|| -> Result<LevelData> {
@@ -100,6 +106,7 @@ fn read_world(id: &str, folder: &str, root: &Path) -> World {
         world.version = data.version.map(|v| v.name).filter(|name| !name.is_empty());
         world.data_version = data.data_version;
         world.last_played = data.last_played;
+        world.game_mode = if data.hardcore == Some(1) {Some("Hardcore")} else {match data.game_type {Some(0)=>Some("Survival"),Some(1)=>Some("Creative"),Some(2)=>Some("Adventure"),Some(3)=>Some("Spectator"),_=>None}}.map(str::to_string);
     }
     world
 }
@@ -242,7 +249,7 @@ mod tests {
     fn fixture(core: &Core, id: &str) {
         let world = core.instance_folder(id).unwrap().join("saves/Survival");
         fs::create_dir_all(world.join("region")).unwrap();
-        let bytes=fastnbt::to_bytes(&serde_json::json!({"Data":{"LevelName":"My world","Version":{"Name":"1.21.4"},"DataVersion":4189,"LastPlayed":1234_i64}})).unwrap();
+        let bytes=fastnbt::to_bytes(&serde_json::json!({"Data":{"LevelName":"My world","Version":{"Name":"1.21.4"},"DataVersion":4189,"LastPlayed":1234_i64,"GameType":1_i32,"hardcore":0_i8}})).unwrap();
         let mut gzip = flate2::write::GzEncoder::new(
             fs::File::create(world.join("level.dat")).unwrap(),
             flate2::Compression::default(),
@@ -269,6 +276,7 @@ mod tests {
         assert_eq!(info.name, "My world");
         assert_eq!(info.version.as_deref(), Some("1.21.4"));
         assert_eq!(info.data_version, Some(4189));
+        assert_eq!(info.game_mode.as_deref(), Some("Creative"));
         let folder = core.copy_world(&a.id, "Survival", &b.id).unwrap();
         let copied = core
             .instance_folder(&b.id)

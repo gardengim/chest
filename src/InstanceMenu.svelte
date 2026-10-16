@@ -1,10 +1,8 @@
 <script lang="ts">
   import ContextMenu from './ContextMenu.svelte';
-  import DirectionIcon from './DirectionIcon.svelte';
   import { t } from './i18n';
-  import Button from './Button.svelte';
+  import MenuItem from './MenuItem.svelte';
   import InstanceName from './InstanceName.svelte';
-  import Icon from './Icon.svelte';
   import type { Instance } from './types';
   import type { instanceUI, InstanceChoice } from './instance-ui';
   let {instance,trigger,position,state,native,onchoose,onclose}:{
@@ -15,16 +13,16 @@
 
 <ContextMenu title={$t('{name} actions',{name:instance.name})} {trigger} x={position?.x ?? trigger.getBoundingClientRect().right+8} y={position?.y ?? trigger.getBoundingClientRect().top} ignoreTrigger onclose={()=>onclose()}>
   {#snippet heading()}<InstanceName {instance}/>{/snippet}
-  <Button shape="plain" role="menuitem" onclick={()=>onchoose('open')}><DirectionIcon direction="right"/>{$t("Open")}</Button>
-  <Button shape="plain" role="menuitem" disabled={state.transitional} onclick={()=>onchoose('action')}><Icon name={state.actionIcon} size={16}/>{$t(state.actionLabel)}</Button>
-  <Button shape="plain" role="menuitem" onclick={()=>onchoose('group')}><Icon name="folder" size={16}/>{$t("Group…")}</Button>
+  <MenuItem onclick={()=>onchoose('open')} direction="right">{$t("Open")}</MenuItem>
+  <MenuItem disabled={state.transitional} onclick={()=>onchoose('action')} icon={state.actionIcon}>{$t(state.actionLabel)}</MenuItem>
+  <MenuItem onclick={()=>onchoose('group')} icon="folder">{$t("Group…")}</MenuItem>
   <div role="separator"></div>
-  <Button shape="plain" role="menuitem" disabled={!native} onclick={()=>onchoose('folder')}><Icon name="folder" size={16}/>{$t("Open folder")}</Button>
-  <Button shape="plain" role="menuitem" onclick={()=>onchoose('settings')}><Icon name="gear" size={16}/>{$t("Settings")}</Button>
-  <Button shape="plain" role="menuitem" onclick={()=>onchoose('console')}><Icon name="terminal" size={16}/>{$t("Log")}</Button>
+  <MenuItem disabled={!native} onclick={()=>onchoose('folder')} icon="folder">{$t("Open folder")}</MenuItem>
+  <MenuItem onclick={()=>onchoose('settings')} icon="gear">{$t("Settings")}</MenuItem>
+  <MenuItem onclick={()=>onchoose('console')} icon="terminal">{$t("Log")}</MenuItem>
   <div role="separator"></div>
-  <Button shape="plain" role="menuitem" disabled={!state.canCopy} onclick={()=>onchoose('duplicate')}><Icon name="copy" size={16}/>{$t("Duplicate")}</Button>
-  <Button shape="plain" role="menuitem" disabled={!native} onclick={()=>onchoose('shortcut')}><DirectionIcon direction="right"/>{$t("Create shortcut")}</Button>
-  <Button shape="plain" role="menuitem" disabled={!native || !state.canCopy} onclick={()=>onchoose('export')}><Icon name="download" size={16}/>{$t("Export")}</Button>
-  <Button shape="plain" role="menuitem" tone="danger" disabled={state.busy} onclick={()=>onchoose('delete')}><Icon name="close" size={16}/>{$t("Delete")}</Button>
+  <MenuItem disabled={!state.canCopy} onclick={()=>onchoose('duplicate')} icon="copy">{$t("Duplicate")}</MenuItem>
+  <MenuItem disabled={!native} onclick={()=>onchoose('shortcut')} direction="right">{$t("Create shortcut")}</MenuItem>
+  <MenuItem disabled={!native || !state.canCopy} onclick={()=>onchoose('export')} icon="download">{$t("Export")}</MenuItem>
+  <MenuItem tone="danger" disabled={state.busy} onclick={()=>onchoose('delete')} icon="close">{$t("Delete")}</MenuItem>
 </ContextMenu>

@@ -565,5 +565,11 @@
   "Name is required.": "الاسم مطلوب.",
   "Window size must be between 320 × 240 and 16384 × 16384": "يجب أن يكون حجم النافذة بين 320 × 240 و16384 × 16384.",
   "Collapse": "طيّ",
-  "Use unique environment variable names.": "استخدم أسماء فريدة لمتغيرات البيئة."
+  "Use unique environment variable names.": "استخدم أسماء فريدة لمتغيرات البيئة.",
+  "Survival": "البقاء",
+  "Creative": "الإبداع",
+  "Adventure": "المغامرة",
+  "Spectator": "المراقب",
+  "Hardcore": "المتشدد",
+  "Last played": "آخر لعب"
 }

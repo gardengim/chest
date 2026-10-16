@@ -38,7 +38,7 @@
 <section class="news-section" aria-label={$t("News")}>
   <h2>{$t("News")}</h2>
   <div class="panel news-panel">
-  {#if error}<p role="alert">{$t(error)}</p>{/if}
+  {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
   {#if feedError}<p role="status">{$t('News unavailable')}</p><Button onclick={()=>retry++}>{$t('Retry')}</Button>{/if}
   {#if unavailable.length}<p role="status">{$t('Updates unavailable for {names}',{names:unavailable.join(', ')})}</p><Button onclick={()=>retry++}>{$t('Retry')}</Button>{/if}
   {#if (loading || updatesLoading) && !articles.length}<p role="status">{$t('Loading…')}</p>
@@ -63,7 +63,7 @@
 {#if expanded}
   <dialog class="modal news-dialog" aria-label={$t("News")} use:showDialog oncancel={event=>{event.preventDefault();void closeNews();}}>
     <div class="section-heading"><h2>{$t("News")}</h2><Button class="dialog-close" aria-label={$t("Close news")} onclick={closeNews}><Icon name="close" size={18}/></Button></div>
-    {#if error}<p role="alert">{$t(error)}</p>{/if}
+    {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
     {@render articleList(articles)}
   </dialog>
 {/if}

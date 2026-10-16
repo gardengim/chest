@@ -8,10 +8,11 @@
   import InstanceIcon from './InstanceIcon.svelte';
   import InstanceName from './InstanceName.svelte';
   import InstanceReferences from './InstanceReferences.svelte';
+  import MenuItem from './MenuItem.svelte';
   import ContextMenu from './ContextMenu.svelte';
   import InstanceChooser from './InstanceChooser.svelte';
   import {serverAddressKey} from './server-library';
-  import {onMount} from 'svelte';
+  import {onFocusRefresh} from './focus-refresh';
   import {api,native} from './api';
   import {t} from './i18n';
   import {loaderLabel,type Config,type Loader,type ServerBookmark,type WorldLibrary} from './types';
@@ -39,14 +40,27 @@
   $effect(()=>{page=Math.min(page,pages-1);});
   const destination=$derived(config.instances.find(instance=>instance.id===target));
   const mismatch=$derived(!!adding && !!destination && ((!!adding.expected_version && adding.expected_version!==destination.version) || (!!adding.expected_loader && adding.expected_loader!==destination.loader)));
-  async function refresh(){loading=true;error='';try{if(mode==='worlds')library=await api.worlds();else serverLibrary=await api.servers();}catch(e){error=String(e);}finally{loading=false;}}
+  let refreshRequest=0;
+  async function refresh(){
+    const ticket=++refreshRequest,kind=mode;loading=true;error='';
+    try{if(kind==='worlds'){const value=await api.worlds();if(ticket===refreshRequest && mode===kind)library=value;}else{const value=await api.servers();if(ticket===refreshRequest && mode===kind)serverLibrary=value;}}
+    catch(e){if(ticket===refreshRequest)error=String(e);}
+    finally{if(ticket===refreshRequest)loading=false;}
+  }
   $effect(()=>{mode;config.instances.map(instance=>instance.id).join(',');void refresh();});
-  onMount(()=>{const update=()=>{void refresh();};window.addEventListener('focus',update);return()=>window.removeEventListener('focus',update);});
+  onFocusRefresh(refresh);
   async function run(work:()=>Promise<unknown>){if(pending)return;pending=true;error='';notice='';try{await work();}catch(e){error=String(e);}finally{pending=false;}}
+  let joining=$state(false);
   let menu=$state<{server:ServerRow;trigger:HTMLElement;x:number;y:number}|null>(null),choosing=$state<ServerRow|null>(null);
   function openMenu(event:MouseEvent|KeyboardEvent,server:ServerRow){if(event instanceof KeyboardEvent && event.key!=='ContextMenu' && !(event.shiftKey && event.key==='F10'))return;event.preventDefault();const trigger=event.currentTarget as HTMLElement;const box=trigger.getBoundingClientRect();menu={server,trigger,x:event instanceof MouseEvent?event.clientX:box.left,y:event instanceof MouseEvent?event.clientY:box.bottom};}
   function action(work:(server:ServerRow)=>unknown){if(!menu)return;const item=menu;menu=null;item.trigger.focus({preventScroll:true});void work(item.server);}
+  function join(server:ServerRow){
+    const targets=config.instances.filter(instance=>server.instance_ids.includes(instance.id) && instance.installed && !isBusy(instance.id));
+    if(targets.length===1)void run(()=>api.launchResource(targets[0].id,'server',server.address));
+    else if(targets.length){joining=true;choosing=server;}
+  }
   function open(server:ServerRow){
+    joining=false;
     const ids=server.instance_ids.filter(id=>config.instances.some(instance=>instance.id===id));
     if(ids.length>1)choosing=server;else if(ids.length)onopen(ids[0],serverAddressKey(server.address));else add(server);
   }
@@ -60,11 +74,10 @@
 {#if !embedded}<h1>{$t(mode==='worlds'?'Worlds':'Servers')}</h1>{/if}
 <HomeShelf section={mode} full={!gallery} moreContent={(mode==='worlds'?worlds.length:servers.length)>pageSize} {onviewall}>
   {#snippet tools(heading,navigation)}<Toolbar {heading} {navigation} trailing={layoutButton} searchLabel={$t(mode==='worlds'?'Search worlds':'Search servers')} bind:value={search} items={[
-    ...(mode==='servers'?[{id:'add',label:$t('Add'),priority:100,content:addButton}]:[]),
-    {id:'refresh',label:$t('Refresh'),priority:0,content:refreshButton}
+    ...(mode==='servers'?[{id:'add',label:$t('Add'),priority:100,content:addButton}]:[])
   ]}/>{/snippet}
 {#if error && !edit && !adding && !removing}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
-{#if notice}<p role="status">{notice}</p>{/if}
+{#if notice}<p class="inline-notice" role="status">{notice}</p>{/if}
 {#if mode==='worlds'}
   {#if loading}<p role="status">{$t('Loading…')}</p>{:else}
     {#if library.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read worlds from {names}',{names:library.unavailable.join(', ')})}</p>{/if}
@@ -85,17 +98,18 @@
 {/if}
 </HomeShelf>
 {#snippet addButton()}<AddButton disabled={pending} onclick={()=>{error='';edit={id:'',name:'',address:'',instance_id:null,expected_version:'',expected_loader:null};}}/>{/snippet}
-{#snippet refreshButton()}<Button disabled={loading} onclick={refresh}>{$t('Refresh')}</Button>{/snippet}
 {#snippet layoutButton()}<LayoutSwitch label={$t(mode==='worlds'?'Worlds layout':'Servers layout')} bind:value={layout}/>{/snippet}
-{#if choosing}<InstanceChooser instances={config.instances.filter(instance=>choosing!.instance_ids.includes(instance.id))} {icons} onchoose={id=>{const server=choosing!;choosing=null;onopen(id,serverAddressKey(server.address));}} onclose={()=>choosing=null}/>{/if}
-{#if menu}<ContextMenu title={menu.server.name} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
-  {#if menu.server.instance_ids.length}<Button shape="plain" role="menuitem" onclick={()=>action(server=>open(server))}>{$t('Open instance')}</Button>{/if}
-  <Button shape="plain" role="menuitem" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.address);notice=$t('Copied');}))}>{$t('Copy')}</Button>
+{#if choosing}<InstanceChooser instances={config.instances.filter(instance=>choosing!.instance_ids.includes(instance.id) && (!joining || instance.installed && !isBusy(instance.id)))} {icons} onchoose={id=>{const server=choosing!;choosing=null;if(joining)void run(()=>api.launchResource(id,'server',server.address));else onopen(id,serverAddressKey(server.address));}} onclose={()=>choosing=null}/>{/if}
+{#if menu}<ContextMenu title={menu.server.name} icon={menu.server.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
+  <MenuItem icon="play" disabled={!native || pending || !config.instances.some(instance=>menu!.server.instance_ids.includes(instance.id) && instance.installed && !isBusy(instance.id) && !isBusy(instance.id))} onclick={()=>action(server=>join(server))}>{$t('Join')}</MenuItem>
+  {#if menu.server.instance_ids.length}<MenuItem direction="right" onclick={()=>action(server=>open(server))}>{$t('Open instance')}</MenuItem>{/if}
+  <MenuItem icon="copy" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.address);notice=$t('Copied');}))}>{$t('Copy')}</MenuItem>
   {#if menu.server.bookmarked}
-    <Button shape="plain" role="menuitem" disabled={!native || pending || !config.instances.some(instance=>instance.version!=='pending')} onclick={()=>action(server=>add(server))}>{$t('Add to instance')}</Button>
-    <Button shape="plain" role="menuitem" disabled={pending} onclick={()=>action(server=>{error='';edit=bookmarkData(server);})}>{$t('Edit')}</Button>
-    <Button shape="plain" role="menuitem" disabled={pending} onclick={()=>action(server=>{error='';removing=server;})}>{$t('Remove')}</Button>
-  {:else}<Button shape="plain" role="menuitem" disabled={pending} onclick={()=>action(server=>run(()=>bookmark(server)))}>{$t('Bookmark')}</Button>{/if}
+    <div role="separator"></div>
+    <MenuItem icon="plus" disabled={!native || pending || !config.instances.some(instance=>instance.version!=='pending')} onclick={()=>action(server=>add(server))}>{$t('Add to instance')}</MenuItem>
+    <MenuItem icon="gear" disabled={pending} onclick={()=>action(server=>{error='';edit=bookmarkData(server);})}>{$t('Edit')}</MenuItem>
+    <MenuItem icon="close" tone="danger" disabled={pending} onclick={()=>action(server=>{error='';removing=server;})}>{$t('Remove')}</MenuItem>
+  {:else}<MenuItem icon="plus" disabled={pending} onclick={()=>action(server=>run(()=>bookmark(server)))}>{$t('Bookmark')}</MenuItem>{/if}
 </ContextMenu>{/if}
 {#if edit}
   <dialog class="modal" use:showDialog aria-label={$t('Server bookmark')} oncancel={event=>{event.preventDefault();if(!pending)edit=null;}}>

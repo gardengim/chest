@@ -68,7 +68,7 @@
         {#if a.id!==config.active_account}
           <Button disabled={accountPending} onclick={()=>useAccount(a.id)}>{$t("Use")}</Button>
         {/if}
-        <Button shape="plain" disabled={accountPending} onclick={()=>signOutAccount=a}>{$t("Sign out")}</Button>
+        <Button tone="danger" disabled={accountPending} onclick={()=>signOutAccount=a}>{$t("Sign out")}</Button>
       </div>
     {/each}
     <Button tone="accent" disabled={signingIn || !native || !config.client_id} onclick={onsignin}>
@@ -91,7 +91,7 @@
     <Button type="submit" tone="accent" disabled={applicationPending || draft.clientId===config.client_id}>{$t(applicationPending?'Saving…':'Save')}</Button>
   </form>
   {:else if tab==='About'}
-  {#await about()}<p role="status">{$t('Loading…')}</p>{:then module}<module.default info={launcherInfo}/>{:catch error}<p role="alert">{String(error)}</p>{/await}
+  {#await about()}<p role="status">{$t('Loading…')}</p>{:then module}<module.default info={launcherInfo}/>{:catch error}<p class="inline-error" role="alert">{String(error)}</p>{/await}
   {:else}
   <form class="settings-form" onsubmit={event=>{event.preventDefault();void onsave();}}>
     <fieldset disabled={draft.pending}>

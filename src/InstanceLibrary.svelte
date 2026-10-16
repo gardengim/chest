@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {minecraftArtwork} from './builtin-artwork';
   import CardGrid from './CardGrid.svelte';
   import Pagination from './Pagination.svelte';
   import {collectionPageSize as pageSize} from './collection-page';
@@ -62,7 +63,7 @@
   {:else}
     <CardGrid class={['instance-grid',view.layout==='list' && 'library-list']} layout={view.layout}>
       {#each shown as instance (instance.id)}
-        <Card class="instance-card" title={instance.name} icon={icons[instance.id]} instanceId={instance.id} layout={view.layout} aria-haspopup="menu" aria-expanded={menuId===instance.id} oncontextmenu={event=>{cancelSelection();onmenu(event,instance);}} onkeydown={event=>onmenukeys(event,instance)} onclick={event=>clickInstance(event,instance)} ondblclick={()=>doubleClickInstance(instance)}>
+        <Card class="instance-card" title={instance.name} icon={icons[instance.id]} fallbackIcon={minecraftArtwork} instanceId={instance.id} layout={view.layout} aria-haspopup="menu" aria-expanded={menuId===instance.id} oncontextmenu={event=>{cancelSelection();onmenu(event,instance);}} onkeydown={event=>onmenukeys(event,instance)} onclick={event=>clickInstance(event,instance)} ondblclick={()=>doubleClickInstance(instance)}>
             <InstanceBrief {instance}/>
             <div class="card-status">
               <span>{statusText(instance)}</span>

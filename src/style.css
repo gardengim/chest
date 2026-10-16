@@ -1593,7 +1593,7 @@ input::placeholder,textarea::placeholder{color:var(--theme-input-muted)}
 .instance-scene:has(>.instance-backdrop img) .instance-hero{--text:var(--theme-overlay-text);--muted:var(--theme-overlay-muted);--icon-ink:#ececec}
 
 /* Message actions use shared button feedback with the owning message palette. */
-:is(.notification,.crash-notice,.inline-error) .ui-button {
+:is(.notification,.crash-notice,.inline-error,.inline-notice,.catalog-success) .ui-button {
   --button-fill:var(--message-fill);
   --button-text:var(--message-text);
   --icon-ink:var(--message-text);
@@ -1609,3 +1609,15 @@ input::placeholder,textarea::placeholder{color:var(--theme-input-muted)}
 .console,.folder-path,.java-report,.launch-settings textarea{direction:ltr;text-align:start}
 
 .runtime-java input{direction:ltr;text-align:start}
+
+/* All feedback surfaces share the same palette pairing, frame and depth. */
+:is(.notification,.crash-notice,.inline-error,.inline-notice,.catalog-success){
+  --text:var(--message-text);--muted:var(--message-text);--negative-text:var(--message-text);
+  display:flex;align-items:center;flex-wrap:wrap;gap:.71428571rem;
+  padding:.85714286rem 1.14285714rem;border:var(--stroke) solid var(--frame);
+  background:var(--message-fill);color:var(--message-text);box-shadow:var(--bevel-raised),var(--shadow-drop);
+  line-height:1.5;overflow-wrap:anywhere;
+}
+.inline-notice,.catalog-success{--message-fill:var(--theme-success);--message-text:var(--theme-success-text)}
+.instance-menu-title{display:flex;align-items:center;gap:.57142857rem}
+.instance-menu-title>.artwork{width:1.42857143rem;height:1.42857143rem;flex:none}

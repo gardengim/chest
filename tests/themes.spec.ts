@@ -279,7 +279,7 @@ test('media, icons, resource tabs and dialogs retain their protected styling und
     if(tab==='Worlds'){
       await expect(page.locator('.world-card .shared-card-art img')).toHaveAttribute('src','/minecraft.png');
       const button=page.getByRole('button',{name:'Back up',exact:true});
-      await expect(button).toHaveCSS('background-color','rgba(0, 0, 0, 0.8)');
+      await expect(button).toHaveCSS('background-color','rgba(0, 0, 0, 0.4)');
       await page.locator('.world-card').screenshot({path:info.outputPath('light-world-card.png')});
     }
     if(tab==='Screenshots'){

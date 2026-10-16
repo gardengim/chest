@@ -565,5 +565,11 @@
   "Name is required.": "名称不能为空。",
   "Window size must be between 320 × 240 and 16384 × 16384": "窗口大小必须介于320 × 240和16384 × 16384之间。",
   "Collapse": "收起",
-  "Use unique environment variable names.": "环境变量名称不能重复。"
+  "Use unique environment variable names.": "环境变量名称不能重复。",
+  "Survival": "生存",
+  "Creative": "创造",
+  "Adventure": "冒险",
+  "Spectator": "旁观",
+  "Hardcore": "极限",
+  "Last played": "上次游玩"
 }

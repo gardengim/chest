@@ -15,7 +15,9 @@
         "title": "Chest",
         "width": 1150,
         "height": 800,
-        "create": false
+        "create": false,
+        "minWidth": 720,
+        "minHeight": 540
       }
     ],
     "security": {

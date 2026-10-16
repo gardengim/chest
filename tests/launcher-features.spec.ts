@@ -5,7 +5,7 @@ test('About provides project links, MIT text and searchable bundled dependency n
   await page.goto('/');await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.getByRole('tab',{name:'About',exact:true}).click();
   await expect(page.locator('.license-text').first()).toContainText('MIT License');
-  await expect(page.getByRole('link',{name:'Issues',exact:true})).toHaveAttribute('href','https://github.com/gardengim/chest/issues');
+  const popup=page.waitForEvent('popup');await page.getByRole('button',{name:'Issues',exact:true}).click();expect((await popup).url()).toBe('https://github.com/gardengim/chest/issues');
   await expect(page.locator('.license-text')).toHaveCount(1);
   await page.getByLabel('Search',{exact:true}).fill('fastnbt');
   await expect(page.locator('details')).toHaveCount(1);await page.locator('summary').click();
@@ -91,7 +91,7 @@ test('local files expose conditional tabs and content types remain separate in l
   await page.getByLabel('Status',{exact:true}).selectOption('enabled');
   await expect(page.locator('.content-entry')).toHaveCount(1);
   const reads=await page.evaluate(()=>(window as any).__calls.filter((call:any)=>call.name==='get_content').length);
-  await page.getByRole('button',{name:'Refresh',exact:true}).click();
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
   await expect.poll(()=>page.evaluate(()=>(window as any).__calls.filter((call:any)=>call.name==='get_content').length)).toBe(reads+1);
 
   await page.getByRole('tab',{name:'Resource packs',exact:true}).click();await expect(page.locator('.content-entry')).toContainText('texture.zip');

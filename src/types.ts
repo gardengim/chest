@@ -39,7 +39,7 @@ export const defaultLaunchSettings=():LaunchSettings=>({width:854,height:480,ful
 
 export interface InstanceFiles {worlds:string[];screenshots:string[];servers:{name:string;ip:string;icon?:string|null}[];}
 
-export interface WorldEntry {instance_id:string;folder:string;name:string;version:string|null;data_version:number|null;last_played:number|null;}
+export interface WorldEntry {instance_id:string;folder:string;name:string;version:string|null;data_version:number|null;last_played:number|null;game_mode?:string|null;}
 export interface WorldLibrary {worlds:WorldEntry[];unavailable:string[];}
 export interface ServerBookmark {id:string;name:string;address:string;instance_id:string|null;expected_version:string;expected_loader:Loader|null;}
 

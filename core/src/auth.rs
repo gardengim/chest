@@ -16,6 +16,11 @@ use tokio::{
     net::TcpListener,
 };
 use uuid::Uuid;
+fn callback_response() -> String {
+    let message = include_str!("auth-callback.html");
+    format!("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-{}'; base-uri 'none'; frame-ancestors 'none'\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{message}",
+        base64::engine::general_purpose::STANDARD.encode(Sha256::digest(b"setTimeout(() => window.close(), 1500);")), message.len())
+}
 const TOKEN: &str = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
 const SCOPE: &str = "XboxLive.signin offline_access";
 #[derive(Serialize, Deserialize)]
@@ -196,9 +201,7 @@ pub async fn sign_in(
             let _=stream.write_all(b"HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n").await;
             continue;
         };
-        let message =
-            "<!doctype html><title>Chest</title><p>You can return to Chest and close this tab.</p>";
-        let reply=format!("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{message}",message.len());
+        let reply = callback_response();
         let _ = stream.write_all(reply.as_bytes()).await;
         break code?;
     };
@@ -294,6 +297,21 @@ pub fn sign_out(store: &Store, id: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn callback_page_is_private_and_does_not_claim_authentication_success() {
+        let reply = callback_response();
+        let (headers, body) = reply.split_once("\r\n\r\n").unwrap();
+        assert!(headers.contains("Cache-Control: no-store"));
+        assert!(headers.contains("Referrer-Policy: no-referrer"));
+        assert!(headers.contains("default-src 'none'"));
+        assert!(headers.contains(&format!("Content-Length: {}", body.len())));
+        assert!(body.contains("You can return to Chest"));
+        assert!(!body.contains("successful"));
+        assert!(!body.contains("https://"));
+        let script = body.split_once("<script>").unwrap().1.split_once("</script>").unwrap().0;
+        let hash = base64::engine::general_purpose::STANDARD.encode(Sha256::digest(script.as_bytes()));
+        assert!(headers.contains(&format!("'sha256-{hash}'")));
+    }
     #[test]
     fn callback_requires_matching_unique_state_and_code(){
         let valid=b"GET /callback?state=expected&code=a%2Bb HTTP/1.1\r\nHost: localhost\r\n\r\n";

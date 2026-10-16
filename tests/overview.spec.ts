@@ -23,7 +23,7 @@ test('Overview shows available versions and news, folder is readonly, and cards 
   await page.goto('/');
   await expect(page.locator('.catalog-provider')).toHaveCount(0);
   expect(await page.locator('.home-explore').evaluate(node=>getComputedStyle(node).borderTopWidth)).toBe('0px');
-  await expect(page.locator('.instance-icon img')).toHaveAttribute('src','/minecraft.png');
+  await expect(page.locator('.instance-icon img')).toHaveAttribute('src',/^data:image\/png;base64,/);
   await expect.poll(()=>page.locator('.instance-icon img').evaluate((node:HTMLImageElement)=>node.naturalWidth)).toBe(256);
   await expect(page.locator('.news-panel .news-item')).toHaveCount(6);
   await expect(page.locator('.news-source').first()).toHaveText('minecraft.net');

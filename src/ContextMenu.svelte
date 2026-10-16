@@ -1,6 +1,7 @@
 <script lang="ts">
+  import ArtworkImage from './ArtworkImage.svelte';
   import type {Snippet} from 'svelte';
-  let {title,heading,trigger,x,y,children,onclose,ignoreTrigger=false}:{title:string;heading?:Snippet;trigger:HTMLElement;x:number;y:number;children:Snippet;onclose:()=>void;ignoreTrigger?:boolean}=$props();
+  let {title,icon,heading,trigger,x,y,children,onclose,ignoreTrigger=false}:{title:string;icon?:string|null;heading?:Snippet;trigger:HTMLElement;x:number;y:number;children:Snippet;onclose:()=>void;ignoreTrigger?:boolean}=$props();
   function close(){const anchor=trigger;onclose();anchor.focus({preventScroll:true});}
   function attach(node:HTMLElement){
     const rect=node.getBoundingClientRect();node.style.left=`${Math.max(8,Math.min(x,innerWidth-rect.width-8))}px`;node.style.top=`${Math.max(8,Math.min(y,innerHeight-rect.height-8))}px`;
@@ -16,4 +17,4 @@
     buttons[event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();
   }
 </script>
-<div class="instance-context-menu" role="menu" tabindex="-1" aria-label={title} use:attach onkeydown={keys} oncontextmenu={event=>event.preventDefault()}><div class="instance-menu-title">{#if heading}{@render heading()}{:else}{title}{/if}</div>{@render children()}</div>
+<div class="instance-context-menu" role="menu" tabindex="-1" aria-label={title} use:attach onkeydown={keys} oncontextmenu={event=>event.preventDefault()}><div class="instance-menu-title"><ArtworkImage source={icon} fallback="none"/>{#if heading}{@render heading()}{:else}{title}{/if}</div>{@render children()}</div>

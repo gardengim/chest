@@ -565,5 +565,11 @@
   "Name is required.": "名前を入力してください。",
   "Window size must be between 320 × 240 and 16384 × 16384": "ウィンドウサイズは320 × 240から16384 × 16384の間で指定してください。",
   "Collapse": "折りたたむ",
-  "Use unique environment variable names.": "環境変数の名前は重複できません。"
+  "Use unique environment variable names.": "環境変数の名前は重複できません。",
+  "Survival": "サバイバル",
+  "Creative": "クリエイティブ",
+  "Adventure": "アドベンチャー",
+  "Spectator": "スペクテイター",
+  "Hardcore": "ハードコア",
+  "Last played": "最終プレイ"
 }

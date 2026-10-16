@@ -85,7 +85,7 @@ test('collection toolbars share search geometry, action order and spacing withou
     })).toEqual({aligned:true,addBeforeSearch:true});
   }
   expect(await instances.locator('[data-tool="add"] .ui-button').allTextContents()).toEqual(['Add']);
-  expect(await servers.locator('[data-tool] > .ui-button').allTextContents()).toEqual(['Add','Refresh']);
+  expect(await servers.locator('[data-tool] > .ui-button').allTextContents()).toEqual(['Add']);
   await expect(instances.getByRole('heading',{name:'Instances 8'})).toBeVisible();
   await expect(instances.getByRole('button',{name:'View all',exact:true})).toBeVisible();
   const switchControl=instances.getByRole('radiogroup',{name:'Library layout'});
@@ -110,7 +110,7 @@ test('collection toolbars share search geometry, action order and spacing withou
   expect((await source.boundingBox())!.width).toBeGreaterThan(100);
   await page.locator('.catalog-controls').screenshot({path:testInfo.outputPath('catalog-controls.png')});
   const screenshots=page.locator('[data-home-section="screenshots"] .collection-toolbar');
-  await expect(screenshots.getByRole('button',{name:'Refresh',exact:true})).toHaveCount(1);
+  await expect(screenshots.getByRole('button',{name:'Refresh',exact:true})).toHaveCount(0);
   await screenshots.screenshot({path:testInfo.outputPath('screenshots-toolbar.png')});
   await page.setViewportSize({width:520,height:800});
   const more=instances.getByRole('button',{name:'More actions',exact:true});

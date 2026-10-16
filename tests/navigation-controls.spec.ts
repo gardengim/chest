@@ -115,7 +115,7 @@ test('navigation disappears for fitting shelves and single-page collections, the
   await expect(page.locator('.pagination')).toHaveCount(0);
   for(const [count,pages] of [[24,0],[25,1],[0,0]] as const){
     await page.evaluate(count=>(window as any).__shotCount=count,count);
-    await page.getByRole('button',{name:'Refresh',exact:true}).click();
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
     await expect(page.locator('.screenshot-tile')).toHaveCount(Math.min(count,24));
     await expect(page.locator('.pagination')).toHaveCount(pages);
   }

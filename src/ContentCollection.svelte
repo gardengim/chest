@@ -2,6 +2,7 @@
   export interface ContentEntry {id:string;name:string;kind:string;subtitle?:string;enabled?:boolean;removable?:boolean;toggleable?:boolean;icon?:string|null;background?:string|null;}
 </script>
 <script lang="ts">
+  import {onFocusRefresh} from './focus-refresh';
   import CardGrid from './CardGrid.svelte';
   import Pagination from './Pagination.svelte';
   import {collectionPageSize as pageSize} from './collection-page';
@@ -26,6 +27,7 @@
   const shown=$derived(visible.slice(page*pageSize,(page+1)*pageSize));
   $effect(()=>{query;kind;status;page=0;});
   $effect(()=>{page=Math.min(page,pages-1);});
+  onFocusRefresh(refresh);
   async function refresh(){if(!onrefresh || refreshing)return;refreshing=true;try{await onrefresh();}finally{refreshing=false;}}
 
 </script>
@@ -34,7 +36,6 @@
   <div id={`${prefix}-panel-${encodeURIComponent(kind)}`} role="tabpanel" aria-labelledby={`${prefix}-tab-${encodeURIComponent(kind)}`} class="collection-panel">
     <Toolbar trailing={layoutButton} searchLabel={$t('Search content')} bind:value={search} items={[
       ...(onadd?[{id:'add',label:$t('Add'),priority:100,content:addButton}]:[]),
-      ...(onrefresh?[{id:'refresh',label:$t('Refresh'),priority:0,content:refreshButton}]:[]),
       ...(kind==='Mods'?[{id:'status',label:$t('Status'),priority:10,content:statusFilter}]:[])
     ]}/>
     <p class="hint" role="status">{$t('{shown} of {total}',{shown:visible.length,total:category.length})}</p>
@@ -60,6 +61,5 @@
 </style>
 
 {#snippet addButton()}<AddButton disabled={busy || addDisabled} onclick={()=>onadd?.(kinds[kind])}/>{/snippet}
-{#snippet refreshButton()}<Button disabled={refreshing} onclick={refresh}>{$t('Refresh')}</Button>{/snippet}
 {#snippet layoutButton()}<LayoutSwitch bind:value={layout} label={$t('Content view')}/>{/snippet}
 {#snippet statusFilter()}<Select aria-label={$t('Status')} bind:value={status}><option value="all">{$t('All')}</option><option value="enabled">{$t('Enabled')}</option><option value="disabled">{$t('Disabled')}</option></Select>{/snippet}

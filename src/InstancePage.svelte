@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {onFocusRefresh} from './focus-refresh';
   import Toolbar from './Toolbar.svelte';
   import SettingsGroup from './SettingsGroup.svelte';
   import {untrack} from 'svelte';
@@ -47,13 +48,25 @@
     return()=>{alive=false;};
   });
   let files=$state<InstanceFiles>({worlds:[],servers:[],screenshots:[]});
-  let fileError=$state('');let filesId='';
-  let refreshPending=$state(false);
-  async function refreshFiles(){refreshPending=true;fileError='';const id=current.id;try{const value=await api.instanceFiles(id);if(current.id===id)files=value;}catch(e){if(current.id===id)fileError=String(e);}finally{refreshPending=false;}}
+  let fileError=$state(''),filesLoaded=$state(false);
+  let refreshPending=$state(false),filesId='',request=0;
+  let previousTab:Tab='Overview',observedTab:Tab='Overview';
+  $effect(()=>{if(tab!==observedTab){previousTab=observedTab;observedTab=tab;}});
+  async function refreshFiles(){
+    const id=current.id,ticket=++request;refreshPending=true;fileError='';
+    try{const value=await api.instanceFiles(id);if(current.id===id && ticket===request){files=value;filesLoaded=true;}}
+    catch(e){if(current.id===id && ticket===request)fileError=String(e);}
+    finally{if(ticket===request)refreshPending=false;}
+  }
+  onFocusRefresh(refreshFiles);
   const activityStatus=$derived(active?.status);
-  $effect(()=>{const id=instanceId;void activityStatus;let alive=true;untrack(()=>{if(filesId!==id){filesId=id;files={worlds:[],servers:[],screenshots:[]};}fileError='';});
-    void api.instanceFiles(id).then(value=>{if(alive)files=value;}).catch(e=>{if(alive)fileError=String(e);});return()=>{alive=false;};});
-  const instanceTabs=$derived([...tabs.slice(0,2),...(files.worlds.length || tab==='Worlds'?['Worlds' as const]:[]),...(files.servers.length || tab==='Servers'?['Servers' as const]:[]),...(files.screenshots.length || tab==='Screenshots'?['Screenshots' as const]:[]),...tabs.slice(2)]);
+  $effect(()=>{
+    const id=instanceId;void activityStatus;
+    untrack(()=>{if(filesId!==id){filesId=id;files={worlds:[],servers:[],screenshots:[]};filesLoaded=false;}void refreshFiles();});
+    return()=>{request++;};
+  });
+  const instanceTabs=$derived([...tabs.slice(0,2),...(files.worlds.length || !filesLoaded && tab==='Worlds'?['Worlds' as const]:[]),...(files.servers.length || !filesLoaded && tab==='Servers'?['Servers' as const]:[]),...(files.screenshots.length || !filesLoaded && tab==='Screenshots'?['Screenshots' as const]:[]),...tabs.slice(2)]);
+  $effect(()=>{if(filesLoaded && !instanceTabs.includes(tab))onselectTab(instanceTabs.includes(previousTab)?previousTab:'Overview');});
   let editLoaderReady=$state(false);
   const currentUI=$derived(instanceUI(current,active));
   const busy=$derived(currentUI.busy);
@@ -211,7 +224,6 @@
 
   {:else}
     <Toolbar searchLabel={$t('Search log')} bind:value={logSearch} items={[
-      {id:'refresh',label:$t('Refresh'),content:refreshLog},
       ...(filteredOutput.length?[{id:'copy',label:$t('Copy'),priority:20,content:copyLog}]:[])
     ]}/>
     <pre class="console">{filteredOutput.join('\n') || $t(output.length?'No results':'No output')}</pre>
@@ -220,5 +232,4 @@
 
 </div>
 
-{#snippet refreshLog()}<Button onclick={onrefresh}>{$t('Refresh')}</Button>{/snippet}
 {#snippet copyLog()}<CopyButton text={filteredOutput.join('\n')}/>{/snippet}

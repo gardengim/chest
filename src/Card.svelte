@@ -7,13 +7,13 @@
   import ArtworkImage from './ArtworkImage.svelte';
   import ScreenshotBackdrop from './ScreenshotBackdrop.svelte';
   type Props=Omit<HTMLAttributes<HTMLElement>,'children'|'title'> & {
-    disabled?:boolean;artworkKey?:string;loadIcon?:()=>Promise<string|null>;title:string;icon?:string|null;background?:string|null;instanceId?:string;
+    disabled?:boolean;artworkKey?:string;loadIcon?:()=>Promise<string|null>;title:string;icon?:string|null;fallbackIcon?:string;background?:string|null;instanceId?:string;
     width?:string;height?:string;minHeight?:string;maxHeight?:string;padding?:string;iconSize?:string;
     media?:'icon'|'image'|'none';imageFit?:'cover'|'contain';mediaRatio?:string;backgroundOpacity?:number;bodyMinHeight?:string;
     backgroundFromIcon?:boolean;badge?:string;layout?:'gallery'|'list';
     interactive?:boolean;children?:Snippet;actions?:Snippet;art?:Snippet;
   };
-  let {title,icon,background,backgroundFromIcon=false,media='icon',imageFit='cover',mediaRatio,backgroundOpacity=.8,bodyMinHeight,instanceId,artworkKey='',loadIcon,badge,layout='gallery',interactive=true,
+  let {title,icon,fallbackIcon,background,backgroundFromIcon=false,media='icon',imageFit='cover',mediaRatio,backgroundOpacity=.8,bodyMinHeight,instanceId,artworkKey='',loadIcon,badge,layout='gallery',interactive=true,
     children,actions,art,width,height,minHeight,maxHeight,padding,iconSize,style:customStyle,class:className,...attributes}:Props=$props();
   const cardStyle=$derived(Object.entries({
     '--card-width':width,'--card-height':height,'--card-min-height':minHeight,'--card-max-height':maxHeight,
@@ -34,7 +34,7 @@
   });
   let failedIcon=$state('');
   const candidate=$derived(icon || (resolved?.key===artworkKey?resolved?.icon:null));
-  const image=$derived(candidate && candidate!==failedIcon?candidate:null);
+  const image=$derived(candidate && candidate!==failedIcon?candidate:fallbackIcon || null);
 </script>
 {#snippet contents()}
   <ScreenshotBackdrop id={instanceId} sources={background?[background]:backgroundFromIcon && image?[image]:instanceId?undefined:[]} fallback={image || undefined} variant="card"/>
@@ -55,8 +55,8 @@
 {/if}
 
 <style>
-:global(.launcher-card){--text:var(--theme-card-text);--muted:var(--theme-card-muted);--icon-ink:var(--icon-on-card);--link:var(--theme-link);--negative-text:var(--theme-danger-text);position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-width:0;width:var(--card-width,100%);height:var(--card-height,auto);min-height:var(--card-min-height,0);max-height:var(--card-max-height,none);margin:0;padding:0;text-align:start;font-size:.85714286rem;overflow:hidden;border:var(--stroke) solid var(--frame);background:var(--card-fill,var(--theme-surface));color:var(--text);box-shadow:var(--shadow-drop)}
-:global(.launcher-card:has(.card-backdrop img)){--text:var(--theme-overlay-text);--muted:var(--theme-overlay-muted);--icon-ink:#ececec}
+:global(.launcher-card){--card-action-fill:color-mix(in srgb,var(--theme-control) 65%,transparent);--card-action-hover:color-mix(in srgb,var(--theme-control) 80%,transparent);--card-action-text:var(--theme-control-text);--card-action-icon:var(--icon-on-control);--text:var(--theme-card-text);--muted:var(--theme-card-muted);--icon-ink:var(--icon-on-card);--link:var(--theme-link);--negative-text:var(--theme-danger-text);position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;min-width:0;width:var(--card-width,100%);height:var(--card-height,auto);min-height:var(--card-min-height,0);max-height:var(--card-max-height,none);margin:0;padding:0;text-align:start;font-size:.85714286rem;overflow:hidden;border:var(--stroke) solid var(--frame);background:var(--card-fill,var(--theme-surface));color:var(--text);box-shadow:var(--shadow-drop)}
+:global(.launcher-card:has(.card-backdrop img)){--card-action-fill:#0006;--card-action-hover:#0008;--card-action-text:var(--theme-overlay-text);--card-action-icon:#ececec;--text:var(--theme-overlay-text);--muted:var(--theme-overlay-muted);--icon-ink:#ececec}
 :global(.launcher-card)::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:var(--bevel-raised)}
 :global(.launcher-card.ui-button:not(:disabled):active)::after{box-shadow:var(--bevel-pressed)}
 :global(.launcher-card[data-highlighted='true']){outline:var(--stroke) solid var(--focus-ring);outline-offset:.14285714rem}
@@ -79,7 +79,7 @@
 :global(.launcher-card[data-layout='list']) .catalog-kind{display:none}
 .shared-card-actions{display:flex;align-items:center;gap:.71428571rem;flex-wrap:wrap;margin-top:auto;padding-top:1.14285714rem}
 .shared-card-actions:empty{display:none}
-.shared-card-actions :global(.ui-button){--button-fill:#000c;--button-hover:#000d;--button-text:var(--theme-overlay-text);--icon-ink:#ececec;--button-shadow:var(--bevel-raised);border-color:#ffffff26;backdrop-filter:blur(.42857143rem);-webkit-backdrop-filter:blur(.42857143rem);height:auto;min-height:var(--control-height);white-space:normal;padding:.5em .71428571rem}
+:global(:where(.launcher-card) .ui-button){--button-fill:var(--card-action-fill);--button-hover:var(--card-action-hover);--button-text:var(--card-action-text);--icon-ink:var(--card-action-icon);--button-shadow:var(--bevel-raised);border-color:#ffffff40;backdrop-filter:blur(.57142857rem) brightness(1.25);-webkit-backdrop-filter:blur(.57142857rem) brightness(1.25);height:auto;min-height:var(--control-height);white-space:normal;padding:.5em .71428571rem}
 :global(.launcher-card:has(.card-backdrop img)) .shared-card-body{text-shadow:0 1px .21428571rem #0008}
 .shared-card-actions :global(.card-action-more){font-size:1.57142857rem;line-height:1;padding:.25em .57142857rem}
 :global(.launcher-card.disabled-entry) .shared-card-art{opacity:.5}

@@ -565,5 +565,11 @@
   "Name is required.": "이름을 입력하세요.",
   "Window size must be between 320 × 240 and 16384 × 16384": "창 크기는 320 × 240에서 16384 × 16384 사이여야 합니다.",
   "Collapse": "접기",
-  "Use unique environment variable names.": "환경 변수 이름은 중복될 수 없습니다."
+  "Use unique environment variable names.": "환경 변수 이름은 중복될 수 없습니다.",
+  "Survival": "서바이벌",
+  "Creative": "크리에이티브",
+  "Adventure": "모험",
+  "Spectator": "관전자",
+  "Hardcore": "하드코어",
+  "Last played": "마지막 플레이"
 }

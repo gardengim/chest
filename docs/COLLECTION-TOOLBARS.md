@@ -6,7 +6,7 @@ The toolbar follows content sizes and available width. The title takes spare spa
 
 ## Priority overflow
 
-Pass actions as `ToolbarItem` entries with stable `id`, translated `label`, `content` snippet, and `priority`. Higher priority stays visible longer. Add uses 100 and appears before search; secondary filters use 10 and Refresh 0. Layout selectors use the dedicated `trailing` snippet rather than an overflow item. Widths are measured from the rendered controls. Items that do not fit move into a vertical ellipsis (⋮) popover. They are rendered once in their current location; state lives in the collection, so changing placement preserves its selections.
+Pass actions as `ToolbarItem` entries with stable `id`, translated `label`, `content` snippet, and `priority`. Higher priority stays visible longer. Add uses 100 and appears before search; secondary filters use 10. Layout selectors use the dedicated `trailing` snippet rather than an overflow item. Widths are measured from the rendered controls. Items that do not fit move into a vertical ellipsis (⋮) popover. They are rendered once in their current location; state lives in the collection, so changing placement preserves its selections.
 
 When content overflows, View all and previous/next belong to the separate `navigation` snippet and never enter overflow. The shelf hides this snippet when all content fits. Keep search visible and allow it to wrap when necessary. `filters` supports a flexible field next to search, such as catalog source. Complex catalog filters retain a responsive grid below the main row.
 
@@ -21,3 +21,12 @@ The overflow popover supports keyboard Tab navigation, Escape dismissal with foc
 - `status` can supply a short count for views without a shelf heading.
 
 Regression coverage includes actual single-row header alignment, filtering, priority overflow, retained layout selection after resizing, focus restoration, visible navigation outside overflow, dropdown labels and widths, and narrow/enlarged-text layouts.
+
+Local collections refresh on window focus and when the document becomes visible through
+`onFocusRefresh`. Focus/visibility events coalesce, scans do not overlap within the
+subscription, and hidden windows do not scan. Local toolbars omit manual Refresh.
+InstancePage owns discovery of optional Worlds/Servers/Screenshots tabs even when
+those tabs are absent; a successfully emptied selected tab returns to the previous
+available tab or Overview. Read failures retain the last successful collection.
+Keep explicit refresh callbacks for mutations such as rename/copy. Remote catalog
+search and retry retain their own provider lifecycle.

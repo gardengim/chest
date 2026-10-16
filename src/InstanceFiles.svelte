@@ -6,6 +6,7 @@
   import Toolbar from './Toolbar.svelte';
   import RenameResource from './RenameResource.svelte';
   import {tick} from 'svelte';
+  import MenuItem from './MenuItem.svelte';
   import ContextMenu from './ContextMenu.svelte';
   import {resourceKey,type ResourceLink} from './resource-navigation';
   import {serverAddressKey} from './server-library';
@@ -54,12 +55,12 @@
 </script>
 <div bind:this={root}>
 {#if error}<p class="inline-error" role="alert">{error}</p>{/if}
-{#if notice}<p role="status">{notice}</p>{/if}
+{#if notice}<p class="inline-notice" role="status">{notice}</p>{/if}
 {#if tab==='Worlds'}
-  <Toolbar trailing={worldView} items={[{id:'refresh',label:$t('Refresh'),content:refreshButton}]}/>
+  <Toolbar trailing={worldView}/>
   <WorldList layout={worldLayout} highlight={resourceLink?.tab==='Worlds'?resourceLink.item:''} {worlds} {instances} {isBusy} {onrefresh}/>
 {:else if tab==='Servers'}
-  <Toolbar trailing={serverView} items={[{id:'refresh',label:$t('Refresh'),content:refreshButton}]}/>
+  <Toolbar trailing={serverView}/>
   <CardGrid class="server-cards" layout={serverLayout}>{#each shownServers as server}
     <Card class="resource-card" interactive={false} tabindex={-1} data-resource-key={resourceKey('server',serverAddressKey(server.ip))} data-highlighted={resourceLink?.tab==='Servers' && resourceLink.item===serverAddressKey(server.ip) || undefined} aria-haspopup="menu" aria-expanded={menu?.server===server} oncontextmenu={event=>openMenu(event,server)} onkeydown={event=>openMenu(event,server)} title={server.name} icon={server.icon} layout={serverLayout}>
       <span class="selectable">{server.ip}</span>
@@ -76,14 +77,16 @@
   <Screenshots {instances} full {onrefresh} refreshDisabled={refreshPending} screenshots={files.screenshots.map(name=>({instance_id:id,name,modified:0}))}/>
 {/if}
 {#if renaming}<RenameResource name={renaming.name} onrename={async name=>{await api.renameResource(id,'server',renaming!.ip,name);await onrefresh();}} onclose={()=>renaming=null}/>{/if}
-{#if menu}<ContextMenu title={menu.server.name} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
-  <Button shape="plain" role="menuitem" disabled={!native || busy || pending} onclick={()=>action(server=>{renaming=server;})}>{$t('Rename')}</Button>
-  <Button shape="plain" role="menuitem" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.ip);notice=$t('Copied');}))}>{$t('Copy')}</Button>
-  <Button shape="plain" role="menuitem" disabled={pending || bookmarks.some(bookmark=>serverAddressKey(bookmark.address)===serverAddressKey(menu!.server.ip))} onclick={()=>action(server=>run(async()=>{onconfig?.(await api.saveServerBookmark({id:'',name:server.name,address:server.ip,instance_id:id,expected_version:'',expected_loader:null}));notice=$t('Server bookmarked.');}))}>{$t(bookmarks.some(bookmark=>serverAddressKey(bookmark.address)===serverAddressKey(menu!.server.ip))?'Already added':'Bookmark')}</Button>
+{#if menu}<ContextMenu title={menu.server.name} icon={menu.server.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
+  <MenuItem icon="play" disabled={!native || busy || pending || !installed} onclick={()=>action(server=>run(()=>api.launchResource(id,'server',server.ip)))}>{$t('Join')}</MenuItem>
+  <div role="separator"></div>
+  <MenuItem icon="gear" disabled={!native || busy || pending} onclick={()=>action(server=>{renaming=server;})}>{$t('Rename')}</MenuItem>
+  <MenuItem icon="copy" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.ip);notice=$t('Copied');}))}>{$t('Copy')}</MenuItem>
+  <div role="separator"></div>
+  <MenuItem icon="plus" disabled={pending || bookmarks.some(bookmark=>serverAddressKey(bookmark.address)===serverAddressKey(menu!.server.ip))} onclick={()=>action(server=>run(async()=>{onconfig?.(await api.saveServerBookmark({id:'',name:server.name,address:server.ip,instance_id:id,expected_version:'',expected_loader:null}));notice=$t('Server bookmarked.');}))}>{$t(bookmarks.some(bookmark=>serverAddressKey(bookmark.address)===serverAddressKey(menu!.server.ip))?'Already added':'Bookmark')}</MenuItem>
 </ContextMenu>{/if}
 </div>
 <style>.selectable{user-select:text}</style>
 
-{#snippet refreshButton()}<Button disabled={refreshPending} onclick={onrefresh}>{$t('Refresh')}</Button>{/snippet}
 {#snippet worldView()}<LayoutSwitch label={$t('Worlds layout')} bind:value={worldLayout}/>{/snippet}
 {#snippet serverView()}<LayoutSwitch label={$t('Servers layout')} bind:value={serverLayout}/>{/snippet}

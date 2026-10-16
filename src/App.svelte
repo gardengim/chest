@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {onFocusRefresh} from './focus-refresh';
   import UnsavedChangesDialog from './UnsavedChangesDialog.svelte';
   import {NavigationDecisions,type ExitAction} from './navigation-decisions.svelte';
   import {trimLogs} from './log-retention';
@@ -154,6 +155,7 @@
     await refreshIcons();
     for(const i of config.instances)if(pending.has(i.id) && i.version!=='pending')editors[i.id]={...i};
   }
+  onFocusRefresh(async()=>{await refreshIcons().catch(()=>{});if(current && tab==='Log')await refreshLogs(current.id);});
   async function refreshIcons() {
     const icons=await api.icons() || {};
     for(const i of config.instances){
@@ -593,7 +595,7 @@
       {#await loadCreatePage()}<p role="status">{$t("Loading…")}</p>{:then {default:CreatePage}}
       <CreatePage bind:draft={creation} instances={config.instances} {versions} {versionError}
         onretry={loadVersions} oncreated={instanceCreated} {isBusy} {perform}/>
-      {:catch}<p role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
+      {:catch}<p class="inline-error" role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
     {:else if current}
       {#await loadInstancePage()}<p role="status">{$t("Loading…")}</p>{:then {default:InstancePage}}
       <InstancePage resourceLink={resourceLink?.id===current.id?resourceLink:null} bookmarks={config.server_bookmarks} onconfig={value=>config=value} instances={config.instances} {isBusy} bind:launchDraft={launchDrafts[current.id]} accounts={config.accounts} {current} bind:editor={editors[current.id]} {active} {tab} dirty={instanceDirty} onrestore={restoreInstance}
@@ -602,13 +604,13 @@
         onbrowse={kind=>browseContent(current!.id,kind)} onsave={saveInstance}
         onacknowledge={()=>acknowledge(current!.id)} ontoggle={file=>toggleContent(current!,file)}
         onrefresh={()=>refreshLogs(current!.id)} onrefreshContent={()=>refreshContent(current!.id)}/>
-      {:catch}<p role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
+      {:catch}<p class="inline-error" role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
     {:else if destination==='profile'}
       {#await loadSettingsPage()}<p role="status">{$t("Loading…")}</p>{:then {default:SettingsPage}}
       <SettingsPage {debugLaunch} ontoggleOffline={toggleOfflineDebug} {config} bind:draft={settingsDraft} tab={settingsTab} onselectTab={chooseSettingsTab}
         dirty={settingsDirty} onsave={saveSettings} ondiscard={discardSettings} onrestore={restoreSettings} {signingIn} onsignin={signIn}
         onconfig={next=>config=next} onnotice={message=>notice=message} {perform}/>
-      {:catch}<p role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
+      {:catch}<p class="inline-error" role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
     {/if}
     </div>
   </main>
@@ -625,7 +627,7 @@
       <label>{$t("Group name")}<input bind:value={groupName} list="instance-groups" maxlength={80} placeholder={$t("Leave empty to ungroup")} disabled={groupPending}/></label>
       <datalist id="instance-groups">{#each groups as group}<option value={group.name}></option>{/each}</datalist>
       <p class="hint">{$t("Empty removes the instance from its group.")}</p>
-      {#if groupError}<p role="alert">{groupError}</p>{/if}
+      {#if groupError}<p class="inline-error" role="alert">{groupError}</p>{/if}
       <div class="form-actions"><Button disabled={groupPending} onclick={()=>grouping=null}>{$t("Cancel")}</Button><Button type="submit" tone="accent" disabled={groupPending}>{$t(groupPending?'Saving…':'Save')}</Button></div>
     </form>
   </dialog>
