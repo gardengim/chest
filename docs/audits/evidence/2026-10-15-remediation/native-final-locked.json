@@ -1,0 +1,13 @@
+{
+  "applicationRevision": "8edb23b47e01df4b244afe4cb46134fef083afbc",
+  "status": "incomplete",
+  "consoleSessionLocked": true,
+  "libraryReady": false,
+  "completedStages": [
+    "setup",
+    "core-ready",
+    "window-built"
+  ],
+  "measurementIncluded": false,
+  "humanAction": "Verify on an unlocked desktop; no automatic unlock or normal-profile launch performed."
+}

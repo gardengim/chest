@@ -1,0 +1,20 @@
+{
+  "boundary": "Chromium JS heap after requested GC; not total WebView memory, native CPU or a leak test",
+  "records": [
+    {
+      "label": "home-1000-worlds-1000-servers-100-thumbnails",
+      "cards": 48,
+      "nodes": 1199,
+      "heapBytes": 11358416,
+      "iconCount": 100
+    },
+    {
+      "label": "instance-1000-mods-100-thumbnails",
+      "cards": 24,
+      "nodes": 718,
+      "heapBytes": 12094532,
+      "iconCount": 100
+    }
+  ],
+  "applicationRevision": "8edb23b47e01df4b244afe4cb46134fef083afbc"
+}

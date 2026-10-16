@@ -1,0 +1,361 @@
+{
+  "executable": "<verification-app>",
+  "executableSha256": "3a8d28b3c5671ca10a2e6380c9d04c5018c46844819b9fd38283443a899947a8",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "profile": "<disposable-profile>",
+  "profileRetained": false,
+  "instances": 100,
+  "iconFixture": true,
+  "samples": [
+    {
+      "processToLibraryMs": 489.08108402974904,
+      "stages": [
+        {
+          "elapsed_ms": 75.51245800000001,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 169.37033300000002,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 260.104375,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 481.135333,
+          "stage": "library-rendered"
+        }
+      ],
+      "idle": {
+        "seconds": 20.283447666908614,
+        "settleSeconds": 5,
+        "meanRssMiB": 118.59077380952381,
+        "peakRssMiB": 118.875,
+        "cpuPercent": 0.04930128331346,
+        "processTreeComplete": false,
+        "boundary": "Owned main process only; excludes WebView/GPU/network subprocesses and game JVM",
+        "samples": [
+          {
+            "rssKiB": 121728,
+            "cpuSeconds": 0.37
+          },
+          {
+            "rssKiB": 121728,
+            "cpuSeconds": 0.37
+          },
+          {
+            "rssKiB": 121728,
+            "cpuSeconds": 0.37
+          },
+          {
+            "rssKiB": 121728,
+            "cpuSeconds": 0.37
+          },
+          {
+            "rssKiB": 121728,
+            "cpuSeconds": 0.37
+          },
+          {
+            "rssKiB": 121648,
+            "cpuSeconds": 0.37
+          },
+          {
+            "rssKiB": 121392,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121392,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121392,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121392,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121392,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121312,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121312,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121312,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121312,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121312,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121312,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121264,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121264,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121264,
+            "cpuSeconds": 0.38
+          },
+          {
+            "rssKiB": 121264,
+            "cpuSeconds": 0.38
+          }
+        ]
+      }
+    },
+    {
+      "processToLibraryMs": 464.52341706026345,
+      "stages": [
+        {
+          "elapsed_ms": 93.719791,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 182.71212500000001,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 268.021791,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 456.73175,
+          "stage": "library-rendered"
+        }
+      ],
+      "idle": {
+        "seconds": 20.26849970803596,
+        "settleSeconds": 5,
+        "meanRssMiB": 116.28125,
+        "peakRssMiB": 116.6875,
+        "cpuPercent": 0.049337642864781234,
+        "processTreeComplete": false,
+        "boundary": "Owned main process only; excludes WebView/GPU/network subprocesses and game JVM",
+        "samples": [
+          {
+            "rssKiB": 119488,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119488,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119488,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119488,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119488,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119472,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119216,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119216,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119216,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119216,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119216,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119104,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119104,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119104,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119104,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119104,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119104,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119072,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119072,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 119072,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 115680,
+            "cpuSeconds": 0.31
+          }
+        ]
+      }
+    },
+    {
+      "processToLibraryMs": 469.47229199577123,
+      "stages": [
+        {
+          "elapsed_ms": 89.273042,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 175.367209,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 266.003334,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 458.24454199999997,
+          "stage": "library-rendered"
+        }
+      ],
+      "idle": {
+        "seconds": 20.27856550004799,
+        "settleSeconds": 5,
+        "meanRssMiB": 103.8764880952381,
+        "peakRssMiB": 117.078125,
+        "cpuPercent": 0.09862630569185324,
+        "processTreeComplete": false,
+        "boundary": "Owned main process only; excludes WebView/GPU/network subprocesses and game JVM",
+        "samples": [
+          {
+            "rssKiB": 119888,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119888,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119888,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119888,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119888,
+            "cpuSeconds": 0.3
+          },
+          {
+            "rssKiB": 119872,
+            "cpuSeconds": 0.31
+          },
+          {
+            "rssKiB": 101040,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 101040,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 101040,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 101040,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 101040,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100976,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100976,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100976,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100976,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100976,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100912,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100864,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100864,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100864,
+            "cpuSeconds": 0.32
+          },
+          {
+            "rssKiB": 100864,
+            "cpuSeconds": 0.32
+          }
+        ]
+      }
+    }
+  ],
+  "medianProcessToLibraryMs": 469.47229199577123,
+  "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+}

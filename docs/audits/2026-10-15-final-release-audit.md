@@ -1,6 +1,9 @@
 # Final pre-release audit — performance, accessibility and maintainability
 
-**Decision: hold the release build.** Two high-priority findings remain, followed by four focused pre-release corrections. Passing the existing test suite does not cover these boundaries.
+Follow-up: [implemented fixes and current verification](2026-10-15-remediation.md).
+The findings below describe the audited revision and remain historical evidence.
+
+**Decision at audit time: hold the release build.** Two high-priority findings remain, followed by four focused pre-release corrections. Passing the existing test suite does not cover these boundaries.
 
 Application revision: `b91e552be74a4c8882a4c358a77a75d8f709b4e8`.
 Audit checkout: `d75cfde95ff50089bd16bbc92b829b648da19de3` (later commits are documentation only).

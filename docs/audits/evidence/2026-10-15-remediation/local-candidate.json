@@ -1,0 +1,18 @@
+{
+  "artifact": "src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+  "logicalAppBytes": 13779033,
+  "executableBytes": 13528240,
+  "executableSha256": "d31de7e12c11a517c5b15b66621c9483f5491f1992a6a17bb6a369d1b3514a3d",
+  "distributionSigning": false,
+  "notarization": false,
+  "applicationRevision": "8edb23b47e01df4b244afe4cb46134fef083afbc",
+  "localSigning": "SOP ad-hoc signature; codesign --verify --deep --strict passed",
+  "minimumMacOS": "14.0",
+  "verification": {
+    "browser": 195,
+    "core": 103,
+    "native": 4,
+    "scripts": 26,
+    "retinaWebkit": 13
+  }
+}

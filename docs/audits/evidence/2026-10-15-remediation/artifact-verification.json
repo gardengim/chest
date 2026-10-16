@@ -1,0 +1,61 @@
+[
+  {
+    "target": "aarch64-apple-darwin",
+    "commit": "8edb23b47e01df4b244afe4cb46134fef083afbc",
+    "verifiedInstallers": [
+      {
+        "path": "dmg/Chest_0.1.0_aarch64.dmg",
+        "bytes": 5965174,
+        "sha256": "f08a0d7dfef677ce259df85e8b1bdc4394848761f36d45425a38394bb28ae465"
+      }
+    ]
+  },
+  {
+    "target": "x86_64-apple-darwin",
+    "commit": "8edb23b47e01df4b244afe4cb46134fef083afbc",
+    "verifiedInstallers": [
+      {
+        "path": "dmg/Chest_0.1.0_x64.dmg",
+        "bytes": 6106535,
+        "sha256": "42f99cef470fc9e2ceaa0b6484c1dff2456176a5dd2dc6dde83a4fb3ddf4847e"
+      }
+    ]
+  },
+  {
+    "target": "x86_64-pc-windows-msvc",
+    "commit": "8edb23b47e01df4b244afe4cb46134fef083afbc",
+    "verifiedInstallers": [
+      {
+        "path": "msi/Chest_0.1.0_x64_en-US.msi",
+        "bytes": 5693440,
+        "sha256": "81d072c69b2aeaf98bff4c0c135dbe4121b6e22598cd46fe1ab472a516517dba"
+      },
+      {
+        "path": "nsis/Chest_0.1.0_x64-setup.exe",
+        "bytes": 4037488,
+        "sha256": "be34f2b93c66f3cc60c6c2a1d4a9d67269a95d3d40a27ddcdffdbaeda08fa227"
+      }
+    ]
+  },
+  {
+    "target": "x86_64-unknown-linux-gnu",
+    "commit": "8edb23b47e01df4b244afe4cb46134fef083afbc",
+    "verifiedInstallers": [
+      {
+        "path": "appimage/Chest_0.1.0_amd64.AppImage",
+        "bytes": 84179448,
+        "sha256": "26d4c161cdcbb13b6319c08e5b46be00a4e4af4e4f3b5b586153934cf3e440d0"
+      },
+      {
+        "path": "deb/Chest_0.1.0_amd64.deb",
+        "bytes": 6123276,
+        "sha256": "bf6791797307cab990922461fa53f4724f731306a35b28d9ef4090ee0453cb27"
+      },
+      {
+        "path": "rpm/Chest-0.1.0-1.x86_64.rpm",
+        "bytes": 6123659,
+        "sha256": "0231e4f495655295d6e55e5bf6bd1dcefcf392c0f176d2663eb7e7efb8828ed8"
+      }
+    ]
+  }
+]
