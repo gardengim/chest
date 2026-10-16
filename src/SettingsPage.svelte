@@ -78,15 +78,15 @@
     {/if}
   </section>
   {:else if tab==='Develop' && development}
+  {#if debugLaunch.available}
   <section class="panel">
-    {#if debugLaunch.available}
     <h2>{$t('Debugging')}</h2>
     <h3>{$t('Offline debugging')}</h3>
     <p class="muted">{$t('Single-player testing as ChestDebug. No multiplayer or Realms.')}</p>
     <Button disabled={debugPending} selected={debugLaunch.enabled} onclick={toggleOffline}>{$t(debugLaunch.enabled?'Disable':'Enable')}</Button>
     {#if debugLaunch.enabled}<p class="hint">{$t('Enabled for this session.')}</p>{/if}
-    {/if}
   </section>
+  {/if}
   <form class="panel" onsubmit={event=>{event.preventDefault();void saveApplicationId();}}>
     <h2>{$t('Microsoft application setup')}</h2>
     <label>{$t('Chest application (client) ID')}<input bind:value={draft.clientId} disabled={applicationPending} placeholder="00000000-0000-0000-0000-000000000000"/></label>
