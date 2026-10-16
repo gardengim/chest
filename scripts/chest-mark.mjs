@@ -15,7 +15,7 @@ export function chestMark(){
   const lower=p=>[p[0],p[1]+height],pivot=[x+8*axis,y+7];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <title>Chest</title>
-  <desc>A regular hexagonal chest with a softly lit top, shaded right face, and silver latch.</desc>
+  <desc>A regular hexagonal chest with a lit top, shaded right face, softly lit outline junction, and silver latch.</desc>
   <defs>
     <linearGradient id="wood" x1="64" y1="12" x2="64" y2="116" gradientUnits="userSpaceOnUse">
       <stop stop-color="#AF8851"/>
@@ -23,13 +23,18 @@ export function chestMark(){
       <stop offset="1" stop-color="#79552F"/>
     </linearGradient>
     <linearGradient id="top-light" x1="64" y1="12" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFF0CE" stop-opacity=".09"/>
-      <stop offset="1" stop-color="#FFF0CE" stop-opacity=".03"/>
+      <stop stop-color="#FFF0CE" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#FFF0CE" stop-opacity=".06"/>
     </linearGradient>
     <linearGradient id="right-shade" x1="64" y1="38" x2="109.033321" y2="116" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#191613" stop-opacity=".07"/>
-      <stop offset="1" stop-color="#191613" stop-opacity=".16"/>
+      <stop stop-color="#191613" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#191613" stop-opacity=".25"/>
     </linearGradient>
+    <radialGradient id="outline-light" cx="${number(center[0])}" cy="${number(center[1])}" r="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#615544"/>
+      <stop offset=".4" stop-color="#40392F"/>
+      <stop offset="1" stop-color="#25221F"/>
+    </radialGradient>
     <linearGradient id="silver" x1="84" y1="71" x2="94" y2="83" gradientUnits="userSpaceOnUse">
       <stop stop-color="#CDD1CF"/>
       <stop offset="1" stop-color="#AFB7B3"/>
@@ -41,7 +46,7 @@ export function chestMark(){
   <path fill="url(#wood)" d="${polygon(vertices)}"/>
   <path fill="url(#top-light)" d="${polygon(top)}"/>
   <path fill="url(#right-shade)" d="${polygon(right)}"/>
-  <g fill="none" stroke="#25221F" stroke-width="7" stroke-linejoin="miter" stroke-linecap="butt">
+  <g fill="none" stroke="url(#outline-light)" stroke-width="7" stroke-linejoin="miter" stroke-linecap="butt">
     <path d="${polygon(vertices)}"/>
     <path d="M${point(vertices[5])} ${point(center)} ${point(vertices[1])}M${point(center)}V${number(vertices[3][1])}M${point([vertices[5][0],vertices[5][1]+20])} ${point([64,84])} ${point([vertices[1][0],vertices[1][1]+20])}"/>
   </g>
