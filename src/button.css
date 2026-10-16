@@ -61,6 +61,7 @@
     box-shadow:var(--bevel-pressed);
   }
   :where(.ui-button):is(:focus-visible,:has(> input:focus-visible)) {
+    z-index:3;
     outline:var(--stroke) solid var(--focus-ring);
     outline-offset:0.21428571rem;
   }
@@ -156,6 +157,7 @@
     flex:none;
     background:transparent;
     top:0;
+    scroll-margin-block:calc(5 * var(--pixel));
   }
   :where(.ui-button[data-shape='rail'])::before,
   :where(.ui-button[data-shape='rail'])::after {

@@ -207,8 +207,10 @@ small {
   flex-direction: column;
   align-items: stretch;
   gap: 0.14285714rem;
-  width: calc(100% + 4 * var(--pixel));
-  padding: 0.14285714rem calc(4 * var(--pixel)) 0.42857143rem 0;
+  /* Reserve the full outer focus ring, including the selected tab's join. */
+  width: calc(100% + 7 * var(--pixel));
+  padding-block: calc(5 * var(--pixel)) 0.42857143rem;
+  padding-inline: 0 calc(7 * var(--pixel));
   flex: 1;
   overflow: auto;
   overscroll-behavior: none;
@@ -232,6 +234,13 @@ small {
   height: 4rem;
   flex: none;
 }
+
+/* Lift the containing group as well as its control above neighboring tabs. */
+.sidebar-entry:focus-within, .rail-item:focus-within {
+  position: relative;
+  z-index: 3;
+}
+.instance-rail:focus-within { mask-image: none; }
 
 .mini-progress {
   position: absolute;
@@ -1430,7 +1439,7 @@ html[data-reduce-motion] .ui-button[data-shape="rail"][data-activity="mixed"]::a
 
 .default-settings { margin-bottom:1.71428571rem; }
 
-.skip-link { position:fixed; top:0.57142857rem; inset-inline-start:5.14285714rem; z-index:10000; padding:0.85714286rem 1.14285714rem; background:var(--inventory); color:var(--text); transform:translateY(-200%); }
+.skip-link { position:fixed; top:0.57142857rem; inset-inline-start:5.14285714rem; z-index:10000; padding:0.85714286rem 1.14285714rem; background:var(--theme-panel); color:var(--theme-panel-text); border:var(--stroke) solid var(--frame); box-shadow:var(--bevel-inventory),var(--shadow-drop); transform:translateY(-200%); }
 .skip-link:focus { transform:none; outline:var(--stroke) solid var(--focus-ring); outline-offset:var(--stroke); }
 
 .launch-settings textarea { display:block; padding:0.85714286rem; margin-top:0.57142857rem; font:inherit; }
