@@ -24,11 +24,8 @@
   const shown=$derived(worlds.slice(full?page*pageSize:0,full?(page+1)*pageSize:pageSize));
   $effect(()=>{resetKey;page=0;});
   $effect(()=>{page=Math.min(page,pages-1);});
-  $effect(()=>{
-    if(!highlight)return;
-    const index=worlds.findIndex(world=>world.folder===highlight);
-    if(index>=0)page=Math.floor(index/pageSize);
-  });
+  const highlightedPage=$derived(highlight?Math.floor(worlds.findIndex(world=>world.folder===highlight)/pageSize):-1);
+  $effect(()=>{if(highlightedPage>=0)page=highlightedPage;});
   let error=$state(''),notice=$state(''),pending=$state(false),selected=$state<WorldEntry|null>(null),target=$state(''),loading=$state(false);
   let menu=$state<{world:WorldEntry;trigger:HTMLButtonElement;x:number;y:number}|null>(null);
   function openMenu(event:MouseEvent|KeyboardEvent,world:WorldEntry){

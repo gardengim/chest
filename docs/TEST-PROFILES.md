@@ -55,3 +55,11 @@ No account sign-in or game installation is performed. Timing starts before proce
 creation and ends when the native side receives the render acknowledgement. It
 includes dynamic loading, but excludes Finder/LaunchServices and does not prove
 compositor presentation, cold-boot speed, or game launch readiness.
+
+Add `--icons` with a nonzero instance count to create valid 256×128 PNG icons padded
+with trailing bytes to 1 MiB each. This exercises bounded icon derivatives without
+reading real instance artwork. Use `--idle-seconds 20 --samples 3` to observe the
+owned main process after a five-second settle. Library readiness deliberately does
+not wait for background artwork; those startup timings do not measure icon completion.
+Idle samples exclude WebView/GPU/network processes and cannot establish whole-app
+memory use or leak freedom. Fixtures and their cache are removed with the profile.

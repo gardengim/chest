@@ -17,7 +17,7 @@ async function fixture(page:Page,count=49){
       if(name==='get_servers')return {servers,unavailable:[]};
       if(name==='get_content')return Array.from({length:w.__contentCount},(_,i)=>({name:`mod-${i}.jar`,kind:'mods',enabled:true}));
       if(name==='get_instance_files')return {worlds:worlds.map(world=>world.folder),servers:servers.map(server=>({name:server.name,ip:server.address})),screenshots:[]};
-      if(name==='get_instance_worlds')return worlds;
+      if(name==='get_instance_worlds'){await new Promise(resolve=>setTimeout(resolve,w.__worldMetadataDelay || 0));w.__worldMetadataLoaded=true;return worlds;}
       if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,graphics_api:'default',account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
       if(name==='get_instance_news')return {articles:[],unavailable:[]};
       if(name==='get_instance_folder')return '/synthetic/library/game';
@@ -89,4 +89,15 @@ test('loader failure is announced and associated, retry preserves a usable focus
   await expect(version).toHaveAttribute('aria-describedby',(await error.getAttribute('id'))!);await expect(loader).toBeFocused();
   await page.evaluate(()=>(window as any).__failLoader=false);await error.getByRole('button',{name:'Retry',exact:true}).click();
   await expect(version).toBeEnabled();await expect(version).toHaveValue('0.19.5');await expect(loader).toBeFocused();await expect(error).toHaveCount(0);
+});
+
+test('late world metadata does not undo a page change after following a deep link',async({page})=>{
+  await fixture(page);await page.evaluate(()=>{(window as any).__worldMetadataDelay=1000;});
+  await page.locator('[data-home-section="worlds"]').getByRole('button',{name:'View all',exact:true}).click();
+  await page.getByLabel('Search worlds',{exact:true}).fill('World 48');
+  await page.locator('.world-list .launcher-card').click();
+  await expect(page.getByRole('status',{name:'Page 3 of 3',exact:true})).toBeVisible();
+  await page.locator('.pagination').getByRole('button',{name:'Previous',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>(window as any).__worldMetadataLoaded)).toBe(true);
+  await expect(page.getByRole('status',{name:'Page 2 of 3',exact:true})).toBeVisible();
 });

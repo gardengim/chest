@@ -19,6 +19,8 @@ import hashlib
 import platform
 import shutil
 import statistics
+import struct
+import zlib
 
 def ignore_already_removed(_function, _path, error):
     # WebView may remove its own lockfiles during profile teardown. Ignore only
@@ -42,6 +44,7 @@ def remove_owned_profile(path):
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--executable', required=True, type=Path)
 parser.add_argument('--instances', type=int, default=0)
+parser.add_argument('--icons', action='store_true', help='Add a valid 256x128 PNG padded to 1 MiB per synthetic instance')
 parser.add_argument('--samples', type=int, default=3)
 parser.add_argument('--output', type=Path)
 parser.add_argument('--idle-seconds', type=int, default=0)
@@ -49,6 +52,8 @@ parser.add_argument('--keep-profile', action='store_true')
 args = parser.parse_args()
 if not 0 <= args.instances <= 1000 or not 1 <= args.samples <= 30 or not 0 <= args.idle_seconds <= 3600:
     parser.error('Use 0–1000 instances and 1–30 samples')
+if args.icons and not args.instances:
+    parser.error('--icons requires at least one synthetic instance')
 executable = args.executable.resolve(strict=True)
 profile = Path(tempfile.mkdtemp(prefix='chest-native-startup-')).resolve()
 config = dict(instances=[dict(id=str(uuid.uuid4()), name=f'World {n:04}', version='1.21.4', loader='vanilla', loader_version='', artwork='grass', memory_mb=4096, java_path='', installed=False) for n in range(args.instances)], accounts=[], active_account=None, client_id='', java_path='', memory_mb=4096)
@@ -129,9 +134,19 @@ try:
     if args.instances:
         launch(measure_idle=False)  # Rust initializes the empty isolated profile before adding fixtures.
         (profile/'config.json').write_text(json.dumps(config))
+        if args.icons:
+            def chunk(kind, data):
+                return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+            png = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 256, 128, 8, 6, 0, 0, 0))
+                   + chunk(b'IDAT', zlib.compress((b'\x00' + b'\x40\x80\x40\xff' * 256) * 128)) + chunk(b'IEND', b''))
+            png += b'\x00' * (1024 * 1024 - len(png))
+            for instance in config['instances']:
+                game = profile/'instances'/instance['id']/'game'
+                game.mkdir(parents=True, exist_ok=True)
+                (game/'icon.png').write_bytes(png)
     samples = [launch() for _ in range(args.samples)]
     result = dict(executable=str(executable), executableSha256=hashlib.sha256(executable.read_bytes()).hexdigest(),
-        platform=platform.platform(), profile=str(profile), profileRetained=args.keep_profile, instances=args.instances,
+        platform=platform.platform(), profile=str(profile), profileRetained=args.keep_profile, instances=args.instances, iconFixture=args.icons,
         samples=samples,medianProcessToLibraryMs=statistics.median(sample['processToLibraryMs'] for sample in samples),
         boundary='Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only')
     if args.output:

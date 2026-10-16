@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--bundle', required=True, type=Path)
 parser.add_argument('--output', required=True, type=Path)
 parser.add_argument('--version', required=True)
+parser.add_argument('--minimum-macos', required=True)
 args = parser.parse_args()
 root = args.bundle.resolve(strict=True)
 rows = []
@@ -33,12 +34,15 @@ for image in root.rglob('*.dmg'):
             expected = 'arm64' if 'aarch64' in image.name else 'x86_64'
             if architecture != expected or info['CFBundleShortVersionString'] != args.version:
                 raise RuntimeError(f'Unexpected Mac architecture/version: {image.name}')
+            if info.get('LSMinimumSystemVersion') != args.minimum_macos:
+                raise RuntimeError(f'Unexpected Mac minimum OS: {image.name}')
             signing = subprocess.run(['codesign', '-dv', '--verbose=2', str(app)], capture_output=True, text=True)
             fields = [line for line in signing.stderr.splitlines()
                       if line.startswith(('Signature=', 'TeamIdentifier=', 'Sealed Resources='))]
             rows.append({
                 'installer': image.name, 'integrity': 'hdiutil verify passed',
                 'payloadArchitecture': architecture, 'version': info['CFBundleShortVersionString'],
+                'minimumMacOS': info['LSMinimumSystemVersion'],
                 'logicalAppBytes': sum(path.stat().st_size for path in app.rglob('*') if path.is_file()),
                 'signing': fields,
             })

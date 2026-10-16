@@ -58,7 +58,7 @@ async function local(output){
   const source=git('rev-parse','HEAD');
   const changes=git('status','--porcelain');
   await save(join(output,'source.json'),{source,workingTreeChanges:changes,platform:process.platform});
-  for(const [stage,script,extra] of [['verify','verify',[]],['build','tauri',['--','build',...(process.platform==='darwin'?['--bundles','app']:[]),'--config','{"bundle":{"createUpdaterArtifacts":false}}']]]){
+  for(const [stage,script,extra] of [['verify','verify',[]],['build','tauri',['--','build',...(process.platform==='darwin'?['--bundles','app']:[]),'--config',JSON.stringify({bundle:{createUpdaterArtifacts:false,...(process.platform==='darwin'?{macOS:{signingIdentity:'-'}}:{})}})]]]){
     console.log(`${stage}: writing ${join(output,stage+'.log')}`);
     const [executable,args]=scriptCommand(script),fd=openSync(join(output,stage+'.log'),'wx');
     let result;
@@ -96,7 +96,7 @@ async function collect(options){
   }
   const verified=[];
   for(const target of Object.keys(targets))verified.push(await verifyCandidate(join(output,'candidate',`chest-candidate-${target}-${candidate.headSha}`),candidate.headSha,target));
-  if(process.platform==='darwin')command('python3',['scripts/inspect-candidate-installers.py','--bundle',join(output,'candidate'),'--version',JSON.parse(git('show',`${candidate.headSha}:package.json`)).version,'--output',join(output,'installer-inspection.json')]);
+  if(process.platform==='darwin')command('python3',['scripts/inspect-candidate-installers.py','--bundle',join(output,'candidate'),'--version',JSON.parse(git('show',`${candidate.headSha}:package.json`)).version,'--minimum-macos',JSON.parse(git('show',`${candidate.headSha}:src-tauri/tauri.conf.json`)).bundle.macOS.minimumSystemVersion,'--output',join(output,'installer-inspection.json')]);
   const measurements=[];
   for(const target of nativeTargets){
     const directory=join(output,'startup',`chest-native-startup-${target}-${candidate.headSha}`);

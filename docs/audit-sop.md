@@ -22,7 +22,8 @@ logs, source/working-tree information and an executable identity. A failure stop
 later stages. Output must be a new directory whose parent exists. Never run another
 build or browser suite concurrently in the same checkout: they share `dist`, ports
 and test output. Review recorded uncommitted changes before accepting the evidence.
-The Mac build includes only the current `.app`; old updater archives are excluded.
+The Mac build includes only the current `.app` with an ad-hoc local signature; old
+updater archives are excluded. This does not provide distribution identity or notarization.
 No GUI launch, sign-in or normal user profile is used by this command.
 
 For macOS icon/compositing regressions, install WebKit once with
@@ -64,7 +65,7 @@ metadata (excluding script commands), and records both source commits.
 Resource evidence may use a UI-only predecessor only when its Core tree
 and resource workflow match exactly; both source identities remain recorded.
 Downloads remain in the output directory with inventories and summaries. On macOS,
-read-only DMG integrity/architecture/version and Linux package headers are also
+read-only DMG integrity/architecture/version/minimum macOS and Linux package headers are also
 checked; mounted volumes are detached afterward. Other hosts retain verified
 hashes but need a Mac inspection for that extra static check.
 
