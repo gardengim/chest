@@ -39,3 +39,5 @@ and its ad-hoc signature passed deep/strict verification.
 [build log](evidence/2026-10-15-card-feedback/build.txt),
 [Chromium checks](evidence/2026-10-15-card-feedback/chromium.txt),
 [WebKit checks](evidence/2026-10-15-card-feedback/webkit.txt).
+
+Subsequent refresh and card-ratio refinements: [stable card layout](2026-10-15-stable-card-layout.md).

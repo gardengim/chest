@@ -42,3 +42,12 @@ delayed focus refresh, resource menu actions and narrow/200% text reflow.
 
 [Chromium evidence](evidence/2026-10-15-stable-card-layout/chromium.txt),
 [WebKit evidence](evidence/2026-10-15-stable-card-layout/webkit.txt).
+
+Application revision: `2a7d394f4a57f0cb9543629455f5f417b11cb301`. Svelte reported zero errors/warnings.
+The optimized local app was rebuilt and its ad-hoc signature passed deep/strict
+verification. [Artifact identity](evidence/2026-10-15-stable-card-layout/candidate.json),
+[build log](evidence/2026-10-15-stable-card-layout/build.txt),
+[diagnostics](evidence/2026-10-15-stable-card-layout/check.txt).
+
+Visual evidence: [3:4 instance card](evidence/2026-10-15-stable-card-layout/instance-card.png),
+[4:3 screenshot card](evidence/2026-10-15-stable-card-layout/screenshot-card.png).
