@@ -1,27 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <title>Chest</title>
-  <desc>Shaded wood, uniform charcoal brown edges, and a slim silver latch on the right face.</desc>
+  <desc>A regular hexagonal chest with a softly lit top, shaded right face, and silver latch.</desc>
   <defs>
     <linearGradient id="wood" x1="64" y1="12" x2="64" y2="116" gradientUnits="userSpaceOnUse">
       <stop stop-color="#AF8851"/>
       <stop offset=".5" stop-color="#967044"/>
       <stop offset="1" stop-color="#79552F"/>
     </linearGradient>
+    <linearGradient id="top-light" x1="64" y1="12" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF0CE" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#FFF0CE" stop-opacity=".03"/>
+    </linearGradient>
+    <linearGradient id="right-shade" x1="64" y1="38" x2="109.033321" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#191613" stop-opacity=".07"/>
+      <stop offset="1" stop-color="#191613" stop-opacity=".16"/>
+    </linearGradient>
     <linearGradient id="silver" x1="84" y1="71" x2="94" y2="83" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#C0C7C1"/>
-      <stop offset="1" stop-color="#AAB4AE"/>
+      <stop stop-color="#CDD1CF"/>
+      <stop offset="1" stop-color="#AFB7B3"/>
     </linearGradient>
     <filter id="halo" x="-100%" y="-70%" width="300%" height="240%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="0" stdDeviation="1.8" flood-color="#E0E8D9" flood-opacity=".18"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="1.8" flood-color="#E0E8D9" flood-opacity=".22"/>
     </filter>
   </defs>
-  <g stroke="#25221F" stroke-width="7" stroke-linejoin="miter" stroke-linecap="butt">
-    <path fill="url(#wood)" d="M64 12 109.033321 38v52L64 116 18.966679 90V38Z"/>
-    <path fill="none" d="M18.966679 38 64 64 109.033321 38M64 64v52M18.966679 58 64 84 109.033321 58"/>
+  <path fill="url(#wood)" d="M64 12 109.033321 38 109.033321 90 64 116 18.966679 90 18.966679 38Z"/>
+  <path fill="url(#top-light)" d="M64 12 109.033321 38 64 64 18.966679 38Z"/>
+  <path fill="url(#right-shade)" d="M64 64 109.033321 38 109.033321 90 64 116Z"/>
+  <g fill="none" stroke="#25221F" stroke-width="7" stroke-linejoin="miter" stroke-linecap="butt">
+    <path d="M64 12 109.033321 38 109.033321 90 64 116 18.966679 90 18.966679 38Z"/>
+    <path d="M18.966679 38 64 64 109.033321 38M64 64V116M18.966679 58 64 84 109.033321 58"/>
   </g>
-  <g filter="url(#halo)" transform="translate(87.928203 76) matrix(.666667 .19245 0 1 0 0) translate(-87.928203 -76)">
-    <path fill="#77817D" d="M81 69 91.392305 63 94.856406 65v18L84.464102 89 81 87Z"/>
-    <path fill="url(#silver)" d="M84.464102 71 94.856406 65v18L84.464102 89Z"/>
-    <path fill="#D7DDD5" d="M81 69 91.392305 63 94.856406 65 84.464102 71Z"/>
+  <g filter="url(#halo)" transform="translate(87.928203 76) matrix(0.666667 0.19245 0 1 0 0) translate(-87.928203 -76)">
+    <path fill="#77817D" d="M81 69 91.392305 63 94.856406 65 94.856406 83 84.464102 89 81 87Z"/>
+    <path fill="url(#silver)" d="M84.464102 71 94.856406 65 94.856406 83 84.464102 89Z"/>
+    <path fill="#DFE3DD" d="M81 69 91.392305 63 94.856406 65 84.464102 71Z"/>
   </g>
 </svg>

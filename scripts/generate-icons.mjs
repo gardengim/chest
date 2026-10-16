@@ -1,11 +1,13 @@
-import {readFileSync,writeFileSync,mkdtempSync,copyFileSync,mkdirSync,rmSync,readdirSync} from 'node:fs';
+import {writeFileSync,mkdtempSync,copyFileSync,mkdirSync,rmSync,readdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
+import {chestMark} from './chest-mark.mjs';
 const root=join(dirname(fileURLToPath(import.meta.url)),'..');
-const mark=readFileSync(join(root,'public/chest.svg'),'utf8');
-const body=mark.replace(/<svg[^>]*>/,'').replace(/<\/svg>\s*$/,'').replace(/<title>.*?<\/title>|<desc>.*?<\/desc>/g,'');
+const mark=chestMark();
+writeFileSync(join(root,'public/chest.svg'),mark);
+const body=mark.replace(/<svg[^>]*>/,'').replace(/<\/svg>\s*$/,'').replace(/<title>.*?<\/title>|<desc>.*?<\/desc>/g,'').replace(/[ \t]+$/gm,'').trim();
 const mac=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <title>Chest macOS app icon</title>
   <defs>
