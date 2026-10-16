@@ -17,7 +17,7 @@ async function fixture(page:Page,count=49){
       if(name==='get_worlds')return {worlds,unavailable:[]};
       if(name==='get_servers')return {servers,unavailable:[]};
       if(name==='get_content')return Array.from({length:w.__contentCount},(_,i)=>({name:`mod-${i}.jar`,kind:'mods',enabled:true}));
-      if(name==='get_instance_files'){if(w.__failFiles)throw new Error('Filesystem unavailable');return {worlds:worlds.slice(0,w.__resourceCount).map(world=>world.folder),servers:servers.slice(0,w.__resourceCount).map(server=>({name:server.name,ip:server.address})),screenshots:[]};}
+      if(name==='get_instance_files'){if(w.__failFiles)throw new Error('Filesystem unavailable');return {worlds:worlds.slice(0,w.__hideWorlds?0:w.__resourceCount).map(world=>world.folder),servers:servers.slice(0,w.__resourceCount).map(server=>({name:server.name,ip:server.address})),screenshots:[]};}
       if(name==='get_instance_worlds'){await new Promise(resolve=>setTimeout(resolve,w.__worldMetadataDelay || 0));w.__worldMetadataLoaded=true;return worlds;}
       if(name==='get_launch_settings')return {width:854,height:480,fullscreen:false,graphics_api:'default',account_id:null,java_args:[],game_args:[],environment:{},before_launch:[],after_exit:[],open_log:false};
       if(name==='get_instance_news')return {articles:[],unavailable:[]};
@@ -123,6 +123,14 @@ test('focus discovers absent resource tabs and leaves emptied tabs without treat
   await expect(page.getByRole('tab',{name:'Worlds',exact:true})).toHaveCount(0);
   await expect(page.getByRole('tab',{name:'Servers',exact:true})).toHaveCount(0);
   await expect(page.getByRole('tab',{name:'Overview',exact:true})).toHaveAttribute('aria-selected','true');
+  await page.evaluate(()=>{(window as any).__resourceCount=1;window.dispatchEvent(new Event('focus'));});
+  await expect(page.getByRole('tab',{name:'Worlds',exact:true})).toBeVisible();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
+  await page.getByRole('tab',{name:'Worlds',exact:true}).click();
+  await page.evaluate(()=>{(window as any).__hideWorlds=true;window.dispatchEvent(new Event('focus'));});
+  await expect(page.getByRole('tab',{name:'Worlds',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('tab',{name:'Servers',exact:true})).toBeVisible();
+  await expect(page.getByRole('tab',{name:'Contents',exact:true})).toHaveAttribute('aria-selected','true');
 });
 
 test('world cards show real metadata, translucent actions and shared menu actions',async({page})=>{

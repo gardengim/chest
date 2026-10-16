@@ -101,7 +101,7 @@
 {#snippet layoutButton()}<LayoutSwitch label={$t(mode==='worlds'?'Worlds layout':'Servers layout')} bind:value={layout}/>{/snippet}
 {#if choosing}<InstanceChooser instances={config.instances.filter(instance=>choosing!.instance_ids.includes(instance.id) && (!joining || instance.installed && !isBusy(instance.id)))} {icons} onchoose={id=>{const server=choosing!;choosing=null;if(joining)void run(()=>api.launchResource(id,'server',server.address));else onopen(id,serverAddressKey(server.address));}} onclose={()=>choosing=null}/>{/if}
 {#if menu}<ContextMenu title={menu.server.name} icon={menu.server.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
-  <MenuItem icon="play" disabled={!native || pending || !config.instances.some(instance=>menu!.server.instance_ids.includes(instance.id) && instance.installed && !isBusy(instance.id) && !isBusy(instance.id))} onclick={()=>action(server=>join(server))}>{$t('Join')}</MenuItem>
+  <MenuItem icon="play" disabled={!native || pending || !config.instances.some(instance=>menu!.server.instance_ids.includes(instance.id) && instance.installed && !isBusy(instance.id))} onclick={()=>action(server=>join(server))}>{$t('Join')}</MenuItem>
   {#if menu.server.instance_ids.length}<MenuItem direction="right" onclick={()=>action(server=>open(server))}>{$t('Open instance')}</MenuItem>{/if}
   <MenuItem icon="copy" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.address);notice=$t('Copied');}))}>{$t('Copy')}</MenuItem>
   {#if menu.server.bookmarked}

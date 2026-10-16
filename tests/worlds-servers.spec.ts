@@ -209,7 +209,7 @@ test('instance resource cards expose direct actions, overflow menus, rename and 
   await expect(page.locator('.world-list')).toHaveCSS('grid-template-columns',/\d/);
   await world.getByRole('button',{name:'Play',exact:true}).click();
   expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='launch_resource').args)).toEqual({id:'source',kind:'world',item:'Survival'});
-  const action=world.getByRole('button',{name:'Back up',exact:true});await expect(action).toHaveCSS('background-color','rgba(0, 0, 0, 0.4)');
+  const action=world.getByRole('button',{name:'Back up',exact:true});expect(await action.evaluate(node=>{const ctx=document.createElement('canvas').getContext('2d')!;ctx.fillStyle=getComputedStyle(node).backgroundColor;ctx.fillRect(0,0,1,1);return ctx.getImageData(0,0,1,1).data[3];})).toBe(166);
   await world.getByRole('button',{name:'More actions',exact:true}).click();await page.getByRole('menuitem',{name:'Rename',exact:true}).click();
   const rename=page.getByRole('dialog',{name:'Rename',exact:true});await rename.getByLabel('Name',{exact:true}).fill('New world name');await rename.getByRole('button',{name:'Save',exact:true}).click();
   await expect(page.getByRole('heading',{name:'New world name',exact:true})).toBeVisible();
@@ -242,4 +242,12 @@ test('crowded server instance references collapse to a count and expand when spa
   await page.setViewportSize({width:600,height:800});
   await expect(refs.locator('[data-counter]:not(.measuring)')).toBeVisible();
   await card.click();await expect(page.getByRole('dialog',{name:'Choose instance',exact:true}).locator('.launcher-card')).toHaveCount(4);
+});
+
+
+test('server context-menu Join targets an installed owning instance',async({page})=>{
+  await nativeFixture(page);await page.addInitScript(()=>(window as any).__localServers=[{instance_id:'source',name:'Join target',address:'join.example',icon:null}]);
+  await page.goto('/');await openHomeTool(page,'Servers');
+  await cardAction(page,page.locator('.server-list .launcher-card').first(),'Join');
+  expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='launch_resource')?.args)).toEqual({id:'source',kind:'server',item:'join.example'});
 });

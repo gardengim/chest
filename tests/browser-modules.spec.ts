@@ -48,3 +48,14 @@ test('rich renderer removes active markup, unsafe URLs and provider styles while
   });
   expect(clean.unsafe).toBe(0);expect(clean.links).toEqual([null,'https://www.youtube.com/embed/test']);expect(clean.embed).toBe(true);expect(clean.table).toBe(1);
 });
+
+
+test('canonical Minecraft artwork is inlined in development as well as production',async({page})=>{
+  await page.goto('/');
+  const result=await page.evaluate(async()=>{
+    const {minecraftArtwork}=await import('/src/builtin-artwork.ts');
+    const image=new Image();image.src=minecraftArtwork;await image.decode();
+    return {inline:minecraftArtwork.startsWith('data:image/png;base64,'),width:image.naturalWidth};
+  });
+  expect(result).toEqual({inline:true,width:256});
+});
