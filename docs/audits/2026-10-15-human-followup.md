@@ -3,6 +3,9 @@
 This records the owner's numbered observations against the prior handoff. It does
 not approve publication or transfer old candidate measurements to the new build.
 
+Latest owner confirmations and card/date corrections are recorded in
+[the subsequent follow-up](2026-10-15-card-feedback.md).
+
 ## Owner observations
 
 | Prior observation | Result |

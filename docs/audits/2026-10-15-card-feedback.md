@@ -32,3 +32,10 @@ values are approximate relative durations, not calendar dates.
 
 Pause for human review of these two visual/text corrections. Previously recorded
 passes remain historical observations; no release is published by this change.
+
+Application revision: `23b7a47a0386f0c9797549675b2d35d5d357c8fd`. The optimized local app was rebuilt
+and its ad-hoc signature passed deep/strict verification.
+[Artifact identity](evidence/2026-10-15-card-feedback/candidate.json),
+[build log](evidence/2026-10-15-card-feedback/build.txt),
+[Chromium checks](evidence/2026-10-15-card-feedback/chromium.txt),
+[WebKit checks](evidence/2026-10-15-card-feedback/webkit.txt).
