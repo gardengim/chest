@@ -45,10 +45,10 @@
   let previousFilter='';
   $effect(()=>{
     const request={source,kind,query:query.trim(),sort,offset,limit:pageSize,game,loader};void retry;
-    let alive=true;loading=true;error='';projects=[];
+    let alive=true;loading=true;error='';
     const filter=JSON.stringify({source,kind,query:query.trim(),sort,game,loader});
-    if(filter!==previousFilter){total=0;previousFilter=filter;}
-    if(incompatibleMods){loading=false;return;}
+    if(filter!==previousFilter){projects=[];total=0;previousFilter=filter;}
+    if(incompatibleMods){projects=[];loading=false;return;}
     const timer=setTimeout(()=>{api.searchCatalog(request).then(page=>{if(alive){projects=page.projects;total=page.total;}}).catch(e=>{if(alive)error=String(e);}).finally(()=>{if(alive)loading=false;});},250);
     return()=>{alive=false;clearTimeout(timer);};
   });
@@ -73,10 +73,10 @@
     <label>{$t("Sort by")}<Select aria-label={$t("Sort projects")} bind:value={sort} onchange={changeFilters}><option value="downloads">{$t("Popular")}</option><option value="relevance">{$t("Relevance")}</option><option value="updated">{$t("Recently updated")}</option><option value="newest">{$t("Newest")}</option></Select></label>
   </div>
 </div>
-<div class="section-heading catalog-heading"><div><h2>{$t(label)} <span class="count">{loading?'…':number(total,$locale)}</span></h2></div><LayoutSwitch label={$t("Project layout")} bind:value={layout}/></div>
+<div class="section-heading catalog-heading"><div><h2>{$t(label)} <span class="count">{loading && !projects.length?'…':number(total,$locale)}</span></h2></div><LayoutSwitch label={$t("Project layout")} bind:value={layout}/></div>
 <div class="catalog-results" use:measureResults><span class="catalog-layout-probe" aria-hidden="true"></span>
 {#if incompatibleMods}<div class="empty"><h3>{$t("Vanilla does not load mods.")}</h3><p>{$t("Choose a compatible mod loader to add mods.")}</p></div>
-{:else if loading}<div class="empty" role="status"><Icon name="search" size={32}/><h3>{$t("Loading…")}</h3></div>
+{:else if loading && !projects.length}<div class="empty" role="status"><Icon name="search" size={32}/><h3>{$t("Loading…")}</h3></div>
 {:else if error}<div class="empty inline-error" role="alert"><h3>{$t(source==='curseforge' && !sources.curseforge?'Connect CurseForge to browse its catalog.':'The catalog couldn’t load.')}</h3><p>{error}</p>{#if source==='curseforge' && !sources.curseforge}<Button tone="accent" onclick={()=>{source='modrinth';changeFilters();}}>{$t("Use Modrinth")}</Button>{:else}<Button onclick={()=>retry++}>{$t("Retry")}</Button>{/if}</div>
 {:else if !projects.length}<div class="empty"><Icon name="search" size={32}/><h3>{$t("No results")}</h3><Button onclick={()=>{query='';if(!instance){game='';loader='';}changeFilters();}}>{$t("Clear")}</Button></div>
 {:else}

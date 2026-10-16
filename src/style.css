@@ -81,7 +81,7 @@
   box-shadow: inset var(--bevel) var(--bevel) var(--scroll-highlight), inset calc(-1 * var(--bevel)) calc(-1 * var(--bevel)) var(--scroll-shadow);
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
-::-webkit-scrollbar-thumb:active { background: var(--scroll-thumb-active); }
+::-webkit-scrollbar-thumb:active { background: var(--scroll-thumb-active); box-shadow:var(--bevel-pressed); }
 
 :root::-webkit-scrollbar { display: none; }
 
@@ -98,7 +98,7 @@
 .pixel-scrollbar[data-orientation='horizontal']>.thumb{height:var(--scrollbar-thumb-size);position:absolute;left:0;top:var(--scrollbar-inset)}
 .pixel-scrollbar.visible>.thumb,.pixel-scrollbar:hover>.thumb,.pixel-scrollbar:focus-within>.thumb,.pixel-scrollbar:active>.thumb{opacity:1}
 .pixel-scrollbar:hover>.thumb,.pixel-scrollbar:focus-visible>.thumb{background:var(--scroll-thumb-hover)}
-.pixel-scrollbar:active>.thumb{background:var(--scroll-thumb-active)}
+.pixel-scrollbar:active>.thumb{background:var(--scroll-thumb-active);box-shadow:var(--bevel-pressed)}
 .pixel-scrollbar:focus-visible{outline:var(--pixel) solid var(--scroll-highlight);outline-offset:calc(-1 * var(--pixel))}
 
 

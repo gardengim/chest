@@ -19,6 +19,12 @@ test('gallery requests complete rows at every width and pagination neither skips
     }};
   });
   await page.goto('/');
+  await expect.poll(()=>page.locator('.catalog-card').count()).toBeGreaterThanOrEqual(20);
+  await page.evaluate(()=>{
+    const w=window as any;w.__firstCard=document.querySelector('.catalog-card');w.__resizeLoading=[];
+    w.__resizeObserver=new MutationObserver(()=>{if(!document.querySelector('.catalog-card'))w.__resizeLoading.push('results removed');});
+    w.__resizeObserver.observe(document.querySelector('.catalog-results'),{childList:true,subtree:true});
+  });
   for(const width of [1150,1450,900]){
     await page.setViewportSize({width,height:900});
     await expect.poll(()=>page.locator('.catalog-card').count()).toBeGreaterThanOrEqual(20);
@@ -29,6 +35,9 @@ test('gallery requests complete rows at every width and pagination neither skips
       return count>0 && count===(window as any).__query.limit && count%columns===0;
     })).toBe(true);
   }
+  expect(await page.evaluate(()=>(window as any).__resizeLoading)).toEqual([]);
+  expect(await page.evaluate(()=>(window as any).__firstCard===document.querySelector('.catalog-card'))).toBe(true);
+  await page.evaluate(()=>(window as any).__resizeObserver.disconnect());
   const query=await page.evaluate(()=>(window as any).__query);
   await page.locator('.catalog-results > .pagination').getByRole('button',{name:'Next',exact:true}).click();
   await expect(page.locator('.catalog-card').first()).toContainText('Project '+query.limit);

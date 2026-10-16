@@ -62,11 +62,11 @@
 :global(.launcher-card)::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:var(--bevel-raised)}
 :global(.launcher-card.ui-button:not(:disabled):active)::after{box-shadow:var(--bevel-pressed)}
 :global(.launcher-card[data-highlighted='true']){outline:var(--stroke) solid var(--focus-ring);outline-offset:.14285714rem}
-.shared-card-art{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;width:100%;aspect-ratio:var(--card-media-ratio,2 / 1);flex:1 0 auto;min-height:6rem;color:var(--muted)}
+.shared-card-art{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;width:100%;aspect-ratio:var(--card-media-ratio,2 / 1);flex:1 1 0;min-height:6rem;color:var(--muted)}
 .shared-card-art :global(img),.shared-card-art :global(svg){width:28%;max-width:var(--card-icon-size);height:auto;aspect-ratio:1;object-fit:contain;color:inherit;filter:drop-shadow(0 .85714286rem .71428571rem #0003)}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(img){width:100%;max-width:none;height:100%;position:absolute;inset:0;aspect-ratio:auto;object-fit:var(--card-image-fit,cover);object-position:center;image-rendering:auto;filter:none}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(span:not(.catalog-kind)){padding:var(--card-padding);font-size:.85714286rem;color:var(--muted)}
-.shared-card-foreground{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;grid-area:1 / 1}
+.shared-card-foreground{display:flex;flex-direction:column;flex:1;min-width:0;min-height:min-content;grid-area:1 / 1}
 .shared-card-body{display:flex;flex-direction:column;flex:0 0 auto;min-width:0;min-height:var(--card-body-min,0);row-gap:.57142857rem;width:100%;padding:var(--card-padding);text-shadow:none}
 .shared-card-details{display:flex;flex-direction:column;gap:.35714286rem;min-width:0}
 .shared-card-details:empty{display:none}
@@ -79,7 +79,9 @@
 :global(.launcher-card) :global(.card-backdrop:not(:has(img))::after){display:none}
 :global(.launcher-card) :global(.card-backdrop::after){background:linear-gradient(180deg,#0002,#0006 48%,#0009 100%)}
 :global(.launcher-card[data-layout='gallery']){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
-/* One shared grid cell keeps ratio sizing independent of media/caption distribution. */
+/* Keep the ratio guide and content together; captions set the minimum row size. */
+:global(.launcher-card[data-layout='gallery']) .shared-card-foreground{display:grid;grid-template-rows:minmax(6rem,1fr) auto}
+:global(.launcher-card[data-layout='gallery']) .shared-card-art{min-height:0}
 :global(.launcher-card[data-layout='gallery'])::before{content:'';grid-area:1 / 1;width:calc(100% + 2 * var(--stroke));margin:calc(-1 * var(--stroke));aspect-ratio:var(--card-aspect-ratio,3 / 4);max-height:var(--card-height,none);align-self:start;visibility:hidden;pointer-events:none}
 :global(.launcher-card[data-layout='gallery'][data-media='image']) .shared-card-art{aspect-ratio:auto;flex:1;min-height:4rem}
 :global(.launcher-card[data-layout='gallery'][data-media='image']) .shared-card-body{flex:0 0 auto;min-height:var(--card-body-min,0)}

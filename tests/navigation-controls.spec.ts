@@ -58,6 +58,17 @@ test('shelf, news, catalog and screenshot navigation use the same arrows and but
   expect(bar.size).toBe(await vertical.locator('.thumb').evaluate(node=>getComputedStyle(node).width));
   expect(bar.bevel).toBe(await vertical.locator('.thumb').evaluate(node=>getComputedStyle(node).boxShadow));
   expect(bar.radius).toBe('0px');
+  for(const scrollbar of [horizontal,vertical]){
+    const thumb=scrollbar.locator('.thumb');await thumb.hover();
+    const raised=await thumb.evaluate(node=>getComputedStyle(node).boxShadow);
+    const box=(await thumb.boundingBox())!;
+    await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
+    await expect.poll(()=>thumb.evaluate(node=>getComputedStyle(node).boxShadow)).not.toBe(raised);
+    await page.mouse.move(0,0);
+    await expect.poll(()=>thumb.evaluate(node=>getComputedStyle(node).boxShadow)).not.toBe(raised);
+    await page.mouse.up();
+    await expect.poll(()=>thumb.evaluate(node=>getComputedStyle(node).boxShadow)).toBe(raised);
+  }
   await horizontal.screenshot({path:testInfo.outputPath('horizontal-scrollbar.png')});
   const initial=await body.evaluate(node=>node.scrollLeft);
   await shelf.getByRole('button',{name:'Next Instances',exact:true}).click();await expect.poll(()=>body.evaluate(node=>node.scrollLeft)).toBeGreaterThan(initial);

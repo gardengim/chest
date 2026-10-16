@@ -256,3 +256,35 @@ test('screenshot caption overlays the same image and stays stable on hover',asyn
   await page.mouse.move(0,0);expect(await position()).toEqual(initial);
   await card.screenshot({path:info.outputPath('single-image-screenshot-card.png')});
 });
+
+test('gallery captions stay inside cards when resizing from two columns to three and back',async({page})=>{
+  await fixture(page);
+  await page.addInitScript(()=>{
+    const w=window as any,invoke=w.__TAURI_INTERNALS__.invoke;
+    w.__TAURI_INTERNALS__.invoke=async(name:string,args:any)=>{
+      if(name==='get_content')return [{name:'long-filename-'.repeat(18)+'.jar',kind:'mods',enabled:true}];
+      const result=await invoke(name,args);
+      if(name==='search_catalog')for(const project of result.projects){project.title='Long project title '.repeat(7);project.author='Author with a longer display name';}
+      return result;
+    };
+  });
+  await page.goto('/');
+  async function reflow(grid:import('@playwright/test').Locator){
+    for(const [width,columns] of [[800,2],[840,3],[800,2],[840,3]]){
+      await grid.evaluate((node,width)=>{node.style.width=width+'px';},width);
+      await expect.poll(()=>grid.evaluate(node=>getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(columns);
+      await expect.poll(()=>grid.locator('.launcher-card').evaluateAll(cards=>cards.flatMap(card=>{
+        const box=card.getBoundingClientRect();return Array.from(card.querySelectorAll('.shared-card-body')).filter(body=>body.getBoundingClientRect().bottom>box.bottom+1).map(body=>({title:card.querySelector('h3')?.textContent,width:box.width,height:box.height,body:body.getBoundingClientRect().height,art:card.querySelector('.shared-card-art')?.getBoundingClientRect().height,foreground:card.querySelector('.shared-card-foreground')?.getBoundingClientRect().height,overflow:body.getBoundingClientRect().bottom-box.bottom}));
+      }))).toEqual([]);
+    }
+  }
+  await page.getByRole('button',{name:'Adventure: Ready to play',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
+  await page.getByRole('radiogroup',{name:'Content view'}).getByRole('radio',{name:'Gallery',exact:true}).click();
+  await reflow(page.locator('.content-collection'));
+  await page.getByRole('button',{name:'Chest home',exact:true}).click();
+  await expect(page.locator('.catalog-card')).toHaveCount(3);
+  // Keep the API page size stable here to isolate the shared card layout.
+  await page.locator('.catalog-results').evaluate(node=>node.style.width='900px');
+  await reflow(page.locator('.catalog-grid'));
+});
