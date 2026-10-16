@@ -21,7 +21,7 @@
   $effect(()=>{
     const {instance_id,name}=screenshot;
     const requestKey=key;
-    if(loadedKey!==requestKey){source='';error='';}
+    if(loadedKey!==requestKey)error='';
     if(!visible){source='';loadedKey='';return;}
     if(loadedKey===requestKey)return;
     let alive=true;
@@ -33,7 +33,7 @@
   });
 </script>
 <div class="screenshot-tile" use:observe>
-  <Card interactive={!error} media="image" class="screenshot-card" title={screenshot.name.replace(/\.png$/i,'')} background={!error && source || undefined} disabled={!source || !!error} onclick={()=>onopen(source)} aria-label={`${screenshot.name} · ${instance}`}>
+  <Card interactive={!error} media="image" aspectRatio="4 / 3" class="screenshot-card" title={screenshot.name.replace(/\.png$/i,'')} background={!error && source || undefined} disabled={!source || !!error} onclick={()=>onopen(source)} aria-label={`${screenshot.name} · ${instance}`}>
     {#snippet art()}{#if source && !error}<img src={source} alt="" onerror={()=>error=$t('Could not load screenshot')}/>{:else}<span>{error?$t('Could not load screenshot'):$t('Loading…')}</span>{/if}{/snippet}
     {#snippet actions()}{#if error}<Button onclick={async()=>{try{await api.openInstanceFile(screenshot.instance_id,'screenshots',screenshot.name);}catch(reason){error=String(reason);}}}>{$t('Open')}</Button>{/if}{/snippet}
     <span class="catalog-author">{#if owner}<InstanceName instance={owner}/>{:else}{instance}{/if}</span>

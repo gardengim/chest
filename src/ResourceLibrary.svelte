@@ -41,9 +41,10 @@
   const destination=$derived(config.instances.find(instance=>instance.id===target));
   const mismatch=$derived(!!adding && !!destination && ((!!adding.expected_version && adding.expected_version!==destination.version) || (!!adding.expected_loader && adding.expected_loader!==destination.loader)));
   let refreshRequest=0;
+  let loaded=$state({worlds:false,servers:false});
   async function refresh(){
     const ticket=++refreshRequest,kind=mode;loading=true;error='';
-    try{if(kind==='worlds'){const value=await api.worlds();if(ticket===refreshRequest && mode===kind)library=value;}else{const value=await api.servers();if(ticket===refreshRequest && mode===kind)serverLibrary=value;}}
+    try{if(kind==='worlds'){const value=await api.worlds();if(ticket===refreshRequest && mode===kind){library=value;loaded.worlds=true;}}else{const value=await api.servers();if(ticket===refreshRequest && mode===kind){serverLibrary=value;loaded.servers=true;}}}
     catch(e){if(ticket===refreshRequest)error=String(e);}
     finally{if(ticket===refreshRequest)loading=false;}
   }
@@ -79,12 +80,12 @@
 {#if error && !edit && !adding && !removing}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
 {#if notice}<p class="inline-notice" role="status">{notice}</p>{/if}
 {#if mode==='worlds'}
-  {#if loading}<p role="status">{$t('Loading…')}</p>{:else}
+  {#if loading && !loaded[mode]}<p role="status">{$t('Loading…')}</p>{:else}
     {#if library.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read worlds from {names}',{names:library.unavailable.join(', ')})}</p>{/if}
     {#if !worlds.length && library.worlds.length}<p class="muted">{$t('No results')}</p>{:else}<WorldList full={!gallery} resetKey={search} {worlds} instances={config.instances} {isBusy} onrefresh={refresh} showInstance {onopen} layout={cardLayout}/>{/if}
   {/if}
 {:else}
-  {#if loading}<p role="status">{$t('Loading…')}</p>{/if}
+  {#if loading && !loaded[mode]}<p role="status">{$t('Loading…')}</p>{/if}
   {#if serverLibrary.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read servers from {names}',{names:serverLibrary.unavailable.join(', ')})}</p>{/if}
   <CardGrid class="server-list" layout={cardLayout}>{#each shownServers as server (server.id)}
     <Card aria-haspopup="menu" aria-expanded={menu?.server.id===server.id} onclick={()=>open(server)} oncontextmenu={event=>openMenu(event,server)} onkeydown={event=>openMenu(event,server)} title={server.name} icon={server.icon} layout={cardLayout} artworkKey={`server:${server.id}:${server.address}:${server.instance_id || ''}`} loadIcon={server.bookmarked?()=>api.serverIcon(server.id):undefined}>
@@ -94,7 +95,7 @@
 
     </Card>
   {:else}<p class="muted">{$t(mergeServers(config.server_bookmarks || [],serverLibrary.servers).length?'No results':'No servers')}</p>{/each}</CardGrid>
-  {#if !gallery}<Pagination label={$t('Servers')} {page} {pages} disabled={loading} onchange={value=>{menu=null;page=value;}}/>{/if}
+  {#if !gallery}<Pagination label={$t('Servers')} {page} {pages} onchange={value=>{menu=null;page=value;}}/>{/if}
 {/if}
 </HomeShelf>
 {#snippet addButton()}<AddButton disabled={pending} onclick={()=>{error='';edit={id:'',name:'',address:'',instance_id:null,expected_version:'',expected_loader:null};}}/>{/snippet}

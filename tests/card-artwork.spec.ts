@@ -113,7 +113,7 @@ test('all card kinds share their shell and media dimensions while grids can cont
     await card.scrollIntoViewIfNeeded();await expect(card).toBeVisible();
     dimensions.push(await card.evaluate(node=>{
       const css=getComputedStyle(node),art=getComputedStyle(node.querySelector('.shared-card-art')!),body=getComputedStyle(node.querySelector('.shared-card-body')!),heading=getComputedStyle(node.querySelector('h3')!);
-      return {border:css.border,shadow:getComputedStyle(node,'::after').boxShadow,ratio:art.aspectRatio,padding:body.padding,minimum:body.minHeight,titleSize:heading.fontSize,titleColor:heading.color};
+      return {border:css.border,shadow:getComputedStyle(node,'::after').boxShadow,padding:body.padding,titleSize:heading.fontSize,titleColor:heading.color};
     }));
   }
   for(const geometry of dimensions)expect(geometry).toEqual(dimensions[0]);
@@ -123,10 +123,15 @@ test('all card kinds share their shell and media dimensions while grids can cont
   await cards[3].scrollIntoViewIfNeeded();
   await expect(cards[3].locator('.shared-card-art img')).toBeVisible();
   expect(await cards[3].locator('.shared-card-art img').evaluate(node=>getComputedStyle(node).objectFit)).toBe('cover');
+  const media=cards[3].locator('.shared-card-art'),image=media.locator('img');
+  const mediaBox=(await media.boundingBox())!,imageBox=(await image.boundingBox())!;
+  expect(imageBox.width).toBeCloseTo(mediaBox.width,0);expect(imageBox.height).toBeCloseTo(mediaBox.height,0);
+  await expect(image).toHaveCSS('object-position','50% 50%');
+  for(const [index,card] of cards.entries()){const box=(await card.boundingBox())!;expect(box.width/box.height).toBeCloseTo(index===3?4/3:3/4,2);}
   await cards[3].screenshot({path:testInfo.outputPath('screenshot-card.png')});
   await cards[0].screenshot({path:testInfo.outputPath('instance-card.png')});
   const grid=page.locator('.instance-grid');
-  await grid.evaluate(node=>{node.style.setProperty('--card-height','24rem');node.style.setProperty('--card-media-ratio','3 / 2');node.style.setProperty('--card-padding','.75rem');});
+  await grid.evaluate(node=>{node.style.setProperty('--card-height','24rem');node.style.setProperty('--card-aspect-ratio','auto');node.style.setProperty('--card-media-ratio','3 / 2');node.style.setProperty('--card-padding','.75rem');});
   expect((await cards[0].boundingBox())!.height).toBe(336);
   await expect(cards[0].locator('.shared-card-art')).toHaveCSS('aspect-ratio','3 / 2');
   await expect(cards[0].locator('.shared-card-body')).toHaveCSS('padding','10.5px');
@@ -146,6 +151,14 @@ test('world, server and installed-content card actions share translucent dark ba
     await page.mouse.down();
     await expect.poll(()=>button.evaluate(node=>getComputedStyle(node).boxShadow)).not.toBe(normal.shadow);
     await page.mouse.move(0,0);await page.mouse.up();
+    const more=page.getByRole('button',{name:'More actions',exact:true}).filter({has:page.locator('[data-symbol="more"]')}).first();
+    if(await more.count()){
+      await more.hover();const box=(await more.boundingBox())!,glyph=(await more.locator('svg').boundingBox())!;
+      expect(box.width).toBeCloseTo(box.height,0);
+      expect(glyph.x+glyph.width/2).toBeCloseTo(box.x+box.width/2,0);
+      expect(glyph.y+glyph.height/2).toBeCloseTo(box.y+box.height/2,0);
+      await page.mouse.move(0,0);
+    }
     await expect(button).toHaveCSS('top',normal.top);
 
     await button.evaluate(node=>(node.closest('.shared-card-body') as HTMLElement).style.background='rgb(180, 50, 30)');

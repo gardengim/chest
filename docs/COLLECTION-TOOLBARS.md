@@ -30,3 +30,9 @@ those tabs are absent; a successfully emptied selected tab returns to the previo
 available tab or Overview. Read failures retain the last successful collection.
 Keep explicit refresh callbacks for mutations such as rename/copy. Remote catalog
 search and retry retain their own provider lifecycle.
+
+Once a local collection has loaded, focus refresh keeps its current cards mounted
+and usable until the next complete response arrives. Loading placeholders are
+for first loads; background refresh does not replace cards or disable pagination.
+Screenshot tiles likewise retain their previous thumbnail while a changed
+thumbnail or higher-resolution derivative loads.

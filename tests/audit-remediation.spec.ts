@@ -14,7 +14,7 @@ async function fixture(page:Page,count=49){
       if(name==='get_world_icon')return '/minecraft.png';
       if(name==='get_catalog_sources')return {modrinth:true,curseforge:false};
       if(name==='search_catalog')return {projects:[],total:0};
-      if(name==='get_worlds')return {worlds,unavailable:[]};
+      if(name==='get_worlds'){w.__worldLoads=(w.__worldLoads || 0)+1;await new Promise(resolve=>setTimeout(resolve,w.__refreshDelay || 0));w.__worldCompleted=(w.__worldCompleted || 0)+1;return {worlds,unavailable:[]};}
       if(name==='get_servers')return {servers,unavailable:[]};
       if(name==='get_content')return Array.from({length:w.__contentCount},(_,i)=>({name:`mod-${i}.jar`,kind:'mods',enabled:true}));
       if(name==='get_instance_files'){if(w.__failFiles)throw new Error('Filesystem unavailable');return {worlds:worlds.slice(0,w.__hideWorlds?0:w.__resourceCount).map(world=>world.folder),servers:servers.slice(0,w.__resourceCount).map(server=>({name:server.name,ip:server.address})),screenshots:[]};}
@@ -180,4 +180,19 @@ test('instance icons recover to bundled artwork and shelf focus outlines are not
     return {pixels,focus:Array.from(ctx.getImageData(0,0,1,1).data).slice(0,3)};
   },{png:screenshot.toString('base64'),box,distance});
   expect(pixels).toEqual([focus,focus,focus,focus]);
+});
+
+
+test('focus refresh keeps existing world cards mounted without a loading replacement',async({page})=>{
+  await fixture(page,1);
+  const card=page.locator('[data-home-section="worlds"] .launcher-card');await expect(card).toBeVisible();
+  await card.evaluate(node=>(window as any).__existingWorldCard=node);
+  const before=await page.evaluate(()=>(window as any).__worldLoads);
+  await page.evaluate(()=>{(window as any).__refreshDelay=700;window.dispatchEvent(new Event('focus'));});
+  await expect.poll(()=>page.evaluate(()=>(window as any).__worldLoads)).toBeGreaterThan(before);
+  await expect(card).toBeVisible();
+  await expect(page.locator('[data-home-section="worlds"]').getByText('Loading…',{exact:true})).toHaveCount(0);
+  expect(await card.evaluate(node=>node===(window as any).__existingWorldCard)).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>(window as any).__worldCompleted)).toBeGreaterThan(before);
+  expect(await card.evaluate(node=>node===(window as any).__existingWorldCard)).toBe(true);
 });

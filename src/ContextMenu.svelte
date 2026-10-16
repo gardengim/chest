@@ -5,10 +5,10 @@
   function close(){const anchor=trigger;onclose();anchor.focus({preventScroll:true});}
   function attach(node:HTMLElement){
     const rect=node.getBoundingClientRect();node.style.left=`${Math.max(8,Math.min(x,innerWidth-rect.width-8))}px`;node.style.top=`${Math.max(8,Math.min(y,innerHeight-rect.height-8))}px`;
-    node.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
-    const outside=(event:PointerEvent)=>{if(!node.contains(event.target as Node) && !(ignoreTrigger && trigger.contains(event.target as Node)))onclose();};const dismiss=()=>onclose();
-    document.addEventListener('pointerdown',outside,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true);
-    return {destroy(){document.removeEventListener('pointerdown',outside,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);}};
+    node.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({preventScroll:true});
+    const outside=(event:PointerEvent)=>{if(!node.contains(event.target as Node) && !(ignoreTrigger && trigger.contains(event.target as Node)))onclose();};const dismiss=(event:Event)=>{if(event.target instanceof Node && node.contains(event.target))return;onclose();};
+    document.addEventListener('pointerdown',outside,true);window.addEventListener('resize',dismiss);const scrollFrame=requestAnimationFrame(()=>document.addEventListener('scroll',dismiss,true));
+    return {destroy(){cancelAnimationFrame(scrollFrame);document.removeEventListener('pointerdown',outside,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);}};
   }
   function keys(event:KeyboardEvent){
     if(event.key==='Escape' || event.key==='Tab'){if(event.key==='Escape')event.preventDefault();event.stopPropagation();close();return;}
