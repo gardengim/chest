@@ -19,6 +19,10 @@ test('latch faces share edges on the cube isometric axes without a distorting tr
   const slope=(p,q)=>(q[1]-p[1])/(q[0]-p[0]);
   for(const [p,q] of [[a,b],[d,c]])assert.ok(Math.abs(slope(p,q)+1/Math.sqrt(3))<1e-10);
   for(const [p,q] of [[a,d],[b,c]])assert.ok(Math.abs(slope(p,q)-1/Math.sqrt(3))<1e-10);
+  const width=Math.hypot(b[0]-a[0],b[1]-a[1]),depth=Math.hypot(d[0]-a[0],d[1]-a[1]);
+  const height=front[3][1]-front[0][1];
+  assert.ok(Math.abs(depth/width-.5)<1e-10);
+  assert.ok(Math.abs(height/width-2)<1e-10);
   assert.deepEqual(front.slice(0,2),[d,c]);assert.deepEqual(side.slice(0,2),[a,d]);
   for(const face of [front,side]){
     assert.equal(face[3][0],face[0][0]);assert.equal(face[2][0],face[1][0]);

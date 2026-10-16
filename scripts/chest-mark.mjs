@@ -7,7 +7,7 @@ const point=([x,y])=>`${number(x)} ${number(y)}`;
 const polygon=points=>`M${points.map(point).join(' ')}Z`;
 // A slim rectangular prism projected on the cube's two 30-degree axes.
 export function latchFaces(){
-  const axis=Math.sqrt(3)/2,width=8,depth=(8/3)*1.05,height=18;
+  const unit=4.5,axis=Math.sqrt(3)/2,height=4*unit,width=2*unit,depth=unit;
   const attachment=[64+26*axis,84-26/2]; // Midpoint of the right-face lid seam.
   const a=[attachment[0]-width*axis/2,attachment[1]+5-height/2+width/4];
   const b=[a[0]+width*axis,a[1]-width/2];
