@@ -1,0 +1,34 @@
+{
+  "executable": "src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+  "executableSha256": "e7b29c3402787ac892ccd92e6620aa0288e7c889674066de7636fc47accc1f17",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "profile": "<temporary-profile>",
+  "profileRetained": false,
+  "instances": 0,
+  "iconFixture": false,
+  "samples": [
+    {
+      "processToLibraryMs": 1210.1020839763805,
+      "stages": [
+        {
+          "elapsed_ms": 201.767292,
+          "stage": "setup"
+        },
+        {
+          "elapsed_ms": 301.92816700000003,
+          "stage": "core-ready"
+        },
+        {
+          "elapsed_ms": 472.702375,
+          "stage": "window-built"
+        },
+        {
+          "elapsed_ms": 787.4255420000001,
+          "stage": "library-rendered"
+        }
+      ]
+    }
+  ],
+  "medianProcessToLibraryMs": 1210.1020839763805,
+  "boundary": "Parent Popen to library-rendered IPC after two frames; no Finder/LaunchServices; isolated profile; optional idle sampling includes main process only"
+}

@@ -1,0 +1,46 @@
+[WebServer] (node:22223) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:22241) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:22264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:22303) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 29 tests using 2 workers
+
+(node:22306) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22305) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 tests/auth-callback.spec.ts:5:52 › callback page is readable and responsive in light (1.7s)
+  ✓   1 tests/audit-remediation.spec.ts:33:1 › large Home shelves are bounded and View all searches the complete library (2.1s)
+  ✓   3 tests/auth-callback.spec.ts:5:52 › callback page is readable and responsive in dark (846ms)
+  ✓   5 tests/button-rendering.spec.ts:12:1 › layout glyphs keep their intended size on Home and inside content tabs (686ms)
+  ✓   4 tests/audit-remediation.spec.ts:46:47 › world paging and off-page deep links focus the intended instance resource (1.2s)
+  ✓   7 tests/audit-remediation.spec.ts:46:47 › server paging and off-page deep links focus the intended instance resource (934ms)
+  ✓   6 tests/button-rendering.spec.ts:39:1 › button, radio and checkbox feedback never moves icons through fractional pixels (1.7s)
+  ✓   8 tests/audit-remediation.spec.ts:65:1 › Contents filters before paging, resets searches and clamps after refresh (902ms)
+  ✓  10 tests/audit-remediation.spec.ts:83:1 › loader failure is announced and associated, retry preserves a usable focus target (427ms)
+  ✓   9 tests/button-rendering.spec.ts:63:1 › hover and press preserve glyph pixels and the content panel shadow (1.8s)
+  ✓  12 tests/card-artwork.spec.ts:36:1 › instance cards and header share a mixed background pool, lazily load frames and show one header icon (471ms)
+  ✓  11 tests/audit-remediation.spec.ts:95:1 › late world metadata does not undo a page change after following a deep link (1.8s)
+  ✓  13 tests/card-artwork.spec.ts:68:1 › cards use blurred icons when backgrounds are missing, but preserve real backgrounds and recover from failures (882ms)
+  ✓  14 tests/audit-remediation.spec.ts:107:1 › focus discovers absent resource tabs and leaves emptied tabs without treating errors as empty (1.3s)
+  ✓  15 tests/card-artwork.spec.ts:87:1 › world thumbnails are darker backgrounds while servers use blurred icons (534ms)
+  ✓  16 tests/audit-remediation.spec.ts:136:1 › world cards show real metadata, translucent actions and shared menu actions (662ms)
+  ✓  17 tests/card-artwork.spec.ts:106:1 › all card kinds share their shell and media dimensions while grids can control sizing (950ms)
+  ✓  18 tests/audit-remediation.spec.ts:160:1 › instance icons recover to bundled artwork and shelf focus outlines are not clipped (624ms)
+  ✓  19 tests/card-artwork.spec.ts:134:1 › world, server and installed-content card actions share translucent dark backgrounds and blur (1.1s)
+  ✓  20 tests/focus-visibility.spec.ts:4:36 › focused skip link uses readable dark panel colors (805ms)
+  ✓  22 tests/focus-visibility.spec.ts:4:36 › focused skip link uses readable light panel colors (767ms)
+  ✓  21 tests/card-artwork.spec.ts:157:1 › missing content artwork stays absent across cards and installed content, and Overview has no stale refresh action (942ms)
+  ✓  24 tests/card-artwork.spec.ts:181:1 › screenshot image requests are reused when returning to the same collection (951ms)
+  ✓  25 tests/rtl-and-shelves.spec.ts:26:1 › world and server shelves have independent gallery/list controls (1.1s)
+  ✓  23 tests/focus-visibility.spec.ts:17:32 › sidebar focus ring is painted completely above adjacent tabs (ltr) (2.4s)
+  ✓  26 tests/rtl-and-shelves.spec.ts:41:1 › badges use matched surface colors, and shared text actions have horizontal hover space (1.3s)
+  ✓  27 tests/focus-visibility.spec.ts:17:32 › sidebar focus ring is painted completely above adjacent tabs (rtl) (3.0s)
+  ✓  28 tests/rtl-and-shelves.spec.ts:58:1 › Arabic mirrors the rail, dropdowns, tabs and horizontal scrollbar without mirroring artwork (2.8s)
+  ✓  29 tests/rtl-and-shelves.spec.ts:94:1 › Arabic preview can be discarded, and saving retains language and direction (869ms)
+
+  29 passed (24.2s)

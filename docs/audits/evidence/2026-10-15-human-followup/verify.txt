@@ -1,0 +1,456 @@
+
+> chest@0.1.0 verify
+> node scripts/verify.mjs
+
+
+> chest@0.1.0 check:release
+> node scripts/check-release-version.mjs
+
+Release version 0.1.0 and updater configuration verified.
+Public Microsoft application ID configured: 2a46389b-7bf0-4854-95b8-0e808d0ac054
+
+> chest@0.1.0 test:scripts
+> node --test scripts/*.test.mjs
+
+✔ candidate evidence verifies bytes and source before accepting an installer (6.974458ms)
+✔ same-size modified installer fails integrity verification (2.464916ms)
+✔ missing required installer fails rather than producing partial evidence (1.666875ms)
+✔ inventory cannot verify an installer outside its artifact directory (1.547ms)
+✔ packaging rejects empty and placeholder application IDs (2.094459ms)
+✔ release inputs agree; a mismatched tag is rejected (6.8605ms)
+✔ stale Cargo lockfile version is rejected (3.823375ms)
+✔ invalid updater key is rejected (2.603167ms)
+✔ invalid updater endpoint is rejected (2.541084ms)
+✔ invalid updater artifacts is rejected (2.986083ms)
+✔ lowering the macOS WebView baseline is rejected (2.583375ms)
+✔ license comparison permits checkout line endings but rejects content changes (0.697083ms)
+✔ license packing preserves every notice exactly while sharing identical text (0.801333ms)
+✔ burst retention is bounded globally and reports omissions (85.446834ms)
+✔ disposing a pending batch releases it without a late callback (80.649167ms)
+✔ a burst of distinct sessions cannot retain unbounded map entries (87.935708ms)
+✔ line-bound batches retain the omission marker and the newest line (81.671625ms)
+✔ native measurements reject an early exit without publishing zero-resource results (423.263833ms)
+✔ live log retention bounds WebView strings and indicates omitted history (23.33725ms)
+✔ verify invokes Bun as a binary and npm as a Node script (1.209875ms)
+✔ all translations cover the same keys and preserve interpolation placeholders (4.620208ms)
+✔ literal interface translation calls have dictionary entries (13.116042ms)
+✔ locale detection preserves Chinese script and regional preferences (0.149625ms)
+✔ language registry, lazy dictionaries and native menu labels have complete coverage (1.766208ms)
+✔ known installation progress is localized while unknown diagnostics are preserved (0.22875ms)
+✔ Arabic locale detection and writing direction are explicit (0.055875ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 562.707125
+
+> chest@0.1.0 check
+> svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: <workspace>
+Getting Svelte diagnostics...
+
+svelte-check found 0 errors and 0 warnings
+
+> chest@0.1.0 build
+> vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 285 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.43 kB │ gzip:  0.29 kB
+dist/assets/Screenshots-3KQ-Dq3I.css        0.27 kB │ gzip:  0.19 kB
+dist/assets/About-CPdZ9HIk.css              0.27 kB │ gzip:  0.19 kB
+dist/assets/LoaderPicker-U-azQgEA.css       0.33 kB │ gzip:  0.22 kB
+dist/assets/ResourceLibrary-CPfW3X1v.css    0.93 kB │ gzip:  0.40 kB
+dist/assets/Select-Cc0RZNnz.css             1.03 kB │ gzip:  0.43 kB
+dist/assets/InstancePage-KEYTuI5j.css       1.26 kB │ gzip:  0.49 kB
+dist/assets/SettingsPage-BO4wxlFa.css       1.65 kB │ gzip:  0.58 kB
+dist/assets/Explore-BHvAhs7b.css            5.39 kB │ gzip:  1.45 kB
+dist/assets/index-DqKpzlIv.css             73.01 kB │ gzip: 13.53 kB
+dist/assets/format-CJvOSv-j.js              0.37 kB │ gzip:  0.26 kB
+dist/assets/Tabs-CSib-Aa1.js                1.36 kB │ gzip:  0.79 kB
+dist/assets/RuntimeFields-BZt6nqSo.js       1.92 kB │ gzip:  1.02 kB
+dist/assets/Select-BcJSNaBD.js              5.35 kB │ gzip:  2.66 kB
+dist/assets/News-DvZOBUBh.js                6.18 kB │ gzip:  2.81 kB
+dist/assets/Screenshots-Dp8GxqW6.js         6.95 kB │ gzip:  2.94 kB
+dist/assets/LoaderPicker-BTwBifol.js        7.27 kB │ gzip:  3.23 kB
+dist/assets/CreatePage-CkQQnfau.js         12.38 kB │ gzip:  4.51 kB
+dist/assets/WorldList-DU_GXCqq.js          14.16 kB │ gzip:  5.21 kB
+dist/assets/SettingsPage-UxCSDAGC.js       19.47 kB │ gzip:  6.96 kB
+dist/assets/ResourceLibrary-AxxKfnIc.js    21.44 kB │ gzip:  7.23 kB
+dist/assets/Explore-Ct6O6IfD.js            23.17 kB │ gzip:  8.41 kB
+dist/assets/zh-Hans-C0CkmPOp.js            28.36 kB │ gzip: 11.14 kB
+dist/assets/zh-Hant-BmIHFuBJ.js            28.42 kB │ gzip: 11.16 kB
+dist/assets/es-CxHrCuij.js                 30.19 kB │ gzip: 10.95 kB
+dist/assets/InstancePage-BovjbcwH.js       30.24 kB │ gzip: 10.48 kB
+dist/assets/ko-D76trLzN.js                 31.32 kB │ gzip: 11.25 kB
+dist/assets/ja-BZWmnWjI.js                 34.49 kB │ gzip: 11.70 kB
+dist/assets/ar-COB0r5z5.js                 35.32 kB │ gzip: 11.71 kB
+dist/assets/About-BQfYc2XR.js              62.47 kB │ gzip: 19.87 kB
+dist/assets/rich-description-gp-3_lvn.js   78.55 kB │ gzip: 25.80 kB
+dist/assets/index-H6fuBWgg.js             236.76 kB │ gzip: 94.99 kB
+✓ built in 868ms
+
+> chest@0.1.0 check:licenses
+> node scripts/check-licenses.mjs
+
+License notices match the dependency lockfiles.
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s
+     Running unittests src/lib.rs (core/target/debug/deps/chest_core-02b60b62119b26c6)
+
+running 104 tests
+test account_skins::tests::supports_modern_and_legacy_skins_and_rejects_invalid_sizes ... ok
+test artwork::tests::validates_icon_type_size_and_dimensions ... ok
+test auth::tests::callback_page_is_private_and_does_not_claim_authentication_success ... ok
+test auth::tests::callback_decline_is_sanitized ... ok
+test auth::tests::callback_requires_matching_unique_state_and_code ... ok
+test catalog::tests::catalog_backgrounds_prefer_featured_images_and_validate_fallbacks ... ok
+test catalog::tests::curseforge_file_requires_an_allowed_download_and_sha1 ... ok
+test account_skins::tests::accepts_only_minecraft_textures_and_upgrades_https ... ok
+test catalog::tests::rejects_unsafe_catalog_files ... ok
+test catalog_description::tests::normalizes_provider_formats_and_bounds_content ... ok
+test catalog::tests::directory_guard_rejects_symlinks ... ok
+test artwork::tests::reads_status_icon_from_a_real_framed_response ... ok
+test catalog::tests::forge_and_neoforge_are_distinct_for_both_providers ... ok
+test artwork::tests::world_icons_are_optional_and_confined ... ok
+test creation::tests::default_name_custom_location_and_disabled_content_survive_reopen ... ok
+test download_temp::tests::never_follows_orphan_symlinks ... ok
+test download_temp::tests::process_exit_releases_lock_and_next_writer_reconciles ... ok
+test download_temp::tests::reconciles_only_owned_orphans_and_excludes_other_writers ... ok
+test fabric::tests::inherits_game_data_and_overrides_conflicting_libraries ... ok
+test fabric::tests::resolves_maven_paths_without_traversal ... ok
+test forge::tests::installer_output_cannot_publish_symbolic_links ... ok
+test forge::tests::library_publication_is_repeatable ... ok
+test forge::tests::old_jna_is_replaced_only_on_macos_with_matching_module_names ... ok
+test forge::tests::profile_requires_exact_loader_and_game ... ok
+test forge::tests::shared_vanilla_jar_is_excluded_from_the_patched_module_scan ... ok
+test forge::tests::versions_match_exact_game_and_sort_numerically ... ok
+test artwork::tests::uses_minecraft_cached_icons_without_network ... ok
+test catalog::tests::compatibility_requires_game_and_modloader_for_mods ... ok
+test creation::tests::archive_location_cannot_override_new_instances_location ... ok
+test install::tests::rejects_zip_escape ... ok
+test install::tests::verifies_hashes ... ok
+test account_skins::tests::cached_skin_works_offline_and_unknown_accounts_are_rejected ... ok
+test install::tests::manual_java_rejects_missing_unexecutable_and_wrong_versions ... ok
+test backgrounds::tests::pool_combines_sources_and_survives_a_broken_provider_receipt ... ok
+test instance_files::tests::collections_include_every_file_beyond_the_previous_limit ... ok
+test archive::tests::roundtrip_gets_new_identity_and_preserves_world ... ok
+test creation::tests::failed_catalog_queue_is_preserved_for_retry_and_blocks_incomplete_exports ... ok
+test creation::tests::invalid_location_and_duplicate_files_leave_no_library_entry ... ok
+test creation::tests::unchecked_catalog_entries_are_not_queued ... ok
+test launch_settings::tests::defaults_and_validation ... ok
+test install::tests::filesystem_failure_does_not_publish_download ... ok
+test launch_settings::tests::hook_reports_failure ... ok
+test install::tests::interrupted_and_unverified_downloads_preserve_destination_and_retry ... ok
+test instance_files::tests::global_screenshots_list_pngs_without_loading_images ... ok
+test instance_files::tests::global_servers_reads_each_instance_and_reports_unreadable_lists ... ok
+test instance_files::tests::lists_local_files_and_rejects_traversal ... ok
+test instance_files::tests::screenshot_symlinks_cannot_escape_instance ... ok
+test launch_settings::tests::graphics_api_arguments_and_version_gates ... ok
+test lifecycle_tests::artwork_comes_from_instance_data_and_rejects_invalid_images ... ok
+test launch_settings::tests::launches_with_separate_arguments_environment_window_and_hooks ... ok
+test lifecycle_tests::deleted_instances_do_not_retain_file_operation_activity ... ok
+test lifecycle_tests::deletion_config_failure_keeps_its_record_and_can_be_retried ... ok
+test launch_settings::tests::combined_instance_settings_save_is_atomic_and_preserves_installation ... ok
+test lifecycle_tests::failed_start_is_not_reported_as_game_crash ... ok
+test loaders::tests::forge_profile_keeps_classifiers_and_inherits_game_assets ... ok
+test log_buffer::tests::retention_is_bounded_across_sessions ... ok
+test metadata::tests::expands_without_shell_splitting ... ok
+test metadata::tests::modern_versions ... ok
+test metadata::tests::rule_order_and_features ... ok
+test modpack::tests::client_overrides_replace_common_files_and_ignore_server_files ... ok
+test lifecycle_tests::duplicate_operations_and_mutation_are_rejected_while_busy ... ok
+test modpack::tests::escaping_paths_and_untrusted_download_urls_are_rejected ... ok
+test modpack::tests::pack_format_and_extraction_limits_are_validated ... ok
+test launch_settings::tests::settings_persist_duplicate_and_stay_out_of_archives ... ok
+test modpack::tests::provider_gallery_is_ordered_bounded_and_rejects_untrusted_urls ... ok
+test lifecycle_tests::file_reservations_reject_conflicts_and_failed_copies_are_not_published ... ok
+test lifecycle_tests::instance_folder_returns_the_known_instances_game_path ... ok
+test modpack::tests::supported_loaders_are_pinned_and_unsupported_dependencies_fail ... ok
+test news::tests::article_links_require_official_https_host ... ok
+test news::tests::filters_java_news_and_orders_by_date ... ok
+test news::tests::pack_record_is_bounded_and_stays_inside_instance ... ok
+test news::tests::release_links_allow_only_known_provider_hosts ... ok
+test news::tests::updates_require_a_known_older_installed_release ... ok
+test profile::tests::profiles_are_explicit_separate_and_stable ... ok
+test profile::tests::symlink_alias_cannot_create_a_profile_inside_normal_data ... ok
+test profile::tests::unmarked_data_and_invalid_markers_are_not_adopted ... ok
+test lifecycle_tests::offline_debugging_skips_credentials_without_saving_a_fake_account ... ok
+test resource_launch::tests::direct_launch_arguments_are_temporary_and_preserve_the_target ... ok
+test lifecycle_tests::oversized_and_fragmented_logs_stay_bounded_and_redact_tokens ... ok
+test lifecycle_tests::updater_maintenance_excludes_new_jobs_and_releases_on_failure ... ok
+test instance_icons::tests::padded_icons_are_small_cached_derivatives_and_originals_survive ... ok
+test modpack::tests::committed_pack_recovers_settings_and_keeps_the_queued_identity ... ok
+test modpack::tests::provider_backgrounds_use_pack_gallery_metadata ... ok
+test store::tests::default_application_id_migrates_empty_config_and_preserves_explicit_ids ... ok
+test store::tests::does_not_replace_corrupt_config ... ok
+test store::tests::loader_settings_are_backward_compatible_and_invalidate_installation ... ok
+test store::tests::playtime_survives_reopening_and_stale_editor_saves ... ok
+test store::tests::rejects_traversal ... ok
+test store::tests::reordered_instances_persist_without_losing_new_instances ... ok
+test store::tests::saves_and_reopens ... ok
+test store::tests::sidebar_groups_validate_membership_and_persist ... ok
+test modpack::tests::queue_without_an_async_runtime_returns_an_error_without_panicking_or_leaving_an_instance ... ok
+test resource_edit::tests::rename_preserves_world_and_server_metadata ... ok
+test resource_launch::tests::launch_without_runtime_returns_error_without_reserving_a_job ... ok
+test resource_launch::tests::world_and_server_launch_run_on_the_runtime_and_report_preparation_errors ... ok
+test server_bookmarks::tests::validates_addresses_and_preserves_unknown_server_fields ... ok
+test storage::tests::accounts_once_and_only_cleans_generated_files ... ok
+test worlds::tests::active_instances_reject_backup_and_copy ... ok
+test modpack::tests::queue_returns_before_downloads_and_preserves_request_after_failure ... ok
+test worlds::tests::corrupt_metadata_remains_visible_with_unknown_version ... ok
+test worlds::tests::links_fail_without_publishing_partial_copies_or_backups ... ok
+test worlds::tests::metadata_copy_and_backup_preserve_original_and_never_overwrite ... ok
+test screenshot_images::tests::thumbnails_are_bounded_cached_and_preserve_originals ... ok
+test instance_icons::tests::dimensions_formats_and_aggregate_are_bounded ... ok
+
+test result: ok. 104 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.17s
+
+   Doc-tests chest_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/chest_app-e2fed6da71c43afa)
+
+running 4 tests
+test shortcuts::tests::rejects_invalid_intents ... ok
+test shortcuts::tests::mac_shortcut_quotes_executable_and_refuses_overwrite ... ok
+test color_schemes::tests::scheme_files_round_trip_reject_oversized_input_and_preserve_existing_exports ... ok
+test command_worker_tests::slow_filesystem_work_does_not_block_the_async_event_loop ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+
+> chest@0.1.0 test
+> playwright test
+
+[WebServer] (node:20392) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:20421) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:20469) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:20529) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 202 tests using 2 workers
+
+(node:20539) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20538) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓    1 tests/account-skins.spec.ts:28:1 › active account face includes hat layer, uses crisp scaling, shares requests and falls back on missing skins (1.0s)
+  ✓    3 tests/account-skins.spec.ts:45:1 › Overview omits account association; launch account picker options retain skin faces (574ms)
+  ✓    2 tests/accessibility.spec.ts:8:1 › core pages and creation discard dialog meet automated accessibility rules (4.2s)
+  ✓    5 tests/accessibility.spec.ts:22:1 › skip link provides a keyboard route into the page (322ms)
+  ✓    6 tests/app-updater.spec.ts:3:1 › signed updater UI retries checks, streams progress, persists across navigation, and offers restart (709ms)
+  ✓    7 tests/app-updater.spec.ts:56:1 › browser preview does not offer native update installation (490ms)
+  ✓    8 tests/app-updater.spec.ts:66:1 › test profiles can check but cannot replace the app or check automatically (520ms)
+  ✓    4 tests/activity.spec.ts:4:1 › native events keep selection, halo, and progress separate; keyboard exposes pause (5.0s)
+  ✓    9 tests/audit-remediation.spec.ts:33:1 › large Home shelves are bounded and View all searches the complete library (373ms)
+  ✓   10 tests/audit.spec.ts:3:1 › library backdrop requests and rotation stay bounded by visibility and motion preferences (637ms)
+  ✓   11 tests/audit-remediation.spec.ts:46:47 › world paging and off-page deep links focus the intended instance resource (604ms)
+  ✓   12 tests/audit.spec.ts:46:1 › pixel borders, corner steps and bevels scale together across nested controls (412ms)
+  ✓   13 tests/audit-remediation.spec.ts:46:47 › server paging and off-page deep links focus the intended instance resource (563ms)
+  ✓   14 tests/auth-callback.spec.ts:5:52 › callback page is readable and responsive in light (414ms)
+  ✓   16 tests/auth-callback.spec.ts:5:52 › callback page is readable and responsive in dark (392ms)
+  ✓   15 tests/audit-remediation.spec.ts:65:1 › Contents filters before paging, resets searches and clamps after refresh (836ms)
+  ✓   17 tests/browser-modules.spec.ts:5:1 › symbol renderer caches conversions, preserves SVG sources and branded artwork (326ms)
+  ✓   18 tests/audit-remediation.spec.ts:83:1 › loader failure is announced and associated, retry preserves a usable focus target (524ms)
+  ✓   19 tests/browser-modules.spec.ts:19:1 › artwork cache shares pending work, retries failures and evicts by byte budget (375ms)
+  ✓   21 tests/browser-modules.spec.ts:40:1 › rich renderer removes active markup, unsafe URLs and provider styles while preserving useful structure (355ms)
+  ✓   22 tests/browser-modules.spec.ts:53:1 › canonical Minecraft artwork is inlined in development as well as production (283ms)
+  ✓   23 tests/button-rendering.spec.ts:12:1 › layout glyphs keep their intended size on Home and inside content tabs (342ms)
+  ✓   20 tests/audit-remediation.spec.ts:95:1 › late world metadata does not undo a page change after following a deep link (2.5s)
+  ✓   24 tests/button-rendering.spec.ts:39:1 › button, radio and checkbox feedback never moves icons through fractional pixels (1.7s)
+  ✓   25 tests/audit-remediation.spec.ts:107:1 › focus discovers absent resource tabs and leaves emptied tabs without treating errors as empty (1.2s)
+  ✓   27 tests/audit-remediation.spec.ts:136:1 › world cards show real metadata, translucent actions and shared menu actions (465ms)
+  ✓   28 tests/audit-remediation.spec.ts:160:1 › instance icons recover to bundled artwork and shelf focus outlines are not clipped (411ms)
+  ✓   26 tests/button-rendering.spec.ts:63:1 › hover and press preserve glyph pixels and the content panel shadow (1.9s)
+  ✓   30 tests/card-artwork.spec.ts:36:1 › instance cards and header share a mixed background pool, lazily load frames and show one header icon (428ms)
+  ✓   29 tests/buttons.spec.ts:16:1 › button shapes share pointer, focus, and disabled feedback while tabs stay anchored (1.0s)
+  ✓   31 tests/card-artwork.spec.ts:68:1 › cards use blurred icons when backgrounds are missing, but preserve real backgrounds and recover from failures (656ms)
+  ✓   33 tests/card-artwork.spec.ts:87:1 › world thumbnails are darker backgrounds while servers use blurred icons (346ms)
+  ✓   32 tests/buttons.spec.ts:47:1 › tab and sidebar hover fills stay clipped and do not lift their open edges (623ms)
+  ✓   34 tests/card-artwork.spec.ts:106:1 › all card kinds share their shell and media dimensions while grids can control sizing (832ms)
+  ✓   35 tests/catalog-background.spec.ts:3:1 › Explore cards fill with gallery backgrounds and gradients in gallery and list layouts (1.1s)
+  ✓   36 tests/card-artwork.spec.ts:134:1 › world, server and installed-content card actions share translucent dark backgrounds and blur (1.2s)
+  ✓   38 tests/card-artwork.spec.ts:157:1 › missing content artwork stays absent across cards and installed content, and Overview has no stale refresh action (756ms)
+  ✓   37 tests/catalog-pagination.spec.ts:3:1 › gallery requests complete rows at every width and pagination neither skips nor repeats projects (1.7s)
+  ✓   39 tests/card-artwork.spec.ts:181:1 › screenshot image requests are reused when returning to the same collection (384ms)
+  ✓   41 tests/creation-page.spec.ts:3:1 › creation stays on one page, retains drafts, defaults blank names, and aligns controls (599ms)
+  ✓   42 tests/creation-page.spec.ts:32:1 › home Explore hands a pack to creation and does not install immediately (653ms)
+  ✓   40 tests/chinese.spec.ts:5:3 › zh-Hans settings and unsaved dialog remain accessible with enlarged text (1.6s)
+  ✓   43 tests/creation-page.spec.ts:45:1 › import, local files and catalog releases share one final submission (1.4s)
+  ✓   44 tests/chinese.spec.ts:5:3 › zh-Hant settings and unsaved dialog remain accessible with enlarged text (1.5s)
+  ✓   45 tests/creation-page.spec.ts:101:1 › discard confirmation resets creation and cancels navigation on Escape (528ms)
+  ✓   46 tests/desktop-menu.spec.ts:33:1 › native menus reuse navigation, settings, About, updates and existing external actions (447ms)
+  ✓   48 tests/desktop-menu.spec.ts:49:1 › menu navigation preserves creation drafts and reports native failures in the app (397ms)
+  ✓   49 tests/desktop-menu.spec.ts:60:1 › native menu labels follow language previews and revert on Discard (354ms)
+  ✓   47 tests/creation-page.spec.ts:114:1 › Vanilla hides loader mods and creation sections follow content then details (1.0s)
+  ✓   50 tests/dropdowns.spec.ts:4:1 › shared dropdown supports pointer choice, keyboard navigation, typeahead, and dismissal (635ms)
+  ✓   51 tests/creation-page.spec.ts:145:1 › unchanged creation exits freely, including after reverting edits (681ms)
+  ✓   53 tests/fabric.spec.ts:4:1 › Fabric selection persists through cancelled navigation, restart, and duplication (734ms)
+  ✓   54 tests/fabric.spec.ts:32:1 › legacy Vanilla settings load and a loader change requires installation (467ms)
+  ✓   55 tests/fabric.spec.ts:43:1 › loader lookup retries failures and ignores responses for a previous game version (403ms)
+  ✓   52 tests/explore.spec.ts:4:1 › Explore supports search, gallery/list, categories, and source setup without desktop downloads (2.2s)
+  ✓   56 tests/finalization.spec.ts:41:1 › close and quit reuse Cancel, Discard and Save before approving native exit (514ms)
+  ✓   58 tests/finalization.spec.ts:57:1 › storage scans only on demand and clearing requires a concrete confirmation (565ms)
+  ✓   57 tests/explore.spec.ts:31:1 › native Explore uses the target compatibility, ignores stale searches, and adds the selected release (1.8s)
+  ✓   59 tests/finalization.spec.ts:72:36 › image-free world page has accessible contrast in light (1.2s)
+  ✓   60 tests/explore.spec.ts:77:1 › Quilt loader persists and the library supports list view (642ms)
+  ✓   62 tests/focus-visibility.spec.ts:4:36 › focused skip link uses readable dark panel colors (442ms)
+  ✓   61 tests/finalization.spec.ts:72:36 › image-free world page has accessible contrast in dark (1.3s)
+  ✓   63 tests/focus-visibility.spec.ts:4:36 › focused skip link uses readable light panel colors (470ms)
+  ✓   64 tests/finalization.spec.ts:82:1 › cards request thumbnails and full images load only when previewing (700ms)
+  ✓   65 tests/focus-visibility.spec.ts:17:32 › sidebar focus ring is painted completely above adjacent tabs (ltr) (1.0s)
+  ✓   67 tests/focus-visibility.spec.ts:17:32 › sidebar focus ring is painted completely above adjacent tabs (rtl) (902ms)
+  ✓   66 tests/finalization.spec.ts:93:1 › large instance collections render bounded pages and keep every item reachable (1.4s)
+  ✓   68 tests/forge.spec.ts:5:3 › Forge creation persists the loader and switching loader invalidates installation (853ms)
+  ✓   69 tests/graphics-checkbox.spec.ts:12:1 › graphics API persists per instance, gates older versions and restores the default (931ms)
+  ✓   70 tests/forge.spec.ts:5:3 › NeoForge creation persists the loader and switching loader invalidates installation (686ms)
+  ✓   71 tests/graphics-checkbox.spec.ts:31:1 › pixel checkboxes share styling, respond to keyboard and scale with text (869ms)
+  ✓   72 tests/home.spec.ts:5:1 › dock reorders and hides shelves, persists, and leaves every tool accessible (1.4s)
+  ✓   73 tests/instance-brief.spec.ts:3:1 › cards and instance headers share version, loader, and saved playtime summaries (1.5s)
+  ✓   75 tests/instance-menu.spec.ts:3:1 › sidebar left click opens the instance and right click opens its menu, act on their instance, and dismiss by keyboard or outside click (978ms)
+  ✓   76 tests/instance-menu.spec.ts:41:1 › library cards and their media areas open the instance menu in gallery and list layouts (669ms)
+  ✓   77 tests/instance-menu.spec.ts:71:1 › native context menus are suppressed except in text fields (214ms)
+  ✓   74 tests/home.spec.ts:30:1 › pointer dragging reveals hidden tools, adds shelves, and reorders the home (2.6s)
+  ✓   78 tests/instance-news.spec.ts:2:1 › news combines sources, scopes updates to installed instances, and retries partial failures (554ms)
+  ✓   80 tests/instance-news.spec.ts:127:1 › instance updates survive a failed official news feed (390ms)
+  ✓   79 tests/home.spec.ts:60:1 › a short final shelf fits above the floating dock in a narrow viewport (797ms)
+  ✓   82 tests/home.spec.ts:77:1 › home navigation is accessible, respects reduced motion, and only scrolls its panel (1.2s)
+  ✓   81 tests/instance-presentation.spec.ts:3:1 › activity colors follow tabs and groups; console selects text and settings exposes the folder path (1.6s)
+  ✓   83 tests/home.spec.ts:95:1 › an entirely hidden home exposes a usable target for dragging a tool back (1.4s)
+  ✓   84 tests/instance-settings-flow.spec.ts:41:1 › one footer saves all settings; reset stages defaults and preserves identity (1.2s)
+  ✓   85 tests/home.spec.ts:122:1 › dock toggle follows hidden shelves and minus target can hide a shelf when all are visible (636ms)
+  ✓   86 tests/instance-settings-flow.spec.ts:66:1 › tab and page navigation protect drafts; failed and invalid saves stay editable (1.0s)
+  ✓   88 tests/instance-settings-flow.spec.ts:91:1 › navigation cannot discard or edit an in-flight save (530ms)
+  ✓   89 tests/instance-settings-flow.spec.ts:106:1 › native quit waits for unsaved instance settings and only exits after the decision (454ms)
+  ✓   87 tests/home.spec.ts:139:1 › dock context menu reorders, hides, restores and persists placement with corner orientation (2.2s)
+  ✓   90 tests/launcher-features.spec.ts:4:1 › About provides project links, MIT text and searchable bundled dependency notices (1.4s)
+  ✓   91 tests/home.spec.ts:172:1 › all eight dock anchors stay on screen and vertical dragging previews the shelf order (1.6s)
+  ✓   92 tests/launcher-features.spec.ts:16:1 › per-instance account, window, log and command settings persist independently of defaults (941ms)
+  ✓   93 tests/home.spec.ts:190:1 › small pointer movement does not start reordering and hidden shelves reorder persistently (1.5s)
+  ✓   94 tests/launcher-features.spec.ts:48:1 › local files expose conditional tabs and content types remain separate in list and gallery (1.3s)
+  ✓   96 tests/launcher-features.spec.ts:118:1 › a desktop shortcut intent opens its instance, launches once, and honors open-log setting (390ms)
+  ✓   95 tests/home.spec.ts:211:1 › vertical buttons share a width and center their labels across both groups (639ms)
+  ✓   97 tests/launcher-settings.spec.ts:3:1 › launcher preferences persist and reduced motion applies globally (609ms)
+  ✓   98 tests/home.spec.ts:222:3 › vertical visible drop target fills the toolbar and uses neutral gray styling (1.4s)
+  ✓  100 tests/home.spec.ts:222:3 › vertical hidden drop target fills the toolbar and uses neutral gray styling (263ms)
+  ✓   99 tests/launcher-settings.spec.ts:22:1 › desktop settings browse and check Java, open storage, and confirm sign-out (1.3s)
+  ✓  101 tests/home.spec.ts:239:1 › orientation is always available and can override side and center placements (577ms)
+  ✓  103 tests/home.spec.ts:251:1 › short clicks and slight movements do not reveal the minus area (268ms)
+  ✓  102 tests/modpack.spec.ts:4:1 › creation tabs preserve custom setup and expose pack releases without browser installation (883ms)
+  ✓  105 tests/modpack.spec.ts:24:1 › modpacks queue immediately, allow navigation, and report background progress, failure and retry (1.0s)
+  ✓  104 tests/home.spec.ts:259:3 › holding a shelf reveals the empty visible target without starting a reorder (1.5s)
+  ✓  106 tests/navigation-controls.spec.ts:33:1 › shelf, news, catalog and screenshot navigation use the same arrows and button geometry (1.2s)
+  ✓  107 tests/home.spec.ts:259:3 › holding a shelf reveals the empty hidden target without starting a reorder (1.1s)
+  ✓  109 tests/home.spec.ts:272:1 › toolbar submenus support keyboard return and stay inside a narrow viewport (298ms)
+  ✓  108 tests/navigation-controls.spec.ts:86:1 › catalog controls stay focused through loading and reject repeated disabled activation (999ms)
+  ✓  110 tests/home.spec.ts:285:3 › dock uses stable neutral drag previews with horizontal hidden tools (899ms)
+  ✓  111 tests/navigation-controls.spec.ts:104:1 › navigation disappears for fitting shelves and single-page collections, then returns only when needed (1.1s)
+  ✓  112 tests/home.spec.ts:285:3 › dock uses stable neutral drag previews with vertical hidden tools (926ms)
+  ✓  113 tests/navigation-controls.spec.ts:127:1 › shelf navigation follows actual overflow after resizing and searching (439ms)
+  ✓  115 tests/navigation.spec.ts:5:1 › empty sidebar puts + after Chest, creation draft survives cancelled navigation (537ms)
+  ✓  114 tests/home.spec.ts:307:3 › bottom-right horizontal drag reveals the full hidden inventory and can hide the last shelf (1.0s)
+  ✓  116 tests/navigation.spec.ts:12:1 › switching sidebar instances resets the active tab to Overview (751ms)
+  ✓  117 tests/home.spec.ts:307:3 › bottom-right vertical drag reveals the full hidden inventory and can hide the last shelf (922ms)
+  ✓  118 tests/navigation.spec.ts:19:1 › preview refuses actual installation, settings persist, delete requires confirmation (867ms)
+  ✓  119 tests/home.spec.ts:337:1 › vertical dock shares the widest visible label with every hidden button (746ms)
+  ✓  120 tests/navigation.spec.ts:27:1 › default memory and Java propagate to new instances (592ms)
+  ✓  121 tests/offline-debug.spec.ts:26:1 › development offline mode enables launch without sign-in and leaves real accounts untouched (686ms)
+  ✓  122 tests/navigation.spec.ts:31:1 › instance creation, search, duplicate, and responsive layout (686ms)
+  ✓  123 tests/offline-debug.spec.ts:48:1 › browser preview does not offer offline debug mode (358ms)
+  ✓  125 tests/offline-debug.spec.ts:56:1 › native release settings do not expose the Development tab or offline debugging (597ms)
+  ✓  124 tests/navigation.spec.ts:37:1 › instance tabs share creation keyboard navigation and panel relationships (725ms)
+  ✓  127 tests/navigation.spec.ts:52:1 › late content responses stay with their original instance after navigation (972ms)
+  ✓  126 tests/overview.spec.ts:2:1 › Overview shows available versions and news, folder is readonly, and cards retain bevels (1.1s)
+  ✓  129 tests/performance.spec.ts:4:35 › 100-instance library loads and filters within interaction budgets (468ms)
+  ✓  128 tests/navigation.spec.ts:81:1 › accounts and defaults use connected inventory tabs with keyboard navigation (750ms)
+  ✓  130 tests/performance.spec.ts:4:35 › 500-instance library loads and filters within interaction budgets (1.3s)
+  ✓  131 tests/preferences.spec.ts:3:1 › Korean preferences persist, translate navigation, and keep instance data unchanged (1.5s)
+  ✓  133 tests/preferences.spec.ts:34:1 › Empty news keeps its heading outside the panel and hides unused pagination (805ms)
+  ✓  132 tests/performance.spec.ts:4:35 › 1000-instance library loads and filters within interaction budgets (1.8s)
+  ✓  134 tests/preferences.spec.ts:50:3 › es translates creation and content, persists, and preserves user names (1.2s)
+  ✓  135 tests/presentation.spec.ts:4:1 › project dialogs share overlay colors, restore focus, and clean up; missing project artwork stays absent and instance identity can recover (1.3s)
+  ✓  136 tests/preferences.spec.ts:50:3 › ja translates creation and content, persists, and preserves user names (1.2s)
+  ✓  137 tests/presentation.spec.ts:68:1 › page extraction preserves library choices, creation draft, settings draft, and saved instance settings (1.5s)
+  ✓  138 tests/preferences.spec.ts:50:3 › zh-Hans translates creation and content, persists, and preserves user names (1.4s)
+  ✓  139 tests/presentation.spec.ts:101:1 › pending form submissions remain disabled after leaving and returning to their page (995ms)
+  ✓  141 tests/presentation.spec.ts:147:1 › inventory controls align and discovery tabs support the same keyboard navigation (380ms)
+  ✓  140 tests/preferences.spec.ts:50:3 › zh-Hant translates creation and content, persists, and preserves user names (1.1s)
+  ✓  142 tests/presentation.spec.ts:164:1 › instance screenshot backgrounds ignore late responses after switching instances (517ms)
+  ✓  143 tests/preferences.spec.ts:86:3 › browser language detection › regional Spanish defaults to Spanish and an explicit English choice wins after reload (703ms)
+  ✓  144 tests/presentation.spec.ts:195:1 › sidebar group toggles preserve card and instance backdrop nodes and do not reload screenshots (748ms)
+  ✓  145 tests/preferences.spec.ts:103:5 › Chinese language detection: zh-CN › detects the correct script and respects a saved override (665ms)
+  ✓  147 tests/preferences.spec.ts:103:5 › Chinese language detection: zh-TW › detects the correct script and respects a saved override (633ms)
+  ✓  148 tests/preferences.spec.ts:103:5 › Chinese language detection: zh-HK › detects the correct script and respects a saved override (555ms)
+  ✓  146 tests/project-description.spec.ts:30:1 › mods, resource packs and shaders keep target/release dropdowns together with Add (1.8s)
+  ✓  150 tests/project-description.spec.ts:50:1 › project dialog has an elastic shell, neutral initial focus and aligned header/footer actions (878ms)
+  ✓  149 tests/responsive.spec.ts:37:3 › pages and dialogs reflow at 320×640, text scale 1 (1.7s)
+  ✓  151 tests/project-description.spec.ts:76:47 › modrinth descriptions share styling and scroll independently in both themes (1.9s)
+  ✓  152 tests/responsive.spec.ts:37:3 › pages and dialogs reflow at 600×480, text scale 1 (1.6s)
+  ✓  153 tests/project-description.spec.ts:76:47 › curseforge descriptions share styling and scroll independently in both themes (1.8s)
+  ✓  154 tests/responsive.spec.ts:37:3 › pages and dialogs reflow at 1150×800, text scale 1 (1.6s)
+  ✓  155 tests/project-description.spec.ts:108:1 › description failure and late replies do not block releases or leak into reopened projects (900ms)
+  ✓  157 tests/rtl-and-shelves.spec.ts:26:1 › world and server shelves have independent gallery/list controls (609ms)
+  ✓  156 tests/responsive.spec.ts:37:3 › pages and dialogs reflow at 1920×1080, text scale 1 (1.9s)
+  ✓  158 tests/rtl-and-shelves.spec.ts:41:1 › badges use matched surface colors, and shared text actions have horizontal hover space (720ms)
+  ✓  160 tests/rtl-and-shelves.spec.ts:58:1 › Arabic mirrors the rail, dropdowns, tabs and horizontal scrollbar without mirroring artwork (1.6s)
+  ✓  159 tests/responsive.spec.ts:37:3 › pages and dialogs reflow at 800×600, text scale 2 (1.9s)
+  ✓  161 tests/rtl-and-shelves.spec.ts:94:1 › Arabic preview can be discarded, and saving retains language and direction (769ms)
+  ✓  163 tests/scroll-layout.spec.ts:3:1 › sidebar and main scroll independently, with edge-to-edge instance backgrounds (1.2s)
+  ✓  162 tests/responsive.spec.ts:37:3 › pages and dialogs reflow at 320×640, text scale 2 (2.0s)
+  ✓  164 tests/settings-edits.spec.ts:10:1 › settings sections share a save flow and unsaved previews can be discarded when leaving (1.3s)
+  ✓  165 tests/sidebar-groups.spec.ts:3:1 › groups can be created, joined, collapsed, persisted, and left (1.6s)
+  ✓  167 tests/sidebar-groups.spec.ts:38:1 › collapsed groups show icon mosaics and retain their selected instance (1.0s)
+  ✓  166 tests/settings-edits.spec.ts:44:1 › Save persists all settings, restore stages defaults, and Discard restores the saved values (1.7s)
+  ✓  168 tests/sidebar-groups.spec.ts:78:1 › whole collapsed and expanded groups accept drops, with feedback and outside cancellation (1.1s)
+  ✓  169 tests/settings-edits.spec.ts:74:1 › native menu navigation waits for Save and failed saves retain changes in the dialog (785ms)
+  ✓  171 tests/sidebar-reorder.spec.ts:3:1 › dragging reorders only instances, persists, and overflow fades clear at the edges (1.1s)
+  ✓  170 tests/sidebar-groups.spec.ts:108:1 › holding a dragged icon over another creates a persistent group on release (1.5s)
+  ✓  172 tests/startup.spec.ts:33:1 › library and navigation work while optional startup requests never resolve (486ms)
+  ✓  174 tests/startup.spec.ts:53:1 › an activity event arriving during startup wins over the older snapshot (521ms)
+  ✓  175 tests/startup.spec.ts:60:1 › config and activity startup overlap, but launch controls wait for the activity snapshot (496ms)
+  ✓  173 tests/sidebar-groups.spec.ts:141:1 › groups reorder as blocks and members can leave an entirely grouped sidebar (1.5s)
+  ✓  177 tests/sidebar-groups.spec.ts:182:1 › topmost group allows upward extraction, mosaics stay small, and grouping is immediate (967ms)
+  ✓  176 tests/themes.spec.ts:31:1 › mode radios and scheme dropdown are independent, persist and export both palettes without a preference (1.5s)
+  ✓  178 tests/toolbars.spec.ts:3:1 › radio segments share button feedback and keep the checked option recessed (717ms)
+  ✓  180 tests/toolbars.spec.ts:32:1 › layout radio groups use pixel icons and native keyboard selection independently (749ms)
+  ✓  181 tests/toolbars.spec.ts:60:1 › collection toolbars share search geometry, action order and spacing without changing filtering (1.2s)
+  ✓  179 tests/themes.spec.ts:75:1 › built-in Chest has accessible light and dark radio controls and responsive dropdown (2.8s)
+  ✓  183 tests/themes.spec.ts:101:1 › paired schemes reject missing palettes, invalid legacy modes and protected or unknown fields (538ms)
+  ✓  182 tests/worlds-servers.spec.ts:53:1 › worlds scan on demand, search, back up, and copy with compatibility guidance (1.5s)
+  ✓  184 tests/themes.spec.ts:118:1 › older saved paired schemes migrate mode once and imports cannot overwrite it (696ms)
+  ✓  186 tests/themes.spec.ts:134:1 › JSON scheme preview is reversible, persists only on Save, exports and resets (981ms)
+  ✓  187 tests/themes.spec.ts:159:1 › CSS imports use palette declarations only, and leaving an unapplied preview cancels it (671ms)
+  ✓  185 tests/worlds-servers.spec.ts:81:1 › server bookmarks edit, copy addresses, warn before adding, and confirm removal (1.7s)
+  ✓  188 tests/themes.spec.ts:173:1 › invalid or protected imports cannot modify styling, storage or active preview (658ms)
+  ✓  190 tests/themes.spec.ts:198:1 › corrupt stored schemes fall back safely and valid schemes apply before application mount (415ms)
+  ✓  189 tests/worlds-servers.spec.ts:107:1 › bookmarks persist in preview and changed creation drafts still guard global navigation (1.3s)
+  ✓  191 tests/themes.spec.ts:218:3 › light scheme preserves pixel geometry and supports narrow settings and dialogs (1.1s)
+  ✓  192 tests/worlds-servers.spec.ts:116:1 › existing instance servers can be bookmarked without claiming server requirements (1.1s)
+  ✓  193 tests/themes.spec.ts:218:3 › saturated scheme preserves pixel geometry and supports narrow settings and dialogs (1.1s)
+  ✓  194 tests/worlds-servers.spec.ts:128:1 › global servers discover instance entries, deduplicate bookmarks, refresh and offer both layouts (1.2s)
+  ✓  196 tests/worlds-servers.spec.ts:151:1 › screenshots shelf previews local images, paginates and opens the original (746ms)
+  ✓  195 tests/themes.spec.ts:232:1 › media, icons, resource tabs and dialogs retain their protected styling under a light scheme (2.1s)
+  ✓  197 tests/worlds-servers.spec.ts:174:1 › clicking global world and server cards opens and focuses their instance items (1.3s)
+  ✓  198 tests/themes.spec.ts:298:1 › desktop import and export use native dialogs, preserve cancellation and export normalized JSON (581ms)
+  ✓  199 tests/worlds-servers.spec.ts:187:1 › a shared server chooses between matching instance cards before opening the correct tab (760ms)
+  ✓  200 tests/worlds-servers.spec.ts:203:1 › instance resource cards expose direct actions, overflow menus, rename and icon references (1.1s)
+  ✓  201 tests/worlds-servers.spec.ts:226:1 › crowded server instance references collapse to a count and expand when space returns (730ms)
+  ✓  202 tests/worlds-servers.spec.ts:248:1 › server context-menu Join targets an installed owning instance (566ms)
+
+  202 passed (1.8m)

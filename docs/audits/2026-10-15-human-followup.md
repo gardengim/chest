@@ -80,3 +80,36 @@ measurements apply only to their recorded source/device/workload.
 
 Use [ACCEPTANCE.md](../ACCEPTANCE.md) for device/build identity and evidence. No
 release tag, published installer or consolidation is authorized by this record.
+
+## Validation and local artifact
+
+Application revision: `61841d8036b345134f1440fb3366f3d62729b7c8`. The existing
+sequential `audit:candidate local` SOP passed on a clean application revision:
+
+- 202 Chromium browser tests, 104 Core tests, 4 native tests and 26 script tests.
+- Svelte diagnostics, Core Clippy with warnings denied, release/authentication
+  configuration guards, license checks and production frontend build passed.
+- 29 additional WebKit/Retina tests passed, including all four painted card-focus
+  edges, icon recovery, translucent compositing, RTL scrollbar endpoints and
+  callback-page contrast/reflow.
+- Optimized local app built and its ad-hoc signature passed deep/strict verification.
+  Logical bundle size is 13,795,785 bytes (13.16 MiB). Packaged macOS minimum is 14.0.
+- Native smoke test reached rendered-library acknowledgement with an isolated
+  empty profile; the script terminated only its owned process and removed that
+  profile. One sample took 1.21 seconds from process creation to acknowledgement.
+  This is a startup smoke check, not cold-start or whole-app performance evidence.
+
+[Verification log](evidence/2026-10-15-human-followup/verify.txt),
+[WebKit log](evidence/2026-10-15-human-followup/webkit.txt),
+[build log](evidence/2026-10-15-human-followup/build.txt),
+[artifact identity](evidence/2026-10-15-human-followup/local-candidate.json),
+[native smoke evidence](evidence/2026-10-15-human-followup/native-startup.json).
+
+Visual evidence: [complete card outline](evidence/2026-10-15-human-followup/complete-card-focus.png),
+[dark callback page](evidence/2026-10-15-human-followup/callback-dark.png),
+[light callback page](evidence/2026-10-15-human-followup/callback-light.png).
+
+The new packaged revision still needs the targeted human observations above;
+prior owner passes are retained as history, not automatically transferred to a
+changed artifact. Windows/Linux and minimum-supported-Mac device acceptance are
+not established by the local macOS/browser checks.
