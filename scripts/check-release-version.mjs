@@ -18,6 +18,7 @@ export function checkRelease(root=process.cwd(),tag){
     }
   }
   if((tag && tag!==`v${version}`) || versions.some(value=>value!==version))throw new Error('Release tag, manifests, and lockfile versions must match.');
+  if(tauri.bundle?.macOS?.minimumSystemVersion!=='14.0')throw new Error('macOS minimum must match the supported WebView baseline (14.0).');
   if(tauri.bundle?.createUpdaterArtifacts!==true)throw new Error('Signed updater artifacts must be enabled.');
   const updater=tauri.plugins?.updater;
   if(!updater?.pubkey || updater.pubkey.trim()!==read('src-tauri/updater.pub').trim())throw new Error('Updater public keys must match.');

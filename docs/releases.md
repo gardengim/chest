@@ -52,8 +52,8 @@ codesign --verify --deep --strict src-tauri/target/release/bundle/macos/Chest.ap
 ```
 
 Release preflight checks all manifest/lockfile versions, tag, public-key agreement,
-HTTPS GitHub endpoint, and updater artifact generation. Five script tests exercise rejected
-release inputs. Actual GitHub runs, distribution signing, published manifest/artifact URLs,
+HTTPS GitHub endpoint, updater artifact generation and the macOS 14.0 WebView baseline.
+Six script tests exercise valid and rejected release inputs. Actual GitHub runs, distribution signing, published manifest/artifact URLs,
 and the [packaged update record](ACCEPTANCE.md) remain required.
 
 Verify a generated updater artifact against the committed public key (also checks that a
@@ -62,6 +62,10 @@ modified copy is rejected; the original file is never changed):
 ```sh
 cargo run --locked --manifest-path core/Cargo.toml --example verify_updater -- src-tauri/updater.pub src-tauri/target/release/bundle/macos/Chest.app.tar.gz
 ```
+
+The macOS bundle declares macOS 14.0 or later. Verify dropdowns, toolbar overflow
+and the other acceptance scenarios on that minimum using a real packaged device;
+metadata checks and a newer WebKit test runner do not replace minimum-device testing.
 
 ## Verification candidates before release
 

@@ -26,7 +26,7 @@ bun run verify
 CI and release builds use `npm ci` as the canonical dependency installation. Keep
 `bun.lock` in sync with `package.json`; either runner can execute the same scripts.
 
-For signed installer builds, follow [release setup](docs/releases.md). Windows needs the MSVC toolchain and WebView2. macOS needs Xcode Command Line Tools. Linux needs GTK 3, WebKitGTK 4.1, and a working Secret Service credential store.
+For signed installer builds, follow [release setup](docs/releases.md). Windows needs the MSVC toolchain and WebView2. macOS requires 14 (Sonoma) or later and Xcode Command Line Tools for development. Linux needs GTK 3, WebKitGTK 4.1, and a working Secret Service credential store.
 
 For the browser UI only, run `npm run dev`. This mode saves example instance settings in localStorage and explicitly refuses download, authentication, and launch operations.
 
@@ -47,7 +47,7 @@ Chest manages local Minecraft Java instances, content, accounts, and launches. T
   icons to reorder shelves; expand More to open hidden tools or drag them onto Home.
   Shelf visibility and order persist locally. News and Explore retain their existing UI.
 - Library and Explore gallery/list views, flat sidebar groups, shared instance action
-  menus on sidebar tabs and cards, and instance Overview, Content, Versions, Settings,
+  menus on sidebar tabs and cards, and instance Overview, Contents, Versions, Settings,
   and Log tabs. Switching sidebar destinations resets the instance tab to Overview.
 - Modrinth and CurseForge discovery, verified content/dependency downloads, mod file
   enable/disable, supported modpack installation, and Chest archive import/export.
@@ -58,7 +58,7 @@ Chest manages local Minecraft Java instances, content, accounts, and launches. T
   playtime, and activity indicators. Stop and deletion require confirmation.
 - Global world search, ZIP backups and safe copies between instances; server bookmarks
   with preferred instances and version/loader warnings. [Details](docs/WORLDS-AND-SERVERS.md).
-- Dark theme, English/Korean/Spanish/Japanese, reduced motion, configurable double-click launch and startup
+- Light/Dark/System appearance, paired color schemes, English/Korean/Spanish/Japanese/Simplified Chinese/Traditional Chinese/Arabic (RTL), reduced motion, configurable double-click launch and startup
   update checks. News includes official Minecraft articles and installed-pack/loader updates.
 - Signed app updates from GitHub with explicit installation and restart controls.
 
@@ -85,12 +85,14 @@ remain under `prototypes/` for reference and are excluded from release bundles.
 
 ## Color schemes
 
-Open **Settings → Settings → Appearance** to import a JSON or CSS palette, preview it,
-apply/export it, or restore Chest's default scheme. Preview is temporary until applied;
-Cancel, Escape or leaving the panel restores the saved scheme. Desktop uses native
-Open/Save dialogs. Pixel bevels, black structural frames, icon geometry and artwork
-remain protected. Background customization is separate and not yet implemented.
-See [the color scheme format and palette roles](docs/COLOR-SCHEMES.md).
+Open **Settings → Settings → General → Appearance** to choose Light, Dark or System
+independently of the color scheme. Import one JSON or CSS scheme with paired light/dark
+palettes and export it for sharing. Changes preview immediately; **Save** persists them,
+**Discard** restores saved values, and leaving with changes offers Save/Discard/Cancel.
+Desktop import/export uses native Open/Save dialogs. Pixel bevels, black structural
+frames, icon geometry and artwork remain independent of palette colors. Instance
+backgrounds use the shared provider-image/screenshot pool; arbitrary background import
+is outside the initial release. See [the color scheme format](docs/COLOR-SCHEMES.md).
 
 ## Catalog setup
 
@@ -104,11 +106,19 @@ Provider references: [Modrinth API](https://docs.modrinth.com/api/), [CurseForge
 
 See the [registration and Minecraft API approval guide](docs/MICROSOFT-REGISTRATION.md) for the exact settings and review form.
 
-Chest has no bundled Microsoft application ID. Register Chest as a public desktop client supporting **personal Microsoft accounts**. Configure the loopback redirect `http://localhost/callback`; Chest supplies an ephemeral local port. Use authorization code + PKCE and no client secret. Requested scopes: `XboxLive.signin offline_access`.
+Chest includes its own public Microsoft application client ID. Ordinary users can sign
+in through **Settings → Accounts** without registering an application. An authenticated
+Minecraft-owning account is required to play; credentials use the OS credential store.
+The owner has verified real sign-in, but packaged platform/update acceptance remains
+tracked separately in [validation](VALIDATION.md).
 
-Enter the application's client ID in Settings → Settings → Microsoft application setup, then save defaults. `CHEST_CLIENT_ID` can supply the initial ID when creating a fresh configuration.
-
-Microsoft/Xbox/Minecraft must authorize the application to use the relevant services. A valid UUID by itself does not establish service access. Errors are surfaced without borrowing another launcher's identity. An owning account is required to play. Real sign-in and launch need to be tested with Chest's registration; they are not claimed as verified in this package.
+Developers maintaining a separate build can register their own public desktop client
+for **personal Microsoft accounts**, with the loopback redirect `http://localhost/callback`,
+authorization code + PKCE, no client secret, and `XboxLive.signin offline_access` scopes.
+The override is under **Settings → Development → Microsoft application setup**, visible
+only in development builds. `CHEST_CLIENT_ID` can supply an initial override for a fresh
+configuration. Microsoft/Xbox/Minecraft service approval remains necessary; a UUID alone
+does not establish access. See [the registration guide](docs/MICROSOFT-REGISTRATION.md).
 
 References: [desktop authorization and PKCE](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow), [Xbox token exchange](https://learn.microsoft.com/en-us/gaming/gdk/docs/services/fundamentals/s2s-auth-calls/service-authentication/live-website-authentication), [Adoptium API](https://api.adoptium.net/q/swagger-ui/).
 

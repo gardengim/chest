@@ -9,6 +9,7 @@
   import InstanceName from './InstanceName.svelte';
   import Button from './Button.svelte';
   import Pagination from './Pagination.svelte';
+  import {collectionPageSize as pageSize} from './collection-page';
   import CopyButton from './CopyButton.svelte';
   import ScreenshotTile from './ScreenshotTile.svelte';
   import {showDialog} from './dialog';
@@ -17,7 +18,6 @@
   let library=$state<ScreenshotLibrary>({screenshots:[],unavailable:[]}),loading=$state(false),error=$state(''),page=$state(0);
   let selected=$state<{screenshot:LibraryScreenshot;source:string}|null>(null);
   const entries=$derived(screenshots ?? library.screenshots);
-  const pageSize=24;
   const pages=$derived(Math.max(1,Math.ceil(entries.length/pageSize)));
   const shown=$derived(entries.slice(full?page*pageSize:0,full?(page+1)*pageSize:pageSize));
   async function refresh(){

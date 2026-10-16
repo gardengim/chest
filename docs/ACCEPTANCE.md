@@ -13,7 +13,7 @@ cannot replace this record. Never use an irreplaceable world for failure testing
 | Scenario | Pass/fail/blocked | Evidence / issue |
 | --- | --- | --- |
 | Install, launch app, reopen persisted library | | |
-| Own Microsoft app: cancel, login, refresh after restart, logout | | |
+| Bundled Chest Microsoft app: cancel, login, refresh after restart, logout | | |
 | Vanilla install, launch, normal exit, Stop | | |
 | Home world → Play and home server → Join enter the intended target without aborting | | |
 | Fabric, Quilt, Forge and NeoForge with compatible content | | |
@@ -22,17 +22,20 @@ cannot replace this record. Never use an irreplaceable world for failure testing
 | Wrong Java, missing executable, low disk, offline provider | | |
 | Duplicate, archive roundtrip, backup and confirmed deletion; pending mutations disabled; failed deletion error persists and retry works | | |
 | Update A → B, signature rejection, restart and data preservation | | |
-| Keyboard navigation, focus restoration, dialogs, screen reader | | |
-| English/Korean/Spanish/Japanese/Simplified and Traditional Chinese, narrow window, 200% scaling | | |
+| Keyboard navigation, unobscured focus, dialogs, native screen reader; loader failure announcement and Retry | | |
+| macOS 14 minimum on each architecture; dropdown keyboard/pointer selection and narrow-toolbar overflow | | |
+| English/Korean/Spanish/Japanese/Simplified and Traditional Chinese/Arabic (RTL), narrow window, 200% scaling | | |
 | Native Close/Quit/Restart with dirty drafts, pending writes and active installs/games | | |
 | Invalid test profile/corrupt settings produce readable errors, preserve originals, and do not abort | | |
 | Storage scan and confirmed image-cache cleanup preserve originals and shared binaries | | |
 | Light/Dark/System, missing/bright/dark artwork, both scrollbar axes, fractional DPI | | |
-| Large library, 4K/8K screenshots, long logs, complete app/WebView CPU/memory over one hour | | |
+| Large library: bounded artwork, first/last pages, full search, refresh clamping and off-page world/server deep links | | |
+| 4K/8K screenshots, long logs, slow external storage, complete app/WebView CPU/memory over one hour | | |
 
 For each failure record exact steps, expected/actual behavior, a sanitized log excerpt,
 and whether restarting recovers it. Distinguish blocked external services from product
-failures. Record minimum supported OS versions only after successful packaged testing.
+failures. The packaging minimum is macOS 14.0; verify it on a real packaged device. Record
+accepted Windows/Linux OS and WebView versions after successful packaged testing.
 
 ## Closed beta gate
 

@@ -102,7 +102,7 @@ impl Core {
     }
 }
 
-fn cache_image(directory: &Path, key: &str, bytes: &[u8]) -> Result<()> {
+pub(crate) fn cache_image(directory: &Path, key: &str, bytes: &[u8]) -> Result<()> {
     let destination = directory.join(key);
     let temporary = directory.join(format!("{}.tmp", uuid::Uuid::new_v4()));
     let result = (|| -> Result<()> {

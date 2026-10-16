@@ -1,6 +1,7 @@
 <script lang="ts">
   import CardGrid from './CardGrid.svelte';
   import Pagination from './Pagination.svelte';
+  import {collectionPageSize as pageSize} from './collection-page';
   import Toolbar from './Toolbar.svelte';
   import AddButton from './AddButton.svelte';
   import DirectionIcon from './DirectionIcon.svelte';
@@ -30,7 +31,6 @@
   }
   function doubleClickInstance(instance:Instance){cancelSelection();onselect(instance.id);ondoubleclick(instance);}
   let page=$state(0);
-  const pageSize=24;
   const query=$derived(view.filter.trim().toLowerCase());
   const visible=$derived(instances.filter(i=>i.name.toLowerCase().includes(query)));
   const pages=$derived(Math.max(1,Math.ceil(visible.length/pageSize)));

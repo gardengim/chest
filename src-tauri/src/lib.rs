@@ -28,13 +28,25 @@ fn err(e: impl std::fmt::Display) -> String {
     format!("{e}")
 }
 
+// Filesystem/configuration work must never hold the native UI thread.
+async fn blocking<T: Send + 'static>(
+    core: Arc<Core>,
+    work: impl FnOnce(Arc<Core>) -> Result<T, String> + Send + 'static,
+) -> Result<T, String> {
+    tokio::task::spawn_blocking(move || work(core)).await.map_err(err)?
+}
+
 #[tauri::command]
-fn get_launch_settings(core: App<'_>, id: String) -> Result<chest_core::launch_settings::LaunchSettings, String> {
-    core.launch_settings(&id).map_err(err)
+async fn get_launch_settings(core: App<'_>, id: String) -> Result<chest_core::launch_settings::LaunchSettings, String> {
+    blocking(core.inner().clone(), move |core| {
+        core.launch_settings(&id).map_err(err)
+    }).await
 }
 #[tauri::command]
-fn save_launch_settings(core: App<'_>, id: String, settings: chest_core::launch_settings::LaunchSettings) -> Result<(), String> {
-    core.save_launch_settings(&id, settings).map_err(err)
+async fn save_launch_settings(core: App<'_>, id: String, settings: chest_core::launch_settings::LaunchSettings) -> Result<(), String> {
+    blocking(core.inner().clone(), move |core| {
+        core.save_launch_settings(&id, settings).map_err(err)
+    }).await
 }
 #[tauri::command]
 fn open_launcher_link(link: String) -> Result<(), String> {
@@ -55,7 +67,11 @@ async fn get_servers(core:App<'_>)->Result<chest_core::instance_files::ServerLib
     let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.server_library()).await.map_err(err)
 }
 #[tauri::command]
-fn open_instance_file(core:App<'_>,id:String,kind:String,name:String)->Result<(),String>{core.open_instance_file(&id,&kind,&name).map_err(err)}
+async fn open_instance_file(core:App<'_>,id:String,kind:String,name:String)->Result<(),String>{
+    blocking(core.inner().clone(), move |core| {
+        core.open_instance_file(&id,&kind,&name).map_err(err)
+    }).await
+}
 #[tauri::command]
 async fn get_screenshot_image(core:App<'_>,id:String,name:String,edge:Option<u32>)->Result<String,String>{
     let core=core.inner().clone();
@@ -72,7 +88,11 @@ async fn get_world_icon(core:App<'_>,id:String,name:String)->Result<Option<Strin
 #[tauri::command]
 async fn get_server_icon(core:App<'_>,id:String)->Result<Option<String>,String>{core.server_icon(&id).await.map_err(err)}
 #[tauri::command]
-fn open_shared_datapacks(core:App<'_>)->Result<(),String>{core.shared_datapacks().map_err(err)}
+async fn open_shared_datapacks(core:App<'_>)->Result<(),String>{
+    blocking(core.inner().clone(), move |core| {
+        core.shared_datapacks().map_err(err)
+    }).await
+}
 #[tauri::command]
 async fn apply_shared_datapacks(core:App<'_>,id:String,world:String)->Result<usize,String>{
     let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.apply_datapacks(&id,&world)).await.map_err(err)?.map_err(err)
@@ -100,16 +120,24 @@ async fn backup_world(app:tauri::AppHandle,core:App<'_>,id:String,name:String)->
     let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.backup_world(&id,&name,&path)).await.map_err(err)?.map_err(err)?;Ok(true)
 }
 #[tauri::command]
-fn save_server_bookmark(core:App<'_>,bookmark:chest_core::server_bookmarks::ServerBookmark)->Result<Config,String>{core.save_server_bookmark(bookmark).map_err(err)}
+async fn save_server_bookmark(core:App<'_>,bookmark:chest_core::server_bookmarks::ServerBookmark)->Result<Config,String>{
+    blocking(core.inner().clone(), move |core| {
+        core.save_server_bookmark(bookmark).map_err(err)
+    }).await
+}
 #[tauri::command]
-fn remove_server_bookmark(core:App<'_>,id:String)->Result<Config,String>{core.remove_server_bookmark(&id).map_err(err)}
+async fn remove_server_bookmark(core:App<'_>,id:String)->Result<Config,String>{
+    blocking(core.inner().clone(), move |core| {
+        core.remove_server_bookmark(&id).map_err(err)
+    }).await
+}
 #[tauri::command]
 async fn add_bookmarked_server(core:App<'_>,bookmark:String,id:String)->Result<bool,String>{
     let core=core.inner().clone();tokio::task::spawn_blocking(move ||core.add_bookmarked_server(&bookmark,&id)).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
-fn get_config(core: App<'_>) -> Config {
-    core.store.config()
+async fn get_config(core: App<'_>) -> Result<Config, String> {
+    blocking(core.inner().clone(), |core| Ok(core.store.config())).await
 }
 #[tauri::command]
 fn get_launcher_info(core: App<'_>, app: tauri::AppHandle) -> serde_json::Value {
@@ -124,8 +152,10 @@ async fn clear_image_cache(core:App<'_>)->Result<u64,String>{
     let core=core.inner().clone();tokio::task::spawn_blocking(move || core.clear_image_cache()).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
-fn open_data_folder(core: App<'_>) -> Result<(), String> {
-    core.open_data_folder().map_err(err)
+async fn open_data_folder(core: App<'_>) -> Result<(), String> {
+    blocking(core.inner().clone(), move |core| {
+        core.open_data_folder().map_err(err)
+    }).await
 }
 #[tauri::command]
 async fn choose_java(app: tauri::AppHandle) -> Result<Option<String>, String> {
@@ -324,34 +354,42 @@ async fn choose_creation_archive(app: tauri::AppHandle) -> Result<Option<chest_c
     tokio::task::spawn_blocking(move || chest_core::creation::inspect_archive(path)).await.map_err(err)?.map(Some).map_err(err)
 }
 #[tauri::command]
-fn create_instance(
+async fn create_instance(
     core: App<'_>,
     name: String,
     version: String,
     loader: Option<chest_core::store::Loader>,
     loader_version: Option<String>,
 ) -> Result<Instance, String> {
-    core.store
-        .create_with_loader(
-            name,
-            version,
-            "grass".into(),
-            loader.unwrap_or_default(),
-            loader_version.unwrap_or_default(),
-        )
-        .map_err(err)
+    blocking(core.inner().clone(), move |core| {
+        core.store
+            .create_with_loader(
+                name,
+                version,
+                "grass".into(),
+                loader.unwrap_or_default(),
+                loader_version.unwrap_or_default(),
+            )
+            .map_err(err)
+    }).await
 }
 #[tauri::command]
-fn set_sidebar_groups(core: App<'_>, groups: Vec<SidebarGroup>) -> Result<Config, String> {
-    core.store.set_sidebar_groups(groups).map_err(err)
+async fn set_sidebar_groups(core: App<'_>, groups: Vec<SidebarGroup>) -> Result<Config, String> {
+    blocking(core.inner().clone(), move |core| {
+        core.store.set_sidebar_groups(groups).map_err(err)
+    }).await
 }
 #[tauri::command]
-fn reorder_instances(core: App<'_>, ids: Vec<String>) -> Result<Config, String> {
-    core.store.reorder(&ids).map_err(err)
+async fn reorder_instances(core: App<'_>, ids: Vec<String>) -> Result<Config, String> {
+    blocking(core.inner().clone(), move |core| {
+        core.store.reorder(&ids).map_err(err)
+    }).await
 }
 #[tauri::command]
-fn save_instance(core: App<'_>, instance: Instance, settings: Option<chest_core::launch_settings::LaunchSettings>) -> Result<Config, String> {
-    core.save_instance_settings(instance, settings).map_err(err)
+async fn save_instance(core: App<'_>, instance: Instance, settings: Option<chest_core::launch_settings::LaunchSettings>) -> Result<Config, String> {
+    blocking(core.inner().clone(), move |core| {
+        core.save_instance_settings(instance, settings).map_err(err)
+    }).await
 }
 #[tauri::command]
 async fn install_instance(core: App<'_>, id: String) -> Result<(), String> {
@@ -385,20 +423,28 @@ fn get_logs(core: App<'_>, id: String) -> Vec<String> {
     core.logs(&id)
 }
 #[tauri::command]
-fn get_content(core: App<'_>, id: String) -> Result<Vec<Content>, String> {
-    core.content(&id).map_err(err)
+async fn get_content(core: App<'_>, id: String) -> Result<Vec<Content>, String> {
+    blocking(core.inner().clone(), move |core| {
+        core.content(&id).map_err(err)
+    }).await
 }
 #[tauri::command]
-fn toggle_content(core: App<'_>, id: String, kind: String, name: String) -> Result<(), String> {
-    core.toggle_content(&id, &kind, &name).map_err(err)
+async fn toggle_content(core: App<'_>, id: String, kind: String, name: String) -> Result<(), String> {
+    blocking(core.inner().clone(), move |core| {
+        core.toggle_content(&id, &kind, &name).map_err(err)
+    }).await
 }
 #[tauri::command]
-fn get_instance_folder(core: App<'_>, id: String) -> Result<String, String> {
-    core.instance_folder(&id).map(|path| path.to_string_lossy().into_owned()).map_err(err)
+async fn get_instance_folder(core: App<'_>, id: String) -> Result<String, String> {
+    blocking(core.inner().clone(), move |core| {
+        core.instance_folder(&id).map(|path| path.to_string_lossy().into_owned()).map_err(err)
+    }).await
 }
 #[tauri::command]
-fn open_instance_folder(core: App<'_>, id: String) -> Result<(), String> {
-    core.open_folder(&id).map_err(err)
+async fn open_instance_folder(core: App<'_>, id: String) -> Result<(), String> {
+    blocking(core.inner().clone(), move |core| {
+        core.open_folder(&id).map_err(err)
+    }).await
 }
 #[tauri::command]
 async fn duplicate_instance(core: App<'_>, id: String) -> Result<Instance, String> {
@@ -411,43 +457,49 @@ async fn remove_instance(core: App<'_>, id: String) -> Result<Config, String> {
     tokio::task::spawn_blocking(move || core.remove(&id)).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
-fn acknowledge(core: App<'_>, id: String) -> Result<(), String> {
-    core.acknowledge(&id).map_err(err)
+async fn acknowledge(core: App<'_>, id: String) -> Result<(), String> {
+    blocking(core.inner().clone(), move |core| {
+        core.acknowledge(&id).map_err(err)
+    }).await
 }
 #[tauri::command]
-fn save_settings(
+async fn save_settings(
     core: App<'_>,
     client_id: String,
     java_path: String,
     memory_mb: u32,
 ) -> Result<Config, String> {
-    if !(512..=65536).contains(&memory_mb) {
-        return Err("Memory must be between 512 and 65536 MB".into());
-    }
-    if !client_id.trim().is_empty() {
-        uuid::Uuid::parse_str(client_id.trim())
-            .map_err(|_| "Invalid Microsoft application ID".to_string())?;
-    }
-    core.store
-        .change(|c| {
-            c.client_id = client_id.trim().into();
-            c.java_path = java_path.trim().into();
-            c.memory_mb = memory_mb;
-            Ok(())
-        })
-        .map_err(err)
+    blocking(core.inner().clone(), move |core| {
+        if !(512..=65536).contains(&memory_mb) {
+            return Err("Memory must be between 512 and 65536 MB".into());
+        }
+        if !client_id.trim().is_empty() {
+            uuid::Uuid::parse_str(client_id.trim())
+                .map_err(|_| "Invalid Microsoft application ID".to_string())?;
+        }
+        core.store
+            .change(|c| {
+                c.client_id = client_id.trim().into();
+                c.java_path = java_path.trim().into();
+                c.memory_mb = memory_mb;
+                Ok(())
+            })
+            .map_err(err)
+    }).await
 }
 #[tauri::command]
-fn select_account(core: App<'_>, id: String) -> Result<Config, String> {
-    if !core.store.config().accounts.iter().any(|a| a.id == id) {
-        return Err("Account not found".into());
-    }
-    core.store
-        .change(|c| {
-            c.active_account = Some(id);
-            Ok(())
-        })
-        .map_err(err)
+async fn select_account(core: App<'_>, id: String) -> Result<Config, String> {
+    blocking(core.inner().clone(), move |core| {
+        if !core.store.config().accounts.iter().any(|a| a.id == id) {
+            return Err("Account not found".into());
+        }
+        core.store
+            .change(|c| {
+                c.active_account = Some(id);
+                Ok(())
+            })
+            .map_err(err)
+    }).await
 }
 #[tauri::command]
 async fn sign_in(core: App<'_>) -> Result<Account, String> {
@@ -475,7 +527,8 @@ async fn sign_out(core: App<'_>, id: String) -> Result<(), String> {
         .auth_lock
         .try_acquire()
         .map_err(|_| "Account operation is in progress".to_string())?;
-    chest_core::auth::sign_out(&core.store, &id).map_err(err)
+    let core=core.inner().clone();
+    tokio::task::spawn_blocking(move || chest_core::auth::sign_out(&core.store, &id)).await.map_err(err)?.map_err(err)
 }
 #[tauri::command]
 async fn export_instance(app: tauri::AppHandle, core: App<'_>, id: String) -> Result<bool, String> {
@@ -695,5 +748,30 @@ pub fn run() {
             }
         }),
         Err(error) => { eprintln!("Chest could not start: {error}"); std::process::exit(1); }
+    }
+}
+
+#[cfg(test)]
+mod command_worker_tests {
+    use super::*;
+    #[tokio::test(flavor="current_thread")]
+    async fn slow_filesystem_work_does_not_block_the_async_event_loop() {
+        let root=std::env::temp_dir().join(format!("chest-worker-{}",uuid::Uuid::new_v4()));
+        let core=Arc::new(Core::new(root.clone(), |_|{}, |_|{}).unwrap());
+        let (started,ready)=tokio::sync::oneshot::channel();
+        let (release,wait)=std::sync::mpsc::channel();
+        let job=tokio::spawn(blocking(core.clone(),move |core| {
+            started.send(()).unwrap();
+            wait.recv_timeout(std::time::Duration::from_secs(2)).map_err(err)?;
+            core.store.change(|config|{config.memory_mb=2048;Ok(())}).map_err(err)
+        }));
+        ready.await.unwrap();
+        // This single-threaded runtime must still poll input/timer work while storage waits.
+        tokio::time::timeout(std::time::Duration::from_millis(100),async {
+            tokio::task::yield_now().await;
+            release.send(()).unwrap();
+        }).await.unwrap();
+        assert_eq!(job.await.unwrap().unwrap().memory_mb,2048);
+        drop(core);std::fs::remove_dir_all(root).unwrap();
     }
 }

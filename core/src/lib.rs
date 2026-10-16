@@ -6,6 +6,7 @@ mod resource_edit;
 mod archive;
 pub mod instance_files;
 mod screenshot_images;
+mod instance_icons;
 pub mod storage;
 mod log_buffer;
 pub mod worlds;
@@ -203,51 +204,7 @@ impl Core {
     pub fn activities(&self) -> Vec<Activity> {
         self.activities.lock().unwrap().values().cloned().collect()
     }
-    pub fn instance_icons(&self) -> HashMap<String, String> {
-        use base64::Engine;
-        use std::io::Read;
-        let mut icons = HashMap::new();
-        for instance in self.store.config().instances {
-            let Ok(directory) = self.store.dir_for(&instance) else {
-                continue;
-            };
-            for (extension, mime) in [
-                ("png", "image/png"),
-                ("jpg", "image/jpeg"),
-                ("webp", "image/webp"),
-            ] {
-                let path = directory.join(format!("game/icon.{extension}"));
-                let Ok(info) = fs::symlink_metadata(&path) else {
-                    continue;
-                };
-                if !info.is_file() || info.len() > 2 * 1024 * 1024 {
-                    continue;
-                }
-                let Ok(file) = fs::File::open(path) else {
-                    continue;
-                };
-                let mut bytes = vec![];
-                if file
-                    .take(2 * 1024 * 1024 + 1)
-                    .read_to_end(&mut bytes)
-                    .is_err()
-                    || bytes.len() > 2 * 1024 * 1024
-                    || artwork_format(&bytes) != Some((extension, mime))
-                {
-                    continue;
-                }
-                icons.insert(
-                    instance.id.clone(),
-                    format!(
-                        "data:{mime};base64,{}",
-                        base64::engine::general_purpose::STANDARD.encode(bytes)
-                    ),
-                );
-                break;
-            }
-        }
-        icons
-    }
+
     pub fn log(&self, id: &str, line: &str) {
         let line = line.chars().take(8192).collect::<String>();
         let mut logs = self.logs.lock().unwrap();
@@ -940,7 +897,7 @@ mod lifecycle_tests {
         let icon = core.store.dir(&instance.id).unwrap().join("game/icon.png");
         fs::write(&icon, b"not a PNG").unwrap();
         assert!(core.instance_icons().is_empty());
-        fs::write(&icon, b"\x89PNG\r\n\x1a\nimage data").unwrap();
+        image::RgbaImage::new(32, 32).save(&icon).unwrap();
         let images = core.instance_icons();
         assert!(images[&instance.id].starts_with("data:image/png;base64,"));
         let copy = core.duplicate(&instance.id).unwrap();

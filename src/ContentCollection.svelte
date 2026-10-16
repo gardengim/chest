@@ -3,6 +3,8 @@
 </script>
 <script lang="ts">
   import CardGrid from './CardGrid.svelte';
+  import Pagination from './Pagination.svelte';
+  import {collectionPageSize as pageSize} from './collection-page';
   import Toolbar from './Toolbar.svelte';
   import AddButton from './AddButton.svelte';
   import {t} from './i18n';
@@ -19,6 +21,11 @@
   const category=$derived(entries.filter(entry=>entry.kind===kinds[kind]));
   const query=$derived(search.trim().toLocaleLowerCase());
   const visible=$derived(category.filter(entry=>(status==='all' || kind!=='Mods' || (entry.enabled!==false)===(status==='enabled')) && (!query || `${entry.name} ${entry.subtitle || ''}`.toLocaleLowerCase().includes(query))));
+  let page=$state(0);
+  const pages=$derived(Math.max(1,Math.ceil(visible.length/pageSize)));
+  const shown=$derived(visible.slice(page*pageSize,(page+1)*pageSize));
+  $effect(()=>{query;kind;status;page=0;});
+  $effect(()=>{page=Math.min(page,pages-1);});
   async function refresh(){if(!onrefresh || refreshing)return;refreshing=true;try{await onrefresh();}finally{refreshing=false;}}
 
 </script>
@@ -32,7 +39,7 @@
     ]}/>
     <p class="hint" role="status">{$t('{shown} of {total}',{shown:visible.length,total:category.length})}</p>
     <CardGrid class="content-collection" {layout}>
-      {#each visible as entry (entry.id)}
+      {#each shown as entry (entry.id)}
         <Card interactive={false} class={['content-entry','creation-file',entry.enabled===false?'disabled-entry':'']} title={entry.name} icon={entry.icon} background={entry.background} {layout}>
           {#if entry.subtitle}<span class="catalog-author">{entry.subtitle}</span>{/if}
           {#if entry.enabled===false}<span class="catalog-author">{$t('Disabled')}</span>{/if}
@@ -43,6 +50,7 @@
         </Card>
       {:else}<p class="muted">{$t(category.length?'No results':'No content')}</p>{/each}
     </CardGrid>
+    <Pagination label={$t('Contents')} {page} {pages} onchange={value=>page=value}/>
   </div>
 </section>
 <style>

@@ -1,5 +1,7 @@
 <script lang="ts">
   import CardGrid from './CardGrid.svelte';
+  import Pagination from './Pagination.svelte';
+  import {collectionPageSize as pageSize} from './collection-page';
   import Toolbar from './Toolbar.svelte';
   import HomeShelf from './HomeShelf.svelte';
   import AddButton from './AddButton.svelte';
@@ -27,8 +29,14 @@
   let serverLibrary=$state<import('./types').ServerLibrary>({servers:[],unavailable:[]}),layout=$state<'gallery'|'list'>('gallery');
   const cardLayout=$derived(layout);
   let edit=$state<ServerBookmark|null>(null),adding=$state<ServerBookmark|null>(null),removing=$state<ServerBookmark|null>(null),target=$state('');
-  const worlds=$derived(library.worlds.filter(world=>`${world.name} ${config.instances.find(i=>i.id===world.instance_id)?.name || ''}`.toLowerCase().includes(search.trim().toLowerCase())));
+  const owners=$derived(new Map(config.instances.map(instance=>[instance.id,instance])));
+  const worlds=$derived(library.worlds.filter(world=>`${world.name} ${owners.get(world.instance_id)?.name || ''}`.toLowerCase().includes(search.trim().toLowerCase())));
   const servers=$derived(mergeServers(config.server_bookmarks || [],serverLibrary.servers).filter(server=>`${server.name} ${server.address}`.toLowerCase().includes(search.trim().toLowerCase())));
+  let page=$state(0);
+  const pages=$derived(Math.max(1,Math.ceil(servers.length/pageSize)));
+  const shownServers=$derived(servers.slice(gallery?0:page*pageSize,gallery?pageSize:(page+1)*pageSize));
+  $effect(()=>{search;mode;page=0;});
+  $effect(()=>{page=Math.min(page,pages-1);});
   const destination=$derived(config.instances.find(instance=>instance.id===target));
   const mismatch=$derived(!!adding && !!destination && ((!!adding.expected_version && adding.expected_version!==destination.version) || (!!adding.expected_loader && adding.expected_loader!==destination.loader)));
   async function refresh(){loading=true;error='';try{if(mode==='worlds')library=await api.worlds();else serverLibrary=await api.servers();}catch(e){error=String(e);}finally{loading=false;}}
@@ -50,7 +58,7 @@
   function add(server:ServerBookmark){adding=server;target=server.instance_id || config.instances.find(instance=>instance.version!=='pending')?.id || '';error='';}
 </script>
 {#if !embedded}<h1>{$t(mode==='worlds'?'Worlds':'Servers')}</h1>{/if}
-<HomeShelf section={mode} full={!gallery} {onviewall}>
+<HomeShelf section={mode} full={!gallery} moreContent={(mode==='worlds'?worlds.length:servers.length)>pageSize} {onviewall}>
   {#snippet tools(heading,navigation)}<Toolbar {heading} {navigation} trailing={layoutButton} searchLabel={$t(mode==='worlds'?'Search worlds':'Search servers')} bind:value={search} items={[
     ...(mode==='servers'?[{id:'add',label:$t('Add'),priority:100,content:addButton}]:[]),
     {id:'refresh',label:$t('Refresh'),priority:0,content:refreshButton}
@@ -60,12 +68,12 @@
 {#if mode==='worlds'}
   {#if loading}<p role="status">{$t('Loading…')}</p>{:else}
     {#if library.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read worlds from {names}',{names:library.unavailable.join(', ')})}</p>{/if}
-    {#if !worlds.length && library.worlds.length}<p class="muted">{$t('No results')}</p>{:else}<WorldList {worlds} instances={config.instances} {isBusy} onrefresh={refresh} showInstance {onopen} layout={cardLayout}/>{/if}
+    {#if !worlds.length && library.worlds.length}<p class="muted">{$t('No results')}</p>{:else}<WorldList full={!gallery} resetKey={search} {worlds} instances={config.instances} {isBusy} onrefresh={refresh} showInstance {onopen} layout={cardLayout}/>{/if}
   {/if}
 {:else}
   {#if loading}<p role="status">{$t('Loading…')}</p>{/if}
   {#if serverLibrary.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read servers from {names}',{names:serverLibrary.unavailable.join(', ')})}</p>{/if}
-  <CardGrid class="server-list" layout={cardLayout}>{#each servers as server (server.id)}
+  <CardGrid class="server-list" layout={cardLayout}>{#each shownServers as server (server.id)}
     <Card aria-haspopup="menu" aria-expanded={menu?.server.id===server.id} onclick={()=>open(server)} oncontextmenu={event=>openMenu(event,server)} onkeydown={event=>openMenu(event,server)} title={server.name} icon={server.icon} layout={cardLayout} artworkKey={`server:${server.id}:${server.address}:${server.instance_id || ''}`} loadIcon={server.bookmarked?()=>api.serverIcon(server.id):undefined}>
       <span class="catalog-author">{server.address}</span>
       {#if server.instance_ids.length}<span class="catalog-author"><InstanceReferences instances={config.instances.filter(instance=>server.instance_ids.includes(instance.id))}/></span>{/if}
@@ -73,6 +81,7 @@
 
     </Card>
   {:else}<p class="muted">{$t(mergeServers(config.server_bookmarks || [],serverLibrary.servers).length?'No results':'No servers')}</p>{/each}</CardGrid>
+  {#if !gallery}<Pagination label={$t('Servers')} {page} {pages} disabled={loading} onchange={value=>{menu=null;page=value;}}/>{/if}
 {/if}
 </HomeShelf>
 {#snippet addButton()}<AddButton disabled={pending} onclick={()=>{error='';edit={id:'',name:'',address:'',instance_id:null,expected_version:'',expected_loader:null};}}/>{/snippet}

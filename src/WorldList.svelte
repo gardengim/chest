@@ -1,5 +1,7 @@
 <script lang="ts">
   import CardGrid from './CardGrid.svelte';
+  import Pagination from './Pagination.svelte';
+  import {collectionPageSize as pageSize} from './collection-page';
   import InstanceIcon from './InstanceIcon.svelte';
   import RenameResource from './RenameResource.svelte';
   import InstanceName from './InstanceName.svelte';
@@ -15,7 +17,18 @@
   import CopyButton from './CopyButton.svelte';
   import Icon from './Icon.svelte';
   import Select from './Select.svelte';
-  let {worlds,instances,isBusy=()=>false,onrefresh=async()=>{},showInstance=false,onopen,layout='list',highlight=''}:{highlight?:string;layout?:'gallery'|'list';worlds:WorldEntry[];instances:Instance[];isBusy?:(id:string)=>boolean;onrefresh?:()=>Promise<unknown>;showInstance?:boolean;onopen?:(id:string,item:string)=>void}=$props();
+  let {worlds,instances,isBusy=()=>false,onrefresh=async()=>{},showInstance=false,onopen,layout='list',highlight='',full=true,resetKey=''}:{full?:boolean;resetKey?:string;highlight?:string;layout?:'gallery'|'list';worlds:WorldEntry[];instances:Instance[];isBusy?:(id:string)=>boolean;onrefresh?:()=>Promise<unknown>;showInstance?:boolean;onopen?:(id:string,item:string)=>void}=$props();
+  let page=$state(0);
+  const owners=$derived(new Map(instances.map(instance=>[instance.id,instance])));
+  const pages=$derived(Math.max(1,Math.ceil(worlds.length/pageSize)));
+  const shown=$derived(worlds.slice(full?page*pageSize:0,full?(page+1)*pageSize:pageSize));
+  $effect(()=>{resetKey;page=0;});
+  $effect(()=>{page=Math.min(page,pages-1);});
+  $effect(()=>{
+    if(!highlight)return;
+    const index=worlds.findIndex(world=>world.folder===highlight);
+    if(index>=0)page=Math.floor(index/pageSize);
+  });
   let error=$state(''),notice=$state(''),pending=$state(false),selected=$state<WorldEntry|null>(null),target=$state(''),loading=$state(false);
   let menu=$state<{world:WorldEntry;trigger:HTMLButtonElement;x:number;y:number}|null>(null);
   function openMenu(event:MouseEvent|KeyboardEvent,world:WorldEntry){
@@ -24,12 +37,12 @@
   }
   function action(work:(world:WorldEntry,trigger:HTMLButtonElement)=>unknown){if(!menu)return;const item=menu;menu=null;item.trigger.focus({preventScroll:true});void work(item.world,item.trigger);}
   let renaming=$state<WorldEntry|null>(null);
-  function canPlay(world:WorldEntry){const instance=instances.find(instance=>instance.id===world.instance_id);const [major,minor]=instance?.version.split('.').map(Number) || [];return !!instance?.installed && (major>=2 || major===1 && minor>=20);}
+  function canPlay(world:WorldEntry){const instance=owners.get(world.instance_id);const [major,minor]=instance?.version.split('.').map(Number) || [];return !!instance?.installed && (major>=2 || major===1 && minor>=20);}
   let metadataRequest=0;
   let trigger:HTMLButtonElement|undefined;
   const targets=$derived(instances.filter(instance=>instance.id!==selected?.instance_id && instance.version!=='pending'));
   const destination=$derived(targets.find(instance=>instance.id===target));
-  const source=$derived(instances.find(instance=>instance.id===selected?.instance_id));
+  const source=$derived(owners.get(selected?.instance_id || ''));
   async function run(work:()=>Promise<unknown>){if(pending)return;pending=true;error='';notice='';try{await work();}catch(e){error=String(e);}finally{pending=false;}}
   async function close(){if(pending)return;metadataRequest++;loading=false;selected=null;await tick();trigger?.focus();}
   async function choose(world:WorldEntry,button:HTMLButtonElement){
@@ -41,9 +54,9 @@
 {#if error && !selected}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
 {#if notice}<p role="status">{notice}</p>{/if}
 <CardGrid class="world-list" {layout}>
-  {#each worlds as world (`${world.instance_id}:${world.folder}`)}
+  {#each shown as world (`${world.instance_id}:${world.folder}`)}
     <Card backgroundFromIcon backgroundOpacity={.45} class="resource-card world-card" interactive={showInstance} tabindex={showInstance?undefined:-1} title={world.name} {layout} data-resource-key={resourceKey('world',world.folder)} data-highlighted={highlight===world.folder || undefined} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={()=>onopen?.(world.instance_id,world.folder)} oncontextmenu={event=>openMenu(event,world)} onkeydown={event=>openMenu(event,world)} artworkKey={`world:${world.instance_id}:${world.folder}`} loadIcon={()=>api.worldIcon(world.instance_id,world.folder)}>
-      {#if showInstance}<span class="catalog-author">{#if instances.find(instance=>instance.id===world.instance_id)}<InstanceName instance={instances.find(instance=>instance.id===world.instance_id)!}/>{/if} · {world.version || $t('Unknown')}</span>{/if}
+      {#if showInstance}<span class="catalog-author">{#if owners.get(world.instance_id)}<InstanceName instance={owners.get(world.instance_id)!}/>{/if} · {world.version || $t('Unknown')}</span>{/if}
       {#snippet actions()}{#if !showInstance}
         <Button disabled={!native || pending || isBusy(world.instance_id) || !canPlay(world)} title={$t('Direct world launch requires Minecraft 1.20 or later')} onclick={()=>run(()=>api.launchResource(world.instance_id,'world',world.folder))}>{$t('Play')}</Button>
         <Button disabled={!native || pending || isBusy(world.instance_id)} onclick={()=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');})}>{$t('Back up')}</Button>
@@ -53,6 +66,7 @@
     </Card>
   {:else}<p class="muted">{$t('No worlds')}</p>{/each}
 </CardGrid>
+{#if full}<Pagination label={$t('Worlds')} {page} {pages} onchange={value=>{menu=null;page=value;}}/>{/if}
 {#if menu}<ContextMenu title={menu.world.name} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
   {#if onopen}<Button shape="plain" role="menuitem" onclick={()=>action(world=>onopen?.(world.instance_id,world.folder))}>{$t('Open instance')}</Button>{/if}
   <Button shape="plain" role="menuitem" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>{renaming=world;})}>{$t('Rename')}</Button>

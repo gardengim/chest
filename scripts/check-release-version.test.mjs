@@ -27,3 +27,9 @@ for(const change of ['key','endpoint','artifacts'])test(`invalid updater ${chang
   if(change==='artifacts')config.bundle.createUpdaterArtifacts=false;
   writeFileSync(path,JSON.stringify(config));assert.throws(()=>checkRelease(root),/Updater|updater/);
 });
+
+test('lowering the macOS WebView baseline is rejected',t=>{
+  const root=fixture(t),path=join(root,'src-tauri/tauri.conf.json'),config=JSON.parse(readFileSync(path));
+  config.bundle.macOS.minimumSystemVersion='10.13';
+  writeFileSync(path,JSON.stringify(config));assert.throws(()=>checkRelease(root),/macOS minimum/);
+});
