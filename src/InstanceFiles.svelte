@@ -42,7 +42,9 @@
   let serverLayout=$state<'gallery'|'list'>('gallery');
   let worldDetails=$state<WorldEntry[]>([]);
   $effect(()=>{
-    const current=id;const folders=files.worlds;
+    const current=id;
+    // Re-read metadata when the discovered world folders change.
+    files.worlds;
     if(tab!=='Worlds')return;
     let alive=true;worldDetails=[];
     void api.instanceWorlds(current).then(value=>{if(alive)worldDetails=value || [];}).catch(()=>{});

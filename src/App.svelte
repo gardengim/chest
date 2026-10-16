@@ -603,7 +603,7 @@
         onchoose={choice=>instanceAction(current!,choice)} onselectTab={selectTab}
         onbrowse={kind=>browseContent(current!.id,kind)} onsave={saveInstance}
         onacknowledge={()=>acknowledge(current!.id)} ontoggle={file=>toggleContent(current!,file)}
-        onrefresh={()=>refreshLogs(current!.id)} onrefreshContent={()=>refreshContent(current!.id)}/>
+        onrefreshContent={()=>refreshContent(current!.id)}/>
       {:catch}<p class="inline-error" role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
     {:else if destination==='profile'}
       {#await loadSettingsPage()}<p role="status">{$t("Loading…")}</p>{:then {default:SettingsPage}}

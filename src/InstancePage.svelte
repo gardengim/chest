@@ -26,12 +26,12 @@
   import { loaderLabel, tabs, type Activity, type Account, type Config, type Content, type Instance, type InstanceFiles, type Tab, type Version } from './types';
 
   let { resourceLink=null,current, editor=$bindable(), launchDraft=$bindable(createLaunchDraft()), active, tab, accounts=[], source, versions, content=[], output=[],
-    onchoose, onselectTab, onbrowse, onsave, onacknowledge, ontoggle, onrefresh, onrefreshContent, instances=[], isBusy=()=>false, onconfig, bookmarks=[], onrestore, dirty=false }: {
+    onchoose, onselectTab, onbrowse, onsave, onacknowledge, ontoggle, onrefreshContent, instances=[], isBusy=()=>false, onconfig, bookmarks=[], onrestore, dirty=false }: {
     resourceLink?:ResourceLink|null;onconfig?:(config:Config)=>void;bookmarks?:import('./types').ServerBookmark[];instances?:Instance[];isBusy?:(id:string)=>boolean;current: Instance; editor: Instance; launchDraft?:LaunchDraft; active?: Activity; tab: Tab; accounts?:Account[];
     source?: string; versions: Version[]; content?: Content[]; output?: string[];
     onchoose: (choice:InstanceChoice)=>void; onselectTab: (tab:Tab)=>void;
     onbrowse: (kind:string)=>void; onsave: ()=>void; onacknowledge: ()=>void;
-    ontoggle: (file:Content)=>void; onrefresh: ()=>void; onrefreshContent: ()=>Promise<unknown>; onrestore: ()=>void;dirty?:boolean;
+    ontoggle: (file:Content)=>void; onrefreshContent: ()=>Promise<unknown>; onrestore: ()=>void;dirty?:boolean;
   } = $props();
   let logSearch=$state('');
   const logQuery=$derived(logSearch.trim().toLocaleLowerCase());

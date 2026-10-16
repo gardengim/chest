@@ -10,7 +10,6 @@
   import HomeShelf from './HomeShelf.svelte';
   import HomeDock from './HomeDock.svelte';
   import Button from './Button.svelte';
-  import Icon from './Icon.svelte';
   import type {Config,Instance,Version,CatalogKind,PackSelection} from './types';
   import type {LibraryView} from './ui-state';
   let {page=null,config,icons,versions,view=$bindable(),target=$bindable(''),kind=$bindable<CatalogKind>('mod'),statusText,oncreate,onselect,onresource,ondoubleclick,onmenu,onmenukeys,menuId,oncreated,onpackselected,isBusy,onadded,onconfig,onnavigate}:{
