@@ -1,0 +1,41 @@
+[WebServer] (node:23628) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:23661) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:23683) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:23708) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 24 tests using 2 workers
+
+(node:23711) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23710) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 tests/audit-remediation.spec.ts:33:1 › large Home shelves are bounded and View all searches the complete library (639ms)
+  ✓   1 tests/browser-modules.spec.ts:5:1 › symbol renderer caches conversions, preserves SVG sources and branded artwork (666ms)
+  ✓   4 tests/browser-modules.spec.ts:19:1 › artwork cache shares pending work, retries failures and evicts by byte budget (289ms)
+  ✓   3 tests/audit-remediation.spec.ts:46:47 › world paging and off-page deep links focus the intended instance resource (573ms)
+  ✓   5 tests/browser-modules.spec.ts:40:1 › rich renderer removes active markup, unsafe URLs and provider styles while preserving useful structure (700ms)
+  ✓   6 tests/audit-remediation.spec.ts:46:47 › server paging and off-page deep links focus the intended instance resource (509ms)
+  ✓   7 tests/browser-modules.spec.ts:53:1 › canonical Minecraft artwork is inlined in development as well as production (247ms)
+  ✓   9 tests/browser-modules.spec.ts:64:1 › relative world times handle plural units, invalid timestamps, clock skew and every locale (246ms)
+  ✓  10 tests/button-rendering.spec.ts:12:1 › layout glyphs keep their intended size on Home and inside content tabs (364ms)
+  ✓   8 tests/audit-remediation.spec.ts:65:1 › Contents filters before paging, resets searches and clamps after refresh (853ms)
+  ✓  12 tests/audit-remediation.spec.ts:83:1 › loader failure is announced and associated, retry preserves a usable focus target (408ms)
+  ✓  11 tests/button-rendering.spec.ts:39:1 › button, radio and checkbox feedback never moves icons through fractional pixels (1.7s)
+  ✓  13 tests/audit-remediation.spec.ts:95:1 › late world metadata does not undo a page change after following a deep link (2.3s)
+  ✓  14 tests/button-rendering.spec.ts:63:1 › hover and press preserve glyph pixels and the content panel shadow (1.8s)
+  ✓  15 tests/audit-remediation.spec.ts:107:1 › focus discovers absent resource tabs and leaves emptied tabs without treating errors as empty (1.1s)
+  ✓  16 tests/card-artwork.spec.ts:36:1 › instance cards and header share a mixed background pool, lazily load frames and show one header icon (362ms)
+  ✓  17 tests/audit-remediation.spec.ts:136:1 › world cards show real metadata, translucent actions and shared menu actions (483ms)
+  ✓  18 tests/card-artwork.spec.ts:68:1 › cards use blurred icons when backgrounds are missing, but preserve real backgrounds and recover from failures (628ms)
+  ✓  19 tests/audit-remediation.spec.ts:163:1 › instance icons recover to bundled artwork and shelf focus outlines are not clipped (307ms)
+  ✓  20 tests/card-artwork.spec.ts:87:1 › world thumbnails are darker backgrounds while servers use blurred icons (348ms)
+  ✓  21 tests/card-artwork.spec.ts:106:1 › all card kinds share their shell and media dimensions while grids can control sizing (776ms)
+  ✓  22 tests/card-artwork.spec.ts:134:1 › world, server and installed-content card actions share translucent dark backgrounds and blur (1.9s)
+  ✓  23 tests/card-artwork.spec.ts:166:1 › missing content artwork stays absent across cards and installed content, and Overview has no stale refresh action (705ms)
+  ✓  24 tests/card-artwork.spec.ts:190:1 › screenshot image requests are reused when returning to the same collection (294ms)
+
+  24 passed (14.3s)

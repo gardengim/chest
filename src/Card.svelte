@@ -79,7 +79,7 @@
 :global(.launcher-card[data-layout='list']) .catalog-kind{display:none}
 .shared-card-actions{display:flex;align-items:center;gap:.71428571rem;flex-wrap:wrap;margin-top:auto;padding-top:1.14285714rem}
 .shared-card-actions:empty{display:none}
-:global(:where(.launcher-card) .ui-button){--button-fill:var(--card-action-fill);--button-hover:var(--card-action-hover);--button-text:var(--card-action-text);--icon-ink:var(--card-action-icon);--button-shadow:var(--bevel-raised);border-color:#ffffff40;backdrop-filter:blur(.57142857rem) brightness(1.25);-webkit-backdrop-filter:blur(.57142857rem) brightness(1.25);height:auto;min-height:var(--control-height);white-space:normal;padding:.5em .71428571rem}
+:global(:where(.launcher-card) .ui-button){--button-fill:var(--card-action-fill);--button-hover:var(--card-action-hover);--button-text:var(--card-action-text);--icon-ink:var(--card-action-icon);backdrop-filter:blur(.57142857rem) brightness(1.25);-webkit-backdrop-filter:blur(.57142857rem) brightness(1.25);height:auto;min-height:var(--control-height);white-space:normal;padding:.5em .71428571rem}
 :global(.launcher-card:has(.card-backdrop img)) .shared-card-body{text-shadow:0 1px .21428571rem #0008}
 .shared-card-actions :global(.card-action-more){font-size:1.57142857rem;line-height:1;padding:.25em .57142857rem}
 :global(.launcher-card.disabled-entry) .shared-card-art{opacity:.5}

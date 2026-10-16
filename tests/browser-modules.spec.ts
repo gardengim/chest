@@ -59,3 +59,14 @@ test('canonical Minecraft artwork is inlined in development as well as productio
   });
   expect(result).toEqual({inline:true,width:256});
 });
+
+
+test('relative world times handle plural units, invalid timestamps, clock skew and every locale',async({page})=>{
+  await page.goto('/');
+  const result=await page.evaluate(async()=>{
+    const {relativeTime}=await import('/src/relative-time.ts');const now=1800000000000;
+    return {hours:[1,2].map(hours=>relativeTime(now-hours*3600000,'en',now)),day:relativeTime(now-86400000,'en',now),invalid:relativeTime(NaN,'en',now),future:relativeTime(now+60000,'en',now),localized:['ko','es','ja','zh-Hans','zh-Hant','ar'].map(locale=>({locale,text:relativeTime(now-86400000,locale,now),expected:new Intl.RelativeTimeFormat(locale,{numeric:'always'}).format(-1,'day')}))};
+  });
+  expect(result.hours).toEqual(['1 hour ago','2 hours ago']);expect(result.day).toBe('1 day ago');expect(result.invalid).toBe('');expect(result.future).toBe('now');
+  for(const entry of result.localized)expect(entry.text).toBe(entry.expected);
+});

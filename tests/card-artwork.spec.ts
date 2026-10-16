@@ -139,6 +139,15 @@ test('world, server and installed-content card actions share translucent dark ba
     const actions=page.locator('.shared-card-actions .ui-button');await expect.poll(()=>actions.count()).toBeGreaterThan(0);
     await page.locator('.shared-card-actions').first().screenshot({path:testInfo.outputPath(`${tab.toLowerCase()}-card-actions.png`)});
     const button=actions.first();
+    const normal=await button.evaluate(node=>{const css=getComputedStyle(node);return {border:css.borderTopColor,shadow:css.boxShadow,top:css.top};});
+    await button.hover();
+    await expect.poll(()=>button.evaluate(node=>getComputedStyle(node).borderTopColor)).not.toBe(normal.border);
+    await expect(button).toHaveCSS('top','-1px');
+    await page.mouse.down();
+    await expect.poll(()=>button.evaluate(node=>getComputedStyle(node).boxShadow)).not.toBe(normal.shadow);
+    await page.mouse.move(0,0);await page.mouse.up();
+    await expect(button).toHaveCSS('top',normal.top);
+
     await button.evaluate(node=>(node.closest('.shared-card-body') as HTMLElement).style.background='rgb(180, 50, 30)');
     const warm=await button.screenshot({animations:'disabled'});
     await button.evaluate(node=>(node.closest('.shared-card-body') as HTMLElement).style.background='rgb(30, 80, 180)');

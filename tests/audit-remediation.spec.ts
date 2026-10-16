@@ -5,7 +5,7 @@ async function fixture(page:Page,count=49){
     const w=window as any;w.isTauri=true;w.__contentCount=count;w.__failLoader=false;w.__resourceCount=count;
     localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',reduceMotion:true,homeShelves:['instances','worlds','servers']}));
     const instance={id:'library',name:'Library',version:'26.3',loader:'vanilla',loader_version:'',memory_mb:4096,java_path:'',artwork:'grass',installed:true};
-    const worlds=Array.from({length:count},(_,i)=>({instance_id:'library',folder:`World ${i}`,name:`World ${i}`,version:'26.3',data_version:1,last_played:1,game_mode:'Creative'}));
+    const worlds=Array.from({length:count},(_,i)=>({instance_id:'library',folder:`World ${i}`,name:`World ${i}`,version:'26.3',data_version:1,last_played:Date.now()-86400000,game_mode:'Creative'}));
     const servers=Array.from({length:count},(_,i)=>({instance_id:'library',name:`Server ${i}`,address:`host${i}.example`,icon:null}));
     w.__TAURI_INTERNALS__={transformCallback:()=>1,invoke:async(name:string)=>{
       if(name==='get_config')return {instances:[instance],accounts:[],active_account:null,client_id:'',java_path:'',memory_mb:4096};
@@ -134,13 +134,16 @@ test('focus discovers absent resource tabs and leaves emptied tabs without treat
 });
 
 test('world cards show real metadata, translucent actions and shared menu actions',async({page})=>{
+  await page.clock.install();
   await fixture(page,1);
   const shelf=page.locator('[data-home-section="worlds"]');
   const card=shelf.locator('.launcher-card');
   await expect(card).not.toContainText('26.3');
   await expect(card).toContainText('Library');
   await expect(card).toContainText('Creative');
-  await expect(card).toContainText('Last played');
+  await expect(card).toContainText('Last played: 1 day ago');
+  await page.clock.fastForward(86400000);
+  await expect(card).toContainText('Last played: 2 days ago');
   await card.click({button:'right'});
   const menu=page.getByRole('menu');
   await expect(menu.getByRole('menuitem',{name:'Play',exact:true})).toBeVisible();

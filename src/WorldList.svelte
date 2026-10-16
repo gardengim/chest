@@ -1,5 +1,7 @@
 <script lang="ts">
   import CardGrid from './CardGrid.svelte';
+  import {readable} from 'svelte/store';
+  import {relativeTime} from './relative-time';
   import Pagination from './Pagination.svelte';
   import {collectionPageSize as pageSize} from './collection-page';
   import InstanceIcon from './InstanceIcon.svelte';
@@ -38,11 +40,7 @@
   function action(work:(world:WorldEntry,trigger:HTMLButtonElement)=>unknown){if(!menu)return;const item=menu;menu=null;item.trigger.focus({preventScroll:true});void work(item.world,item.trigger);}
   let renaming=$state<WorldEntry|null>(null);
   function canPlay(world:WorldEntry){const instance=owners.get(world.instance_id);const [major,minor]=instance?.version.split('.').map(Number) || [];return !!instance?.installed && (major>=2 || major===1 && minor>=20);}
-  function lastPlayed(world:WorldEntry){
-    if(!world.last_played)return '';
-    const date=new Date(world.last_played);
-    return Number.isFinite(date.getTime())?new Intl.DateTimeFormat($locale,{dateStyle:'medium',timeStyle:'short'}).format(date):'';
-  }
+  const clock=readable(Date.now(),set=>{set(Date.now());const timer=setInterval(()=>set(Date.now()),60_000);return()=>clearInterval(timer);});
   let metadataRequest=0;
   let trigger:HTMLButtonElement|undefined;
   const targets=$derived(instances.filter(instance=>instance.id!==selected?.instance_id && instance.version!=='pending'));
@@ -63,7 +61,7 @@
     <Card backgroundFromIcon backgroundOpacity={.45} class="resource-card world-card" interactive={showInstance} tabindex={showInstance?undefined:-1} title={world.name} {layout} data-resource-key={resourceKey('world',world.folder)} data-highlighted={highlight===world.folder || undefined} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={()=>onopen?.(world.instance_id,world.folder)} oncontextmenu={event=>openMenu(event,world)} onkeydown={event=>openMenu(event,world)} artworkKey={`world:${world.instance_id}:${world.folder}`} loadIcon={()=>api.worldIcon(world.instance_id,world.folder)}>
       {#if showInstance && owners.get(world.instance_id)}<span class="catalog-author"><InstanceName instance={owners.get(world.instance_id)!}/></span>{/if}
       {#if world.game_mode}<span class="catalog-author">{$t(world.game_mode)}</span>{/if}
-      {#if lastPlayed(world)}<span class="catalog-author">{$t('Last played')}: {lastPlayed(world)}</span>{/if}
+      {#if world.last_played && relativeTime(world.last_played,$locale,$clock)}<span class="catalog-author">{$t('Last played')}: {relativeTime(world.last_played,$locale,$clock)}</span>{/if}
       {#snippet actions()}{#if !showInstance}
         <Button disabled={!native || pending || isBusy(world.instance_id) || !canPlay(world)} title={$t('Direct world launch requires Minecraft 1.20 or later')} onclick={()=>run(()=>api.launchResource(world.instance_id,'world',world.folder))}>{$t('Play')}</Button>
         <Button disabled={!native || pending || isBusy(world.instance_id)} onclick={()=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');})}>{$t('Back up')}</Button>
