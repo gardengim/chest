@@ -38,3 +38,10 @@ screenshots therefore no longer reserve an empty action row below their caption.
 
 Pause for human visual review. Earlier untried data roundtrips, slow-storage/heavy
 workloads and whole-app performance checks remain pending; no release is published.
+
+Application revision: `03e1e00f7c750c9118a84f6376871879a0ce41f2`. The optimized local app was rebuilt
+and its ad-hoc signature passed deep/strict verification.
+[Artifact identity](evidence/2026-10-15-card-hover-layout/candidate.json),
+[build log](evidence/2026-10-15-card-hover-layout/build.txt),
+[instance caption](evidence/2026-10-15-card-hover-layout/instance-card.png),
+[screenshot caption](evidence/2026-10-15-card-hover-layout/screenshot-card.png).

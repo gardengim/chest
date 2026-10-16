@@ -1,0 +1,10 @@
+{
+  "source": "03e1e00f7c750c9118a84f6376871879a0ce41f2",
+  "artifact": "src-tauri/target/release/bundle/macos/Chest.app/Contents/MacOS/chest",
+  "executableSha256": "a811cdaa222a532fed2b3773d7ae15dedec9742b7cae5abe7fdd4b45d30bdd77",
+  "logicalAppBytes": 13812201,
+  "profile": "release",
+  "adHocSignatureVerified": true,
+  "distributionSigning": false,
+  "notarization": false
+}

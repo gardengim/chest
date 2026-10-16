@@ -51,3 +51,5 @@ verification. [Artifact identity](evidence/2026-10-15-stable-card-layout/candida
 
 Visual evidence: [3:4 instance card](evidence/2026-10-15-stable-card-layout/instance-card.png),
 [4:3 screenshot card](evidence/2026-10-15-stable-card-layout/screenshot-card.png).
+
+First-hover geometry and balanced-caption follow-up: [stable card foreground](2026-10-15-card-hover-layout.md).
