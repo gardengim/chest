@@ -45,7 +45,7 @@ if real large libraries exceed them.
 
 Startup JS fell 20.5%, bundled license notices 74.8%, and the local production executable 37.3%. Backdrop work, log updates, scrollbar reads and news scheduling now have explicit bounds. These are asset/workload improvements; native CPU/RSS reductions have not been measured.
 
-See the [audit findings, completed tasks and measurements](audits/2026-10-11.md) for scope and limitations.
+See the [audit findings, completed tasks and measurements](https://github.com/gardengim/chest/blob/d03df505cad0463362f093d8d06fb59c0f352a76/docs/audits/2026-10-11.md) for scope and limitations.
 
 ## Startup continuation — October 12, 2026
 
@@ -53,7 +53,7 @@ Overlapped critical local initialization, deferred optional artwork/network work
 and split unselected pages out of the startup bundle. Main JS is 35.6% smaller.
 Production-browser fixtures verify that optional requests can remain unresolved
 without blocking library navigation, and newer activity events beat the initial
-snapshot. See the [startup audit and raw measurements](audits/2026-10-12-startup.md) for verification,
+snapshot. See the [startup audit and raw measurements](https://github.com/gardengim/chest/blob/d03df505cad0463362f093d8d06fb59c0f352a76/docs/audits/2026-10-12-startup.md) for verification,
 benchmark methodology and native measurement limits.
 
 ## Shared UI continuation — October 13, 2026
@@ -64,7 +64,7 @@ refresh files. Screenshot artwork now shares pending work and has a 16 MiB retai
 string budget in addition to the 64-entry limit. Shelf measurements are batched,
 unused visibility observation is skipped, and local gallery metadata reads use the
 blocking pool. Browser library workloads remain within their existing smoke budgets.
-See the [UI/performance audit](audits/2026-10-13-ui-performance.md) for implementation,
+See the [UI/performance audit](https://github.com/gardengim/chest/blob/d03df505cad0463362f093d8d06fb59c0f352a76/docs/audits/2026-10-13-ui-performance.md) for implementation,
 coverage and native measurement limits.
 
 ## Finalization remediation — October 14, 2026
@@ -93,6 +93,6 @@ cache is optional for display; an unwritable cache does not modify originals.
 Native and live frontend log strings each have their own conservative 16 MiB global
 retention budget in addition to per-instance line limits.
 
-See the [remediation results](audits/2026-10-14-remediation.md) and
+See the [remediation results](https://github.com/gardengim/chest/blob/d03df505cad0463362f093d8d06fb59c0f352a76/docs/audits/2026-10-14-remediation.md) and
 [raw measurement record](measurements/2026-10-14-remediation.json) for candidate
 measurements and remaining human verification gates.

@@ -1,8 +1,0 @@
-{
-  "boundary": "Explicit LaunchServices foreground launch, exact bundle and environment; PID identified by new-instance difference and bundle path; disposable profile only",
-  "pid": 36417,
-  "foreground": false,
-  "seconds": 30.222192749963142,
-  "ready": false,
-  "trace": "CHEST_STARTUP {\"elapsed_ms\":71.63095799999999,\"stage\":\"setup\"}\nCHEST_STARTUP {\"elapsed_ms\":159.076958,\"stage\":\"core-ready\"}\nCHEST_STARTUP {\"elapsed_ms\":222.423583,\"stage\":\"window-built\"}\n"
-}

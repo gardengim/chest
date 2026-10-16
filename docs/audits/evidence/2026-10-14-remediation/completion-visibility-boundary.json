@@ -1,7 +1,0 @@
-{
-  "observation": "Native UI inspection tool reported the Mac locked and unable to unlock automatically after supplementary local startup probes.",
-  "lockTransitionTime": "Unknown; the sustained idle run did not control or record visibility/lock transitions.",
-  "supplementaryProbes": "No library-rendered signal within original 30-second deadline; excluded from performance results.",
-  "requiredHumanAction": "Unlock Mac and repeat normal foreground launch, then World Play and Server Join.",
-  "normalDataAccess": "All probes used explicit disposable profiles; no normal library or credentials were adopted."
-}

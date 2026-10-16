@@ -1,6 +1,6 @@
 # Chest
 
-**Pre-release:** platform, real authentication/gameplay, and update acceptance are still in progress. See [validation](VALIDATION.md).
+**Pre-release:** platform, real authentication/gameplay, and update acceptance are still in progress. See [release acceptance](docs/ACCEPTANCE.md).
 
 ![Chest UI preview](docs/chest-preview.png)
 
@@ -34,7 +34,7 @@ For the browser UI only, run `npm run dev`. This mode saves example instance set
 
 Chest manages local Minecraft Java instances, content, accounts, and launches. The
 [product baseline](docs/BASELINE.md) defines supported targets and the interaction rules;
-[PLAN.md](PLAN.md) tracks the release milestones in dependency order.
+[release acceptance](docs/ACCEPTANCE.md) tracks outstanding device and distribution checks.
 
 - Vanilla release versions from 1.19 onward, including yearly version names, plus
   Fabric, Quilt and Forge. NeoForge supports stable 1.20.2–1.21.x releases.
@@ -63,7 +63,7 @@ Chest manages local Minecraft Java instances, content, accounts, and launches. T
 - Signed app updates from GitHub with explicit installation and restart controls.
 
 Implementation and automated coverage do not establish packaged-app or gameplay
-acceptance. See [VALIDATION.md](VALIDATION.md) for the current evidence and remaining gates.
+acceptance. See [release acceptance](docs/ACCEPTANCE.md) for the remaining gates and evidence boundaries.
 
 ## Home and icons
 
@@ -80,8 +80,7 @@ Symbolic icons keep their original smooth SVG assets in `src/icons/` (indexed by
 shared renderer converts each symbol to a cached 24×24 pixel grid when first used,
 then draws hard-edged geometry with neutral contrast ink independent of theme text colors. It does not allocate a
 canvas or color observer per icon. Chest artwork, Minecraft blocks, project logos,
-instance artwork, and screenshots retain their original rendering. Prototypes A/B
-remain under `prototypes/` for reference and are excluded from release bundles.
+instance artwork, and screenshots retain their original rendering.
 
 ## Color schemes
 
@@ -110,7 +109,7 @@ Chest includes its own public Microsoft application client ID. Ordinary users ca
 in through **Settings → Accounts** without registering an application. An authenticated
 Minecraft-owning account is required to play; credentials use the OS credential store.
 The owner has verified real sign-in, but packaged platform/update acceptance remains
-tracked separately in [validation](VALIDATION.md).
+tracked separately in [release acceptance](docs/ACCEPTANCE.md).
 
 Developers maintaining a separate build can register their own public desktop client
 for **personal Microsoft accounts**, with the loopback redirect `http://localhost/callback`,
@@ -143,7 +142,7 @@ Rust owns game operations and filesystem changes. Svelte owns page state and loc
 
 ## App icon
 
-The canonical app icon is `public/chest.svg`. The sidebar, loading screen, and browser favicon use it directly. Run `npm run icons` to regenerate desktop assets with Tauri’s icon command. The script also derives `docs/design/chest-macos.svg`, placing the same mark on an almost-white squircle with a soft drop shadow for the macOS ICNS and PNGs. `src-tauri/tauri.macos.conf.json` selects those PNGs on macOS; other platforms keep the transparent mark. Geometry guides belong only to `docs/design/chest-icon-preview.html`.
+The icon geometry is defined in `scripts/chest-mark.mjs`; its static SVG output is `public/chest.svg`. The sidebar, loading screen, and browser favicon use it directly. Run `npm run icons` to regenerate desktop assets with Tauri’s icon command. The script also derives `docs/design/chest-macos.svg`, placing the same mark on an almost-white squircle with a soft drop shadow for the macOS ICNS and PNGs. `src-tauri/tauri.macos.conf.json` selects those PNGs on macOS; other platforms keep the transparent mark. The [icon workflow](docs/design/ICON-WORKFLOW.md) describes regeneration and the current geometry preview.
 
 ## Checks
 
@@ -165,7 +164,7 @@ npx playwright install chromium
 npm test
 ```
 
-See [docs/UI-AUDIT.md](docs/UI-AUDIT.md) for the frontend consolidation audit, [PLAN.md](PLAN.md) for the work breakdown and [VALIDATION.md](VALIDATION.md) for this package's actual verification results.
+See the [product baseline](docs/BASELINE.md), [release acceptance checklist](docs/ACCEPTANCE.md), and [candidate verification SOP](docs/audit-sop.md).
 
 
 ### Offline launch for development

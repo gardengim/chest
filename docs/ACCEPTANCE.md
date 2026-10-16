@@ -1,5 +1,44 @@
 # Packaged acceptance and beta record
 
+This is the current release-readiness checklist. Automated checks and owner observations
+are evidence for their tested scenarios; they do not close the full device matrix.
+
+## Current status and remaining gates
+
+- The owner confirmed unlocked Mac startup, Home → World → Play, Home → Server → Join,
+  repeated launch after a Minecraft crash, keyboard/draft dialogs, automatic resource
+  refresh, and selected VoiceOver flows. Microsoft sign-in with Chest's client ID worked.
+  These are owner-reported results on one Mac, not acceptance on every target.
+- Finish authentication cancellation, entitlement, refresh after restart, account switching,
+  sign-out and credential-store lifecycle on each supported platform.
+- Complete installer/reopen, native menus/shortcuts/file pickers, keyboard/screen-reader
+  operation and dirty/pending Close/Quit/Restart on macOS arm64/x64, Windows x64 and Linux x64.
+  Verify macOS 14 on each Mac architecture and record Windows/Linux minimum versions.
+- Verify real Vanilla/Fabric/Quilt/Forge/NeoForge and supported pack gameplay, pinned
+  content/overrides/dependencies, repeat adds/conflicts, author-disabled downloads,
+  live CurseForge access, pause/retry/restart recovery and manual/automatic Java.
+- Complete duplicate/archive/world-backup roundtrips, independent identities, excluded
+  credentials/imported commands, confirmed deletion and failure retry. Test disposable
+  data under offline, low-disk, interrupted-operation, corrupt-state and slow-storage conditions.
+- Check Light/Dark/System/imported themes, glyphs, 4:2:1 latch artwork, screenshot/card
+  layouts, translated names, RTL, 200% text, fractional DPI and Develop settings persistence.
+  Fluent proofreading of the six translations remains a human review item.
+- Measure optimized packaged cold/warm startup, populated 4K/8K/provider artwork,
+  scrolling and logs, and complete app/WebView process CPU/memory over one hour.
+  Main-process RSS or synthetic browser heap is not complete-app memory evidence.
+- Verify current CI and installers, distribution signing/macOS notarization, a real signed
+  A → B update, tamper rejection, restart and data preservation. Retain signing-key backups
+  and stable recovery artifacts. Obtain independent security/recovery review and unfamiliar-user
+  beta results before public release. Repository cleanup does not authorize tagging or publishing.
+
+Run `npm run verify` for the automated baseline and follow the [candidate SOP](audit-sop.md)
+for a build-specific evidence handoff. Store new evidence outside the source checkout.
+Prior detailed reports, CI links, sample identities and logs remain in the
+[pre-cleanup history](https://github.com/gardengim/chest/tree/d03df505cad0463362f093d8d06fb59c0f352a76/docs/audits).
+Historical results do not automatically apply to a newer executable.
+
+## Device/build record
+
 Use an [isolated profile](TEST-PROFILES.md) for non-update scenarios.
 Copy this template for each build/device. Browser tests mock native operations; they
 cannot replace this record. Never use an irreplaceable world for failure testing.

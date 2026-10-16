@@ -1,8 +1,0 @@
-{"ms":1996.2214000000001,"sample":0,"workload":"50000-screenshot-metadata"}
-{"ms":1993.3742,"sample":1,"workload":"50000-screenshot-metadata"}
-{"ms":1976.9969999999998,"sample":2,"workload":"50000-screenshot-metadata"}
-{"bytes":2147483648,"ms":1676.9524,"workload":"sha256"}
-{"bytes":2147483648,"ms":4658.9909,"verified":true,"workload":"verified-local-download"}
-{"bytes":2147483648,"ms":21552.521099999998,"verified":true,"workload":"duplicate"}
-{"bytes":2147483648,"ms":138.3529,"sourcePreserved":true,"workload":"delete-copy"}
-{"inputBytes":819200000,"ms":1411.3419000000001,"retainedBytes":16730164,"workload":"100000-logs-100-sessions"}

@@ -1,6 +1,0 @@
-{
-  "candidateCommit": "8c69ee459d1ac944c88d6d653b3aab7fb2ea0a50",
-  "platform": "macOS-26.6.2-arm64-arm-64bit",
-  "architecture": "arm64",
-  "boundary": "CI native startup only; no gameplay, credentials, signing acceptance or cold/warm classification"
-}

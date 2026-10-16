@@ -1,9 +1,0 @@
-{
-  "pid": 36339,
-  "alive": true,
-  "beforeActivation": "CHEST_STARTUP {\"elapsed_ms\":63.138875,\"stage\":\"setup\"}\nCHEST_STARTUP {\"elapsed_ms\":147.54187499999998,\"stage\":\"core-ready\"}\nCHEST_STARTUP {\"elapsed_ms\":217.55312500000002,\"stage\":\"window-built\"}\n",
-  "activationReturnCode": 0,
-  "activationResult": "false",
-  "activationError": "",
-  "afterActivation": "CHEST_STARTUP {\"elapsed_ms\":63.138875,\"stage\":\"setup\"}\nCHEST_STARTUP {\"elapsed_ms\":147.54187499999998,\"stage\":\"core-ready\"}\nCHEST_STARTUP {\"elapsed_ms\":217.55312500000002,\"stage\":\"window-built\"}\n"
-}

@@ -3,7 +3,7 @@
 Updated October 15, 2026. This is the behavior baseline for the initial public release.
 Changes to scope or interaction rules should update this document and their relevant
 regression coverage together. It describes intended and implemented behavior; release
-readiness is tracked separately in [VALIDATION.md](../VALIDATION.md).
+readiness is tracked separately in [release acceptance](ACCEPTANCE.md).
 
 ## Purpose and boundaries
 

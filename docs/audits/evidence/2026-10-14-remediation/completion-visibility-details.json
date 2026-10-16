@@ -1,9 +1,0 @@
-{
-  "pid": 36364,
-  "alive": true,
-  "beforeActivation": "CHEST_STARTUP {\"elapsed_ms\":57.96725,\"stage\":\"setup\"}\nCHEST_STARTUP {\"elapsed_ms\":138.62329100000002,\"stage\":\"core-ready\"}\nCHEST_STARTUP {\"elapsed_ms\":208.441416,\"stage\":\"window-built\"}\n",
-  "activationReturnCode": 0,
-  "activationResult": "{\"bundle\":\"app.chest.launcher\",\"policy\":0,\"active\":false,\"finished\":true,\"activate\":false}",
-  "activationError": "",
-  "afterActivation": "CHEST_STARTUP {\"elapsed_ms\":57.96725,\"stage\":\"setup\"}\nCHEST_STARTUP {\"elapsed_ms\":138.62329100000002,\"stage\":\"core-ready\"}\nCHEST_STARTUP {\"elapsed_ms\":208.441416,\"stage\":\"window-built\"}\n"
-}

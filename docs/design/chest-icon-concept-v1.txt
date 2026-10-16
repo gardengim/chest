@@ -1,3 +1,0 @@
-Tool: built-in image_gen
-Reference: user-supplied wooden chest icon
-Prompt: Preserve the single closed cubic wooden chest, isometric top and two visible faces, golden brown pixelated wood and dark edging. Relocate the silver latch from the left visible vertical face to the right visible vertical face, centered across the lid seam. Keep the left face free of metal. Centered square composition, transparent background, no text, tile, glow, extra objects or floor shadow.
