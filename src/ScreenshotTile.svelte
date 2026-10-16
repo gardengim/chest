@@ -1,6 +1,5 @@
 <script lang="ts">
   import InstanceName from './InstanceName.svelte';
-  import Card from './Card.svelte';
   import Button from './Button.svelte';
   import {api} from './api';
   import {loadCardArtwork} from './card-artwork';
@@ -33,11 +32,27 @@
   });
 </script>
 <div class="screenshot-tile" use:observe>
-  <Card actions={error?openAction:undefined} interactive={!error} media="image" aspectRatio="4 / 3" class="screenshot-card" title={screenshot.name.replace(/\.png$/i,'')} background={!error && source || undefined} disabled={!source || !!error} onclick={()=>onopen(source)} aria-label={`${screenshot.name} · ${instance}`}>
-    {#snippet art()}{#if source && !error}<img src={source} alt="" onerror={()=>error=$t('Could not load screenshot')}/>{:else}<span>{error?$t('Could not load screenshot'):$t('Loading…')}</span>{/if}{/snippet}
-
-    <span class="catalog-author">{#if owner}<InstanceName instance={owner}/>{:else}{instance}{/if}</span>
-  </Card>
+  <Button shape="card" class="screenshot-card" disabled={!source || !!error} onclick={()=>onopen(source)} aria-label={`${screenshot.name} · ${instance}`}>
+    {#if source && !error}
+      <img class="screenshot-image" src={source} alt="" onerror={()=>error=$t('Could not load screenshot')}/>
+    {:else}
+      <span class="screenshot-placeholder" role="status">{error?$t('Could not load screenshot'):$t('Loading…')}</span>
+    {/if}
+    <span class="screenshot-caption">
+      <strong class="screenshot-title"><bdi>{screenshot.name.replace(/\.png$/i,'')}</bdi></strong>
+      <span class="catalog-author">{#if owner}<InstanceName instance={owner}/>{:else}{instance}{/if}</span>
+    </span>
+  </Button>
+  {#if error}<Button onclick={async()=>{try{await api.openInstanceFile(screenshot.instance_id,'screenshots',screenshot.name);}catch(reason){error=String(reason);}}}>{$t('Open')}</Button>{/if}
 </div>
-{#snippet openAction()}<Button onclick={async()=>{try{await api.openInstanceFile(screenshot.instance_id,'screenshots',screenshot.name);}catch(reason){error=String(reason);}}}>{$t('Open')}</Button>{/snippet}
-<style>.screenshot-tile{display:flex;min-width:0}</style>
+<style>
+.screenshot-tile{display:flex;flex-direction:column;gap:.57142857rem;min-width:0}
+:global(.screenshot-card){position:relative;isolation:isolate;width:100%;aspect-ratio:4 / 3;min-width:0;flex:1;color:var(--theme-overlay-text);background:var(--theme-card);font-size:.85714286rem}
+:global(.screenshot-card)::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:var(--bevel-raised)}
+:global(.screenshot-card:not(:disabled):active)::after{box-shadow:var(--bevel-pressed)}
+.screenshot-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;image-rendering:auto}
+.screenshot-caption{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:.57142857rem;min-height:100%;padding:var(--card-padding);background:linear-gradient(180deg,transparent 25%,#0009 75%,#000c);text-shadow:0 .07142857rem .21428571rem #0008}
+.screenshot-title{font-size:1.28571429rem;overflow-wrap:anywhere}
+.catalog-author{color:var(--theme-overlay-muted)}
+.screenshot-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:var(--card-padding);color:var(--theme-card-text)}
+</style>

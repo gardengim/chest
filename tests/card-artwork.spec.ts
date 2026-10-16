@@ -103,11 +103,11 @@ test('world thumbnails are darker backgrounds while servers use blurred icons',a
   await server.scrollIntoViewIfNeeded();expect(await calls()).toBe(1);
 });
 
-test('all card kinds share their shell and media dimensions while grids can control sizing',async({page},testInfo)=>{
+test('standard cards share geometry and screenshots use one full-card centered image',async({page},testInfo)=>{
   await fixture(page);
   await page.addInitScript(()=>localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',homeShelves:['instances','worlds','servers','screenshots','explore']})));
   await page.goto('/');
-  const cards=[page.locator('.instance-card'),page.locator('.world-list .launcher-card'),page.locator('.server-list .launcher-card'),page.locator('.screenshot-card'),page.locator('.catalog-card').first()];
+  const cards=[page.locator('.instance-card'),page.locator('.world-list .launcher-card'),page.locator('.server-list .launcher-card'),page.locator('.catalog-card').first()];
   const dimensions=[];
   for(const card of cards){
     await card.scrollIntoViewIfNeeded();await expect(card).toBeVisible();
@@ -119,16 +119,21 @@ test('all card kinds share their shell and media dimensions while grids can cont
   for(const geometry of dimensions)expect(geometry).toEqual(dimensions[0]);
   await expect(cards[0].locator('.card-status svg')).toHaveCount(0);
   await expect(cards[0].locator('.instance-brief')).toHaveCSS('display','flex');
-  await expect(cards[3]).toHaveAttribute('data-media','image');
-  await cards[3].scrollIntoViewIfNeeded();
-  await expect(cards[3].locator('.shared-card-art img')).toBeVisible();
-  expect(await cards[3].locator('.shared-card-art img').evaluate(node=>getComputedStyle(node).objectFit)).toBe('cover');
-  const media=cards[3].locator('.shared-card-art'),image=media.locator('img');
-  const mediaBox=(await media.boundingBox())!,imageBox=(await image.boundingBox())!;
-  expect(imageBox.width).toBeCloseTo(mediaBox.width,0);expect(imageBox.height).toBeCloseTo(mediaBox.height,0);
+  const screenshot=page.locator('.screenshot-card');
+  await screenshot.scrollIntoViewIfNeeded();
+  const image=screenshot.locator('.screenshot-image');
+  await expect(image).toBeVisible();
+  await expect(screenshot.locator('img:not(.instance-name img)')).toHaveCount(1);
+  await expect(screenshot.locator('.card-backdrop')).toHaveCount(0);
+  await expect(image).toHaveCSS('object-fit','cover');
   await expect(image).toHaveCSS('object-position','50% 50%');
-  for(const [index,card] of cards.entries()){const box=(await card.boundingBox())!;expect(box.width/box.height).toBeCloseTo(index===3?4/3:3/4,2);}
-  await cards[3].screenshot({path:testInfo.outputPath('screenshot-card.png')});
+  const box=(await screenshot.boundingBox())!,imageBox=(await image.boundingBox())!;
+  const border=await screenshot.evaluate(node=>parseFloat(getComputedStyle(node).borderLeftWidth));
+  expect(imageBox.width).toBeCloseTo(box.width-2*border,0);
+  expect(imageBox.height).toBeCloseTo(box.height-2*border,0);
+  expect(box.width/box.height).toBeCloseTo(4/3,2);
+  for(const card of cards){const box=(await card.boundingBox())!;expect(box.width/box.height).toBeCloseTo(3/4,2);}
+  await screenshot.screenshot({path:testInfo.outputPath('screenshot-card.png')});
   await cards[0].screenshot({path:testInfo.outputPath('instance-card.png')});
   const grid=page.locator('.instance-grid');
   await grid.evaluate(node=>{node.style.setProperty('--card-height','24rem');node.style.setProperty('--card-aspect-ratio','auto');node.style.setProperty('--card-media-ratio','3 / 2');node.style.setProperty('--card-padding','.75rem');});
@@ -204,12 +209,12 @@ test('screenshot image requests are reused when returning to the same collection
   await fixture(page);
   await page.addInitScript(()=>localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',homeShelves:['screenshots','instances']})));
   await page.goto('/');
-  await expect(page.locator('.screenshot-card .shared-card-art img')).toHaveAttribute('src',png);
+  await expect(page.locator('.screenshot-card .screenshot-image')).toHaveAttribute('src',png);
   const calls=()=>page.evaluate(()=>(window as any).__calls.filter((name:string)=>name==='get_screenshot_image').length);
   expect(await calls()).toBe(1);
   await page.getByRole('button',{name:'Adventure: Ready to play',exact:true}).click();
   await page.getByRole('button',{name:'Chest home',exact:true}).click();
-  await expect(page.locator('.screenshot-card .shared-card-art img')).toHaveAttribute('src',png);
+  await expect(page.locator('.screenshot-card .screenshot-image')).toHaveAttribute('src',png);
   expect(await calls()).toBe(1);
 });
 
@@ -230,4 +235,24 @@ test('card content keeps its layout through hover, exit and repeated hover',asyn
   await stable(content);
   const before=await content.locator('h3').boundingBox();await content.getByRole('button',{name:'Disable',exact:true}).hover();await page.mouse.move(0,0);
   expect(await content.locator('h3').boundingBox()).toEqual(before);
+});
+
+test('screenshot caption overlays the same image and stays stable on hover',async({page},info)=>{
+  await fixture(page);
+  await page.addInitScript(()=>localStorage.setItem('chest-ui-preferences-v1',JSON.stringify({locale:'en',homeShelves:['screenshots']})));
+  await page.goto('/');
+  const card=page.locator('.screenshot-card');
+  await card.scrollIntoViewIfNeeded();
+  const image=card.locator('.screenshot-image');
+  await expect(image).toBeVisible();
+  // A landscape scene with distinct sides makes repeated/caption imagery visible in the artifact.
+  await image.evaluate(image=>{const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=900;const ctx=canvas.getContext('2d')!;for(const [i,color] of ['#2255bb','#2f9858','#d69524'].entries()){ctx.fillStyle=color;ctx.fillRect(i*1600/3,0,1600/3,900);}ctx.fillStyle='white';ctx.font='100px sans-serif';ctx.fillText('ONE CONTINUOUS IMAGE',180,400);(image as HTMLImageElement).src=canvas.toDataURL();});
+  const caption=card.locator('.screenshot-caption');
+  const imageBox=(await image.boundingBox())!,captionBox=(await caption.boundingBox())!;
+  expect(captionBox.y+captionBox.height).toBeLessThanOrEqual(imageBox.y+imageBox.height+1);
+  const position=()=>caption.evaluate(node=>{const box=node.getBoundingClientRect(),parent=node.parentElement!.getBoundingClientRect();return {x:box.x-parent.x,y:box.y-parent.y,width:box.width,height:box.height};});
+  const initial=await position();
+  await card.hover();expect(await position()).toEqual(initial);
+  await page.mouse.move(0,0);expect(await position()).toEqual(initial);
+  await card.screenshot({path:info.outputPath('single-image-screenshot-card.png')});
 });

@@ -82,7 +82,7 @@ for(const mode of ['light','dark'])test(`image-free world page has accessible co
 test('cards request thumbnails and full images load only when previewing',async({page})=>{
   await fixture(page);await page.locator('.instance-card').first().click();
   await page.getByRole('tab',{name:'Screenshots',exact:true}).click();
-  await expect(page.locator('.screenshot-card .shared-card-art img')).toBeVisible();
+  await expect(page.locator('.screenshot-card .screenshot-image')).toBeVisible();
   let requests=await page.evaluate(()=>(window as any).__imageRequests);
   expect(requests.every((request:any)=>[256,512,1024].includes(request.edge))).toBe(true);
   await page.locator('.screenshot-card').click();
