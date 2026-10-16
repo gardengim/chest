@@ -38,14 +38,16 @@
 </script>
 {#snippet contents()}
   <ScreenshotBackdrop id={instanceId} sources={background?[background]:backgroundFromIcon && image?[image]:instanceId?undefined:[]} fallback={image || undefined} variant="card"/>
-  {#if media==='none'}<span class="card-visibility" use:observe></span>{:else}<div class="shared-card-art" use:observe>
-    {#if art}{@render art()}{:else}<ArtworkImage source={image} onfailure={()=>failedIcon=image || ''} fallback="none" lazy/>{/if}
-    {#if badge}<span class="catalog-kind">{badge}</span>{/if}
-  </div>{/if}
-  <div class="shared-card-body">
-    <h3><bdi>{title}</bdi></h3>
-    {@render children?.()}
-    {#if actions}<div class="shared-card-actions">{@render actions()}</div>{/if}
+  <div class="shared-card-foreground">
+    {#if media==='none'}<span class="card-visibility" use:observe></span>{:else}<div class="shared-card-art" use:observe>
+      {#if art}{@render art()}{:else}<ArtworkImage source={image} onfailure={()=>failedIcon=image || ''} fallback="none" lazy/>{/if}
+      {#if badge}<span class="catalog-kind">{badge}</span>{/if}
+    </div>{/if}
+    <div class="shared-card-body">
+      <h3><bdi>{title}</bdi></h3>
+      {#if children}<div class="shared-card-details">{@render children()}</div>{/if}
+      {#if actions}<div class="shared-card-actions">{@render actions()}</div>{/if}
+    </div>
   </div>
 {/snippet}
 {#if interactive}
@@ -60,11 +62,15 @@
 :global(.launcher-card)::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:var(--bevel-raised)}
 :global(.launcher-card.ui-button:not(:disabled):active)::after{box-shadow:var(--bevel-pressed)}
 :global(.launcher-card[data-highlighted='true']){outline:var(--stroke) solid var(--focus-ring);outline-offset:.14285714rem}
-.shared-card-art{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;width:100%;aspect-ratio:var(--card-media-ratio,2 / 1);flex-shrink:0;color:var(--muted)}
+.shared-card-art{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;width:100%;aspect-ratio:var(--card-media-ratio,2 / 1);flex:1 0 auto;min-height:6rem;color:var(--muted)}
 .shared-card-art :global(img),.shared-card-art :global(svg){width:28%;max-width:var(--card-icon-size);height:auto;aspect-ratio:1;object-fit:contain;color:inherit;filter:drop-shadow(0 .85714286rem .71428571rem #0003)}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(img){width:100%;max-width:none;height:100%;position:absolute;inset:0;aspect-ratio:auto;object-fit:var(--card-image-fit,cover);object-position:center;image-rendering:auto;filter:none}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(span:not(.catalog-kind)){padding:var(--card-padding);font-size:.85714286rem;color:var(--muted)}
-.shared-card-body{display:flex;flex-direction:column;flex:1;min-width:0;min-height:var(--card-body-min,8rem);row-gap:.35714286rem;width:100%;padding:var(--card-padding);text-shadow:none}
+.shared-card-foreground{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;grid-area:1 / 1}
+.shared-card-body{display:flex;flex-direction:column;flex:0 0 auto;min-width:0;min-height:var(--card-body-min,0);row-gap:.57142857rem;width:100%;padding:var(--card-padding);text-shadow:none}
+.shared-card-details{display:flex;flex-direction:column;gap:.35714286rem;min-width:0}
+.shared-card-details:empty{display:none}
+.shared-card-details :global(.card-status){margin-top:.35714286rem}
 :global(.launcher-card) .shared-card-body h3{font-size:1.28571429rem;margin:0;overflow-wrap:anywhere;color:var(--text)}
 :global(.launcher-card) .shared-card-body :global(p),:global(.launcher-card) .shared-card-body :global(small){color:var(--muted)}
 .catalog-kind{position:absolute;bottom:.64285714rem;inset-inline-end:.71428571rem;color:var(--theme-input-text);background:var(--theme-input);border:var(--divider) solid var(--frame);padding:.21428571rem .42857143rem;font-size:.71428571rem}
@@ -72,17 +78,16 @@
 :global(.launcher-card) :global(.card-backdrop img.visible){opacity:var(--card-background-opacity,.8)}
 :global(.launcher-card) :global(.card-backdrop:not(:has(img))::after){display:none}
 :global(.launcher-card) :global(.card-backdrop::after){background:linear-gradient(180deg,#0002,#0006 48%,#0009 100%)}
-:global(.launcher-card[data-layout='gallery']){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:min-content auto}
-/* A spanning ratio guide sets a preferred size; real content can make either row taller. */
-:global(.launcher-card[data-layout='gallery'])::before{content:'';grid-area:1 / 1 / 3 / 2;width:calc(100% + 2 * var(--stroke));margin:calc(-1 * var(--stroke));aspect-ratio:var(--card-aspect-ratio,3 / 4);max-height:var(--card-height,none);align-self:start;visibility:hidden;pointer-events:none}
-:global(.launcher-card[data-layout='gallery']) .shared-card-art{grid-area:1 / 1}
-:global(.launcher-card[data-layout='gallery']) .shared-card-body{grid-area:2 / 1}
-:global(.launcher-card[data-layout='gallery'][data-media='image']){grid-template-rows:auto min-content}
+:global(.launcher-card[data-layout='gallery']){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
+/* One shared grid cell keeps ratio sizing independent of media/caption distribution. */
+:global(.launcher-card[data-layout='gallery'])::before{content:'';grid-area:1 / 1;width:calc(100% + 2 * var(--stroke));margin:calc(-1 * var(--stroke));aspect-ratio:var(--card-aspect-ratio,3 / 4);max-height:var(--card-height,none);align-self:start;visibility:hidden;pointer-events:none}
 :global(.launcher-card[data-layout='gallery'][data-media='image']) .shared-card-art{aspect-ratio:auto;flex:1;min-height:4rem}
 :global(.launcher-card[data-layout='gallery'][data-media='image']) .shared-card-body{flex:0 0 auto;min-height:var(--card-body-min,0)}
 :global(.launcher-card[data-layout='list']){flex-direction:row;align-items:stretch}
+:global(.launcher-card[data-layout='list']) .shared-card-foreground{flex-direction:row}
+:global(.launcher-card[data-layout='list']) .shared-card-body{flex:1}
 :global(.launcher-card[data-layout='list']) .shared-card-body{min-height:var(--card-body-min,8rem)}
-:global(.launcher-card[data-layout='list']) .shared-card-art{width:clamp(3rem,24%,8.28571429rem);aspect-ratio:auto}
+:global(.launcher-card[data-layout='list']) .shared-card-art{width:clamp(3rem,24%,8.28571429rem);aspect-ratio:auto;flex:0 0 auto;min-height:0}
 :global(.launcher-card[data-layout='list']) .shared-card-art :global(img),:global(.launcher-card[data-layout='list']) .shared-card-art :global(svg){width:65%}
 :global(.launcher-card[data-layout='list'][data-media='image']) .shared-card-art :global(img){width:100%}
 :global(.launcher-card[data-layout='list']) .catalog-kind{display:none}

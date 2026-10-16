@@ -212,3 +212,22 @@ test('screenshot image requests are reused when returning to the same collection
   await expect(page.locator('.screenshot-card .shared-card-art img')).toHaveAttribute('src',png);
   expect(await calls()).toBe(1);
 });
+
+test('card content keeps its layout through hover, exit and repeated hover',async({page})=>{
+  await fixture(page);await page.goto('/');
+  async function stable(card:import('@playwright/test').Locator){
+    await card.scrollIntoViewIfNeeded();await page.mouse.move(0,0);
+    await card.locator('.shared-card-art img').evaluateAll(images=>Promise.all(images.map(image=>(image as HTMLImageElement).decode().catch(()=>{}))));
+    const measure=()=>card.evaluate(node=>{const box=node.getBoundingClientRect();return {width:box.width,height:box.height,parts:Array.from(node.querySelectorAll('.shared-card-art,.shared-card-body,h3')).map(part=>{const rect=part.getBoundingClientRect();return {x:rect.x-box.x,y:rect.y-box.y,width:rect.width,height:rect.height};})};});
+    const before=await measure();
+    for(let i=0;i<3;i++){await card.hover();expect(await measure()).toEqual(before);await page.mouse.move(0,0);expect(await measure()).toEqual(before);}
+  }
+  await stable(page.locator('.instance-card'));
+  await page.getByRole('button',{name:'Adventure: Ready to play',exact:true}).click();
+  await page.getByRole('tab',{name:'Contents',exact:true}).click();
+  const content=page.locator('.content-entry');await stable(content);
+  await page.getByRole('radiogroup',{name:'Content view'}).getByRole('radio',{name:'Gallery',exact:true}).click();
+  await stable(content);
+  const before=await content.locator('h3').boundingBox();await content.getByRole('button',{name:'Disable',exact:true}).hover();await page.mouse.move(0,0);
+  expect(await content.locator('h3').boundingBox()).toEqual(before);
+});

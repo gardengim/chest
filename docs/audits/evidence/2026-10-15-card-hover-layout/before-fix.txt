@@ -1,0 +1,74 @@
+[WebServer] (node:33493) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:33519) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:33541) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:33572) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:33580) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/card-artwork.spec.ts:216:1 › card content keeps its layout through hover, exit and repeated hover (853ms)
+
+
+  1) tests/card-artwork.spec.ts:216:1 › card content keeps its layout through hover, exit and repeated hover 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 4
+    + Received  + 4
+
+      Object {
+        "height": 346.65625,
+        "parts": Array [
+          Object {
+    -       "height": 129.5,
+    +       "height": 140.046875,
+            "width": 256,
+            "x": 2,
+            "y": 2,
+          },
+          Object {
+    -       "height": 213.15625,
+    +       "height": 202.609375,
+            "width": 256,
+            "x": 2,
+    -       "y": 131.5,
+    +       "y": 142.046875,
+          },
+          Object {
+            "height": 21,
+            "width": 220,
+            "x": 20,
+    -       "y": 149.5,
+    +       "y": 160.046875,
+          },
+        ],
+        "width": 260,
+      }
+
+      221 |     const measure=()=>card.evaluate(node=>{const box=node.getBoundingClientRect();return {width:box.width,height:box.height,parts:Array.from(node.querySelectorAll('.shared-card-art,.shared-card-body,h3')).map(part=>{const rect=part.getBoundingClientRect();return {x:rect.x-box.x,y:rect.y-box.y,width:rect.width,height:rect.height};})};});
+      222 |     const before=await measure();
+    > 223 |     for(let i=0;i<3;i++){await card.hover();expect(await measure()).toEqual(before);await page.mouse.move(0,0);expect(await measure()).toEqual(before);}
+          |                                                                     ^
+      224 |   }
+      225 |   await stable(page.locator('.instance-card'));
+      226 |   await page.getByRole('button',{name:'Adventure: Ready to play',exact:true}).click();
+        at stable (<workspace>/tests/card-artwork.spec.ts:223:69)
+        at <workspace>/tests/card-artwork.spec.ts:225:3
+
+    Error Context: test-results/card-artwork-card-content--88d01-ver-exit-and-repeated-hover/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/card-artwork-card-content--88d01-ver-exit-and-repeated-hover/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/card-artwork-card-content--88d01-ver-exit-and-repeated-hover/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/card-artwork.spec.ts:216:1 › card content keeps its layout through hover, exit and repeated hover 
