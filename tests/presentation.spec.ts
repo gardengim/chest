@@ -213,7 +213,8 @@ test('sidebar group toggles preserve card and instance backdrop nodes and do not
     }};
   });
   await page.goto('/');
-  await expect(page.locator('.instance-card .instance-backdrop img')).toHaveCount(2);
+  // Wait for provider frames; the two temporary icon fallbacks also match the image count.
+  await expect(page.locator('.instance-card .instance-backdrop img.visible[src="/chest.svg"]')).toHaveCount(2);
   await page.locator('.instance-card .instance-backdrop img').evaluateAll(nodes=>nodes.forEach(n=>(n as any).__original=true));
   const calls=await page.evaluate(()=>(window as any).__screenshotCalls);
   const group=page.getByRole('button',{name:'Friends group',exact:true});
@@ -223,7 +224,7 @@ test('sidebar group toggles preserve card and instance backdrop nodes and do not
   expect(await page.evaluate(()=>(window as any).__screenshotCalls)).toBe(calls);
   await group.click();
   await page.getByRole('button',{name:'one: Ready to play',exact:true}).click();
-  await expect(page.locator('.instance-scene .instance-backdrop img')).toHaveCount(1);
+  await expect(page.locator('.instance-scene .instance-backdrop img.visible[src="/chest.svg"]')).toHaveCount(1);
   await page.locator('.instance-scene .instance-backdrop img').evaluateAll(nodes=>nodes.forEach(n=>(n as any).__original=true));
   const heroCalls=await page.evaluate(()=>(window as any).__screenshotCalls);
   await group.click();await expect(group).toHaveAttribute('aria-expanded','false');
