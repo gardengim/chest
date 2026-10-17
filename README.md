@@ -28,6 +28,14 @@
 >
 > Chest is being prepared for its first release. Platform testing, installer verification, and distribution acceptance are tracked in the [release checklist](docs/ACCEPTANCE.md).
 
+### Installing 0.1.0
+
+Download the installer for your platform from [Releases](https://github.com/gardengim/chest/releases). Choose the Apple Silicon or Intel DMG on macOS, the Windows x64 installer, or a Linux x64 package.
+
+**These installers are unsigned, and the Mac app is not notarized.** macOS or Windows may warn about or block an unrecognized publisher. Install only if you trust the source; the release includes SHA-256 checksums for checking download integrity. Checksums do not establish publisher identity.
+
+Updates for this release are manual: download a newer installer from Releases. Chest's built-in updater still requires signed update artifacts; unsigned installers are never installed through it.
+
 ## Features
 
 **A library that feels like yours.** Keep separate instances for survival, creative builds, modded play, and trying something new. Choose a gallery or a list, organize sidebar groups, and arrange Home shelves around what you use.
@@ -109,7 +117,7 @@ Instances and shared downloads are managed locally. You can choose an instance l
 
 Chest asks before destructive actions. Closing the launcher stops its installation work without deliberately terminating running games; this version does not reattach to those games after a restart. Save and close Minecraft normally when possible.
 
-App updates require an explicit installation and restart. Their artifacts are verified against Chest's updater signing key. See [recovery](docs/RECOVERY.md) and [security](docs/SECURITY.md) for the behavior and its limits.
+Built-in app updates require signed artifacts, an explicit installation, and a restart. The unsigned 0.1.0 distribution uses manual updates. See [recovery](docs/RECOVERY.md) and [security](docs/SECURITY.md) for the behavior and its limits.
 
 ## Documentation
 

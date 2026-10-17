@@ -1,5 +1,22 @@
 # Releasing Chest
 
+## Unsigned 0.1.0 distribution
+
+0.1.0 is distributed without platform signing certificates or Apple notarization.
+Use the installers produced by the successful **Build verification candidates**
+run, verify their inventory hashes, and attach those exact files to a draft release
+with `SHA256SUMS.txt`. Release notes must identify the unsigned publisher status,
+the macOS 14 minimum, platform/architecture choices, and manual updates.
+OS warnings or blocks are expected; checksums establish download integrity, not
+publisher identity. Human acceptance remains separate from automated checks.
+
+Do not attach `latest.json` or unsigned updater payloads. The built-in updater
+continues to require valid signatures. Users install future unsigned releases
+manually from GitHub Releases. The tag-triggered workflow below is for future
+releases with an updater signing key configured; it is not the unsigned release path.
+
+## Signed updater setup (optional for future releases)
+
 The app checks `https://github.com/gardengim/chest/releases/latest/download/latest.json`.
 Only signed updater artifacts are accepted. The verification public key is committed in
 `src-tauri/updater.pub` and `src-tauri/tauri.conf.json`.
@@ -17,7 +34,7 @@ For notarized macOS releases, also configure `APPLE_CERTIFICATE` (base64 P12),
 `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`
 (app-specific password), and `APPLE_TEAM_ID`.
 
-## Release
+## Release with signed updater artifacts
 
 1. Bump the version in `package.json`, `package-lock.json`, `core/Cargo.toml`,
    `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json` together; update Cargo lockfiles.

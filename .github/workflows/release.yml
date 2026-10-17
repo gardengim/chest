@@ -10,8 +10,25 @@ concurrency:
 jobs:
   checks:
     uses: ./.github/workflows/check.yml
+  signing:
+    runs-on: ubuntu-latest
+    outputs:
+      available: ${{ steps.key.outputs.available }}
+    steps:
+      - name: Detect updater signing configuration
+        id: key
+        env:
+          UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -n "$UPDATER_KEY" ]; then
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'available=false' >> "$GITHUB_OUTPUT"
+            echo 'No updater key configured. Use the verified unsigned installers attached manually to this release.'
+          fi
   release:
-    needs: checks
+    needs: [checks, signing]
+    if: needs.signing.outputs.available == 'true'
     timeout-minutes: 90
     strategy:
       fail-fast: false
