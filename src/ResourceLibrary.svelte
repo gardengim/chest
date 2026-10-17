@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import CardGrid from './CardGrid.svelte';
   import Pagination from './Pagination.svelte';
   import {collectionPageSize as pageSize} from './collection-page';
@@ -20,7 +21,6 @@
   import WorldList from './WorldList.svelte';
   import Card from './Card.svelte';
   import Button from './Button.svelte';
-  import CopyButton from './CopyButton.svelte';
   import LayoutSwitch from './LayoutSwitch.svelte';
   import {mergeServers,type ServerRow} from './server-library';
   import Select from './Select.svelte';
@@ -77,16 +77,16 @@
   {#snippet tools(heading,navigation)}<Toolbar {heading} {navigation} trailing={layoutButton} searchLabel={$t(mode==='worlds'?'Search worlds':'Search servers')} bind:value={search} items={[
     ...(mode==='servers'?[{id:'add',label:$t('Add'),priority:100,content:addButton}]:[])
   ]}/>{/snippet}
-{#if error && !edit && !adding && !removing}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
-{#if notice}<p class="inline-notice" role="status">{notice}</p>{/if}
+{#if error && !edit && !adding && !removing}<Message tone="error" text={error}/>{/if}
+{#if notice}<Message tone="success" text={notice}/>{/if}
 {#if mode==='worlds'}
   {#if loading && !loaded[mode]}<p role="status">{$t('Loading…')}</p>{:else}
-    {#if library.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read worlds from {names}',{names:library.unavailable.join(', ')})}</p>{/if}
+    {#if library.unavailable.length}<Message tone="error" text={$t('Could not read worlds from {names}',{names:library.unavailable.join(', ')})}/>{/if}
     {#if !worlds.length && library.worlds.length}<p class="muted">{$t('No results')}</p>{:else}<WorldList full={!gallery} resetKey={search} {worlds} instances={config.instances} {isBusy} onrefresh={refresh} showInstance {onopen} layout={cardLayout}/>{/if}
   {/if}
 {:else}
   {#if loading && !loaded[mode]}<p role="status">{$t('Loading…')}</p>{/if}
-  {#if serverLibrary.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read servers from {names}',{names:serverLibrary.unavailable.join(', ')})}</p>{/if}
+  {#if serverLibrary.unavailable.length}<Message tone="error" text={$t('Could not read servers from {names}',{names:serverLibrary.unavailable.join(', ')})}/>{/if}
   <CardGrid class="server-list" layout={cardLayout}>{#each shownServers as server (server.id)}
     <Card aria-haspopup="menu" aria-expanded={menu?.server.id===server.id} onclick={()=>open(server)} oncontextmenu={event=>openMenu(event,server)} onkeydown={event=>openMenu(event,server)} title={server.name} icon={server.icon} layout={cardLayout} artworkKey={`server:${server.id}:${server.address}:${server.instance_id || ''}`} loadIcon={server.bookmarked?()=>api.serverIcon(server.id):undefined}>
       <span class="catalog-author">{server.address}</span>
@@ -102,19 +102,19 @@
 {#snippet layoutButton()}<LayoutSwitch label={$t(mode==='worlds'?'Worlds layout':'Servers layout')} bind:value={layout}/>{/snippet}
 {#if choosing}<InstanceChooser instances={config.instances.filter(instance=>choosing!.instance_ids.includes(instance.id) && (!joining || instance.installed && !isBusy(instance.id)))} {icons} onchoose={id=>{const server=choosing!;choosing=null;if(joining)void run(()=>api.launchResource(id,'server',server.address));else onopen(id,serverAddressKey(server.address));}} onclose={()=>choosing=null}/>{/if}
 {#if menu}<ContextMenu title={menu.server.name} icon={menu.server.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
-  <MenuItem icon="play" disabled={!native || pending || !config.instances.some(instance=>menu!.server.instance_ids.includes(instance.id) && instance.installed && !isBusy(instance.id))} onclick={()=>action(server=>join(server))}>{$t('Join')}</MenuItem>
-  {#if menu.server.instance_ids.length}<MenuItem direction="right" onclick={()=>action(server=>open(server))}>{$t('Open instance')}</MenuItem>{/if}
-  <MenuItem icon="copy" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.address);notice=$t('Copied');}))}>{$t('Copy')}</MenuItem>
+  <MenuItem icon="triangle" rotation={90} disabled={!native || pending || !config.instances.some(instance=>menu!.server.instance_ids.includes(instance.id) && instance.installed && !isBusy(instance.id))} onclick={()=>action(server=>join(server))}>{$t('Join')}</MenuItem>
+  {#if menu.server.instance_ids.length}<MenuItem icon="arrow-bend-right" onclick={()=>action(server=>open(server))}>{$t('Open instance')}</MenuItem>{/if}
+  <MenuItem icon="squares-overlapping" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.address);notice=$t('Copied');}))}>{$t('Copy')}</MenuItem>
   {#if menu.server.bookmarked}
     <div role="separator"></div>
     <MenuItem icon="plus" disabled={!native || pending || !config.instances.some(instance=>instance.version!=='pending')} onclick={()=>action(server=>add(server))}>{$t('Add to instance')}</MenuItem>
-    <MenuItem icon="gear" disabled={pending} onclick={()=>action(server=>{error='';edit=bookmarkData(server);})}>{$t('Edit')}</MenuItem>
-    <MenuItem icon="close" tone="danger" disabled={pending} onclick={()=>action(server=>{error='';removing=server;})}>{$t('Remove')}</MenuItem>
+    <MenuItem icon="wrench" disabled={pending} onclick={()=>action(server=>{error='';edit=bookmarkData(server);})}>{$t('Edit')}</MenuItem>
+    <MenuItem icon="cross" tone="danger" disabled={pending} onclick={()=>action(server=>{error='';removing=server;})}>{$t('Remove')}</MenuItem>
   {:else}<MenuItem icon="plus" disabled={pending} onclick={()=>action(server=>run(()=>bookmark(server)))}>{$t('Bookmark')}</MenuItem>{/if}
 </ContextMenu>{/if}
 {#if edit}
   <dialog class="modal" use:showDialog aria-label={$t('Server bookmark')} oncancel={event=>{event.preventDefault();if(!pending)edit=null;}}>
-    <div class="section-heading"><h2>{$t('Server bookmark')}</h2><Button class="dialog-close" disabled={pending} aria-label={$t('Close')} onclick={()=>edit=null}><Icon name="close"/></Button></div>
+    <div class="section-heading"><h2>{$t('Server bookmark')}</h2><Button class="dialog-close" disabled={pending} aria-label={$t('Close')} onclick={()=>edit=null}><Icon name="cross"/></Button></div>
     <form onsubmit={event=>{event.preventDefault();void run(async()=>{onconfig(await api.saveServerBookmark(edit!));edit=null;});}}>
       <label>{$t('Name')}<input bind:value={edit.name} required maxlength={120} disabled={pending}/></label>
       <label>{$t('Address')}<input bind:value={edit.address} required maxlength={320} placeholder="example.com:25565" disabled={pending}/></label>
@@ -123,19 +123,19 @@
         <label>{$t('Expected Minecraft version')}<input bind:value={edit.expected_version} placeholder={$t('Unknown')} maxlength={120} disabled={pending}/></label>
         <label>{$t('Expected mod loader')}<Select value={edit.expected_loader || ''} disabled={pending} onchange={event=>{if(edit)edit.expected_loader=event.currentTarget.value as Loader || null;}}><option value="">{$t('Unknown')}</option>{#each ['vanilla','fabric','quilt','forge','neoforge'] as loader}<option value={loader}>{loaderLabel(loader as Loader)}</option>{/each}{#snippet leading(value:string)}{#if config.instances.some(instance=>instance.id===value)}<InstanceIcon id={value}/>{/if}{/snippet}{#snippet optionContent(value:string,label:string)}{#if config.instances.find(instance=>instance.id===value)}<InstanceName instance={config.instances.find(instance=>instance.id===value)!}/>{label.slice(config.instances.find(instance=>instance.id===value)!.name.length)}{:else}{label}{/if}{/snippet}</Select></label>
       </div>
-      {#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
+      {#if error}<Message tone="error" text={error}/>{/if}
       <div class="form-actions"><Button disabled={pending} onclick={()=>edit=null}>{$t('Cancel')}</Button><Button type="submit" tone="accent" disabled={pending}>{$t('Save')}</Button></div>
     </form>
   </dialog>
 {/if}
 {#if adding}
   <dialog class="modal" use:showDialog aria-label={$t('Add to instance')} oncancel={event=>{event.preventDefault();if(!pending)adding=null;}}>
-    <div class="section-heading"><h2>{$t('Add to instance')}</h2><Button class="dialog-close" disabled={pending} aria-label={$t('Close')} onclick={()=>adding=null}><Icon name="close"/></Button></div>
+    <div class="section-heading"><h2>{$t('Add to instance')}</h2><Button class="dialog-close" disabled={pending} aria-label={$t('Close')} onclick={()=>adding=null}><Icon name="cross"/></Button></div>
     <p>{adding.name} · {adding.address}</p>
     <label>{$t('Target instance')}<Select bind:value={target} disabled={pending}>{#each config.instances.filter(instance=>instance.version!=='pending') as instance}<option value={instance.id}>{instance.name} · {instance.version} · {loaderLabel(instance.loader)}</option>{/each}{#snippet leading(value:string)}{#if config.instances.some(instance=>instance.id===value)}<InstanceIcon id={value}/>{/if}{/snippet}{#snippet optionContent(value:string,label:string)}{#if config.instances.find(instance=>instance.id===value)}<InstanceName instance={config.instances.find(instance=>instance.id===value)!}/>{label.slice(config.instances.find(instance=>instance.id===value)!.name.length)}{:else}{label}{/if}{/snippet}</Select></label>
-    {#if mismatch}<p class="inline-error">{$t('This instance differs from the server’s expected version or loader.')}</p>{/if}
+    {#if mismatch}<Message tone="warning" text={$t('This instance differs from the server’s expected version or loader.')}/>{/if}
     <p class="hint">{$t('Server requirements are user-provided. Mod compatibility is unknown.')}</p>
-    {#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
+    {#if error}<Message tone="error" text={error}/>{/if}
     <div class="form-actions"><Button disabled={pending} onclick={()=>adding=null}>{$t('Cancel')}</Button><Button tone="accent" disabled={pending || !destination || isBusy(target)} onclick={()=>run(async()=>{notice=$t(await api.addBookmarkedServer(adding!.id,target)?'Server added.':'Server already listed.');adding=null;await refresh();})}>{$t('Add')}</Button></div>
   </dialog>
 {/if}
@@ -143,7 +143,7 @@
   <dialog class="modal" use:showDialog aria-label={$t('Remove bookmark?')} oncancel={event=>{event.preventDefault();if(!pending)removing=null;}}>
     <h2>{$t('Remove bookmark?')}</h2><p>{removing.name}</p>
     <p>{$t('The server remains in existing instance server lists.')}</p>
-    {#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
+    {#if error}<Message tone="error" text={error}/>{/if}
     <div class="form-actions"><Button disabled={pending} onclick={()=>removing=null}>{$t('Cancel')}</Button><Button tone="danger" disabled={pending} onclick={()=>run(async()=>{onconfig(await api.removeServerBookmark(removing!.id));removing=null;})}>{$t('Remove')}</Button></div>
   </dialog>
 {/if}

@@ -19,8 +19,8 @@ test('core pages and creation discard dialog meet automated accessibility rules'
   await page.getByRole('tab',{name:'Settings',exact:true}).click();await audit(page);
   await page.getByLabel('Language',{exact:true}).selectOption('ko');await audit(page);
 });
-test('skip link provides a keyboard route into the page',async({page})=>{
-  await page.goto('/');await page.keyboard.press('Tab');
+test('skip link provides a keyboard route into the page',async({page,browserName})=>{
+  await page.goto('/');await expect(page.getByRole('heading',{name:/^Instances/})).toBeVisible();await page.keyboard.press(browserName==='webkit'?'Alt+Tab':'Tab');
   await expect(page.getByRole('link',{name:'Skip to content'})).toBeFocused();
   await page.keyboard.press('Enter');await expect(page.locator('main')).toBeFocused();
 });

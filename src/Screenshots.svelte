@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import Icon from './Icon.svelte';
   import CardGrid from './CardGrid.svelte';
   import Toolbar from './Toolbar.svelte';
@@ -11,7 +12,6 @@
   import Button from './Button.svelte';
   import Pagination from './Pagination.svelte';
   import {collectionPageSize as pageSize} from './collection-page';
-  import CopyButton from './CopyButton.svelte';
   import ScreenshotTile from './ScreenshotTile.svelte';
   import {showDialog} from './dialog';
   import type {Instance,LibraryScreenshot,ScreenshotLibrary} from './types';
@@ -43,8 +43,8 @@
   {@render body()}
 </HomeShelf>{:else}<Toolbar>{#snippet status()}{entries.length} {$t('Screenshots')}{/snippet}</Toolbar>{@render body()}{/if}
 {#snippet body()}
-{#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
-{#if library.unavailable.length}<p class="inline-error" role="alert">{$t('Could not read screenshots from {names}',{names:library.unavailable.join(', ')})}</p>{/if}
+{#if error}<Message tone="error" text={error}/>{/if}
+{#if library.unavailable.length}<Message tone="error" text={$t('Could not read screenshots from {names}',{names:library.unavailable.join(', ')})}/>{/if}
 {#if loading && !loaded && screenshots===undefined && !shown.length}<p role="status">{$t('Loading…')}</p>{:else if !shown.length}<p class="muted">{$t('No screenshots')}</p>{/if}
 <CardGrid class="screenshots-grid">{#each shown as screenshot (`${screenshot.instance_id}:${screenshot.name}`)}
   <ScreenshotTile {screenshot} owner={instances.find(instance=>instance.id===screenshot.instance_id)} instance={instances.find(instance=>instance.id===screenshot.instance_id)?.name || $t('Unknown')} onopen={source=>choose(screenshot,source)}/>
@@ -52,10 +52,10 @@
 {#if full && entries.length}<Pagination label={$t('{name} pages',{name:$t('Screenshots')})} {page} {pages} onchange={value=>page=value}/>{/if}
 {/snippet}
 {#if selected}<dialog class="modal screenshot-preview" use:showDialog aria-label={selected.screenshot.name} oncancel={event=>{event.preventDefault();selected=null;}}>
-  <div class="section-heading"><h2>{selected.screenshot.name}</h2><Button class="dialog-close" aria-label={$t('Close')} onclick={()=>selected=null}><Icon name="close" size={18}/></Button></div>
+  <div class="section-heading"><h2>{selected.screenshot.name}</h2><Button class="dialog-close" aria-label={$t('Close')} onclick={()=>selected=null}><Icon name="cross" size={18}/></Button></div>
   {#if instances.find(instance=>instance.id===selected!.screenshot.instance_id)}<p><InstanceName instance={instances.find(instance=>instance.id===selected!.screenshot.instance_id)!}/></p>{/if}
   <img src={selected.source} alt={selected.screenshot.name}/>
-  {#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
+  {#if error}<Message tone="error" text={error}/>{/if}
   <Button onclick={open}>{$t('Open')}</Button>
 </dialog>{/if}
 <style>

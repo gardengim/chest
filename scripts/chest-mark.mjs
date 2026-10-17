@@ -48,7 +48,7 @@ export function chestMark(){
       <stop offset="1" stop-color="#AFB7B3"/>
     </linearGradient>
     <filter id="halo" x="-100%" y="-70%" width="300%" height="240%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="0" stdDeviation="1.8" flood-color="#E0E8D9" flood-opacity=".22"/>
+      <feGaussianBlur stdDeviation="1.8"/>
     </filter>
   </defs>
   <path fill="url(#wood)" d="${polygon(vertices)}"/>
@@ -58,7 +58,8 @@ export function chestMark(){
     <path d="${polygon(vertices)}"/>
     <path d="M${point(vertices[5])} ${point(center)} ${point(vertices[1])}M${point(center)}V${number(vertices[3][1])}M${point([vertices[5][0],vertices[5][1]+20])} ${point([64,84])} ${point([vertices[1][0],vertices[1][1]+20])}"/>
   </g>
-  <g filter="url(#halo)">
+  <path fill="#E0E8D9" opacity=".22" filter="url(#halo)" d="${polygon([...latch.top.slice(0,3),latch.front[2],latch.front[3],latch.side[3]])}"/>
+  <g>
     <path fill="#77817D" d="${polygon(latch.side)}"/>
     <path fill="url(#silver)" d="${polygon(latch.front)}"/>
     <path fill="#DFE3DD" d="${polygon(latch.top)}"/>

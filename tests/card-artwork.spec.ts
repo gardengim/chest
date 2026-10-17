@@ -42,14 +42,14 @@ test('instance cards and header share a mixed background pool, lazily load frame
   });
   await page.goto('/');
   await expect(page.locator('.instance-card .card-backdrop img.visible')).toHaveAttribute('src','/minecraft.png');
-  // The current provider frame and previous local frame are enough for crossfade.
-  await expect.poll(()=>page.evaluate(()=>(window as any).__screenshotLoads)).toEqual(['shot-19.png']);
+  // Load the current frame first; fetch another only when rotation starts.
+  await expect.poll(()=>page.evaluate(()=>(window as any).__screenshotLoads)).toEqual([]);
   await page.getByRole('button',{name:'Adventure: Ready to play',exact:true}).click();
   await expect(page.locator('.instance-hero h1')).toHaveText('Adventure');
   await expect(page.locator('.instance-hero h1 img,.instance-hero h1 svg')).toHaveCount(0);
   await expect(page.locator('.instance-hero .instance-art img')).toHaveCount(1);
-  await expect(page.locator('.instance-scene .instance-backdrop img')).toHaveCount(2);
-  expect(await page.evaluate(()=>(window as any).__screenshotRequests.map((request:any)=>request.edge))).toEqual([512,1024]);
+  await expect(page.locator('.instance-scene .instance-backdrop img')).toHaveCount(1);
+  expect(await page.evaluate(()=>(window as any).__screenshotRequests.map((request:any)=>request.edge))).toEqual([]);
   // Intersection callbacks arrive independently of image loading. Let the
   // visible header start its rotation before advancing the test clock.
   await page.locator('.instance-scene .instance-backdrop').evaluate(node=>new Promise<void>(resolve=>{
@@ -62,7 +62,7 @@ test('instance cards and header share a mixed background pool, lazily load frame
   }));
   await page.clock.runFor(8100);
   await expect(page.locator('.instance-scene .instance-backdrop img.visible')).toHaveAttribute('src',png);
-  expect(await page.evaluate(()=>(window as any).__screenshotLoads)).toEqual(['shot-19.png','shot-19.png','shot-0.png']);
+  expect(await page.evaluate(()=>(window as any).__screenshotLoads)).toEqual(['shot-0.png']);
 });
 
 test('cards use blurred icons when backgrounds are missing, but preserve real backgrounds and recover from failures',async({page})=>{
@@ -131,8 +131,8 @@ test('standard cards share geometry and screenshots use one full-card centered i
   const border=await screenshot.evaluate(node=>parseFloat(getComputedStyle(node).borderLeftWidth));
   expect(imageBox.width).toBeCloseTo(box.width-2*border,0);
   expect(imageBox.height).toBeCloseTo(box.height-2*border,0);
-  expect(box.width/box.height).toBeCloseTo(4/3,2);
-  for(const card of cards){const box=(await card.boundingBox())!;expect(box.width/box.height).toBeCloseTo(3/4,2);}
+  expect(imageBox.width/imageBox.height).toBeCloseTo(4/3,2);
+  for(const card of cards){const box=(await card.boundingBox())!;const border=await card.evaluate(node=>parseFloat(getComputedStyle(node).borderLeftWidth));expect((box.width-2*border)/(box.height-2*border)).toBeCloseTo(3/4,2);}
   await screenshot.screenshot({path:testInfo.outputPath('screenshot-card.png')});
   await cards[0].screenshot({path:testInfo.outputPath('instance-card.png')});
   const grid=page.locator('.instance-grid');
@@ -156,7 +156,7 @@ test('world, server and installed-content card actions share translucent dark ba
     await page.mouse.down();
     await expect.poll(()=>button.evaluate(node=>getComputedStyle(node).boxShadow)).not.toBe(normal.shadow);
     await page.mouse.move(0,0);await page.mouse.up();
-    const more=page.getByRole('button',{name:'More actions',exact:true}).filter({has:page.locator('[data-symbol="more"]')}).first();
+    const more=page.getByRole('button',{name:'More actions',exact:true}).filter({has:page.locator('[data-symbol="dots-horizontal"]')}).first();
     if(await more.count()){
       await more.hover();const box=(await more.boundingBox())!,glyph=(await more.locator('svg').boundingBox())!;
       expect(box.width).toBeCloseTo(box.height,0);

@@ -33,6 +33,7 @@
 </script>
 <div class="screenshot-tile" use:observe>
   <Button shape="card" class="screenshot-card" disabled={!source || !!error} onclick={()=>onopen(source)} aria-label={`${screenshot.name} · ${instance}`}>
+    <span class="screenshot-space" aria-hidden="true"></span>
     {#if source && !error}
       <img class="screenshot-image" src={source} alt="" onerror={()=>error=$t('Could not load screenshot')}/>
     {:else}
@@ -47,12 +48,13 @@
 </div>
 <style>
 .screenshot-tile{display:flex;flex-direction:column;gap:.57142857rem;min-width:0}
-:global(.screenshot-card){position:relative;isolation:isolate;width:100%;aspect-ratio:4 / 3;min-width:0;flex:1;color:var(--theme-overlay-text);background:var(--theme-card);font-size:.85714286rem}
+:global(.screenshot-card){position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:0;width:100%;min-width:0;flex:0 0 auto;color:var(--theme-overlay-text);background:var(--theme-card);font-size:.85714286rem}
 :global(.screenshot-card)::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:var(--bevel-raised)}
 :global(.screenshot-card:not(:disabled):active)::after{box-shadow:var(--bevel-pressed)}
 .screenshot-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;image-rendering:auto}
-.screenshot-caption{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:.57142857rem;min-height:100%;padding:var(--card-padding);background:linear-gradient(180deg,transparent 25%,#0009 75%,#000c);text-shadow:0 .07142857rem .21428571rem #0008}
+.screenshot-space{grid-area:1 / 1;width:100%;aspect-ratio:4 / 3;pointer-events:none}
+.screenshot-caption{grid-area:1 / 1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:.57142857rem;min-width:0;padding:var(--card-padding);background:linear-gradient(180deg,transparent 25%,#0009 75%,#000c);text-shadow:0 .07142857rem .21428571rem #0008}
 .screenshot-title{font-size:1.28571429rem;overflow-wrap:anywhere}
-.catalog-author{color:var(--theme-overlay-muted)}
+.catalog-author{min-width:0;overflow-wrap:anywhere;color:var(--theme-overlay-muted)}
 .screenshot-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:var(--card-padding);color:var(--theme-card-text)}
 </style>

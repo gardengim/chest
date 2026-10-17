@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import CardGrid from './CardGrid.svelte';
   import {readable} from 'svelte/store';
   import {relativeTime} from './relative-time';
@@ -19,7 +20,6 @@
   import {showDialog} from './dialog';
   import Button from './Button.svelte';
   import Card from './Card.svelte';
-  import CopyButton from './CopyButton.svelte';
   import Icon from './Icon.svelte';
   import Select from './Select.svelte';
   let {worlds,instances,isBusy=()=>false,onrefresh=async()=>{},showInstance=false,onopen,layout='list',highlight='',full=true,resetKey=''}:{full?:boolean;resetKey?:string;highlight?:string;layout?:'gallery'|'list';worlds:WorldEntry[];instances:Instance[];isBusy?:(id:string)=>boolean;onrefresh?:()=>Promise<unknown>;showInstance?:boolean;onopen?:(id:string,item:string)=>void}=$props();
@@ -54,8 +54,8 @@
   }
   async function copy(){if(!selected || !destination)return;const world=selected;await run(async()=>{await api.copyWorld(world.instance_id,world.folder,destination.id);selected=null;notice=$t('World copied.');await onrefresh();await tick();trigger?.focus();});}
 </script>
-{#if error && !selected}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
-{#if notice}<p class="inline-notice" role="status">{notice}</p>{/if}
+{#if error && !selected}<Message tone="error" text={error}/>{/if}
+{#if notice}<Message tone="success" text={notice}/>{/if}
 <CardGrid class="world-list" {layout}>
   {#each shown as world (`${world.instance_id}:${world.folder}`)}
     <Card backgroundFromIcon backgroundOpacity={.45} class="resource-card world-card" interactive={showInstance} tabindex={showInstance?undefined:-1} title={world.name} {layout} data-resource-key={resourceKey('world',world.folder)} data-highlighted={highlight===world.folder || undefined} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={()=>onopen?.(world.instance_id,world.folder)} oncontextmenu={event=>openMenu(event,world)} onkeydown={event=>openMenu(event,world)} artworkKey={`world:${world.instance_id}:${world.folder}`} loadIcon={()=>api.worldIcon(world.instance_id,world.folder)}>
@@ -66,33 +66,33 @@
         <Button disabled={!native || pending || isBusy(world.instance_id) || !canPlay(world)} title={$t('Direct world launch requires Minecraft 1.20 or later')} onclick={()=>run(()=>api.launchResource(world.instance_id,'world',world.folder))}>{$t('Play')}</Button>
         <Button disabled={!native || pending || isBusy(world.instance_id)} onclick={()=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');})}>{$t('Back up')}</Button>
         <Button class="secondary-action" disabled={!native || pending || isBusy(world.instance_id) || !instances.some(instance=>instance.id!==world.instance_id && instance.version!=='pending')} onclick={event=>choose(world,event.currentTarget)}>{$t('Copy')}</Button>
-        <Button class="icon-button card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={event=>openMenu(event,world)}><Icon name="more" size={24}/></Button>
+        <Button class="icon-button card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.world===world} onclick={event=>openMenu(event,world)}><Icon name="dots-horizontal" size={24}/></Button>
       {/if}{/snippet}
     </Card>
   {:else}<p class="muted">{$t('No worlds')}</p>{/each}
 </CardGrid>
 {#if full}<Pagination label={$t('Worlds')} {page} {pages} onchange={value=>{menu=null;page=value;}}/>{/if}
 {#if menu}<ContextMenu title={menu.world.name} icon={menu.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
-  <MenuItem icon="play" disabled={!native || pending || isBusy(menu.world.instance_id) || !canPlay(menu.world)} onclick={()=>action(world=>run(()=>api.launchResource(world.instance_id,'world',world.folder)))}>{$t('Play')}</MenuItem>
-  {#if onopen}<MenuItem direction="right" onclick={()=>action(world=>onopen?.(world.instance_id,world.folder))}>{$t('Open instance')}</MenuItem>{/if}
+  <MenuItem icon="triangle" rotation={90} disabled={!native || pending || isBusy(menu.world.instance_id) || !canPlay(menu.world)} onclick={()=>action(world=>run(()=>api.launchResource(world.instance_id,'world',world.folder)))}>{$t('Play')}</MenuItem>
+  {#if onopen}<MenuItem icon="arrow-bend-right" onclick={()=>action(world=>onopen?.(world.instance_id,world.folder))}>{$t('Open instance')}</MenuItem>{/if}
   <div role="separator"></div>
-  <MenuItem icon="gear" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>{renaming=world;})}>{$t('Rename')}</MenuItem>
+  <MenuItem icon="wrench" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>{renaming=world;})}>{$t('Rename')}</MenuItem>
   <MenuItem icon="folder" disabled={!native || pending} onclick={()=>action(world=>run(()=>api.openInstanceFile(world.instance_id,'saves',world.folder)))}>{$t('Open folder')}</MenuItem>
   <div role="separator"></div>
-  <MenuItem icon="download" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');}))}>{$t('Back up')}</MenuItem>
-  <MenuItem icon="copy" disabled={!native || pending || isBusy(menu.world.instance_id) || !instances.some(instance=>instance.id!==menu!.world.instance_id && instance.version!=='pending')} onclick={()=>action((world,trigger)=>choose(world,trigger))}>{$t('Copy')}</MenuItem>
+  <MenuItem icon="arrow-down-tray" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>run(async()=>{if(await api.backupWorld(world.instance_id,world.folder))notice=$t('World backed up.');}))}>{$t('Back up')}</MenuItem>
+  <MenuItem icon="squares-overlapping" disabled={!native || pending || isBusy(menu.world.instance_id) || !instances.some(instance=>instance.id!==menu!.world.instance_id && instance.version!=='pending')} onclick={()=>action((world,trigger)=>choose(world,trigger))}>{$t('Copy')}</MenuItem>
   <MenuItem icon="plus" disabled={!native || pending || isBusy(menu.world.instance_id)} onclick={()=>action(world=>run(async()=>{const count=await api.applyDatapacks(world.instance_id,world.folder);notice=$t(count===1?'Added {count} data pack.':'Added {count} data packs.',{count});}))}>{$t('Add data packs')}</MenuItem>
 </ContextMenu>{/if}
 {#if renaming}<RenameResource name={renaming.name} onrename={async name=>{await api.renameResource(renaming!.instance_id,'world',renaming!.folder,name);await onrefresh();}} onclose={()=>renaming=null}/>{/if}
 {#if selected}
   <dialog class="modal" use:showDialog aria-label={$t('Copy world')} oncancel={event=>{event.preventDefault();void close();}}>
-    <div class="section-heading"><h2>{$t('Copy world')}</h2><Button class="dialog-close" disabled={pending} aria-label={$t('Close')} onclick={close}><Icon name="close"/></Button></div>
+    <div class="section-heading"><h2>{$t('Copy world')}</h2><Button class="dialog-close" disabled={pending} aria-label={$t('Close')} onclick={close}><Icon name="cross"/></Button></div>
     <p>{selected.name} · {$t('Minecraft version')}: {loading?$t('Loading…'):selected.version || $t('Unknown')}</p>
     <label>{$t('Target instance')}<Select bind:value={target} disabled={pending}>{#each targets as instance}<option value={instance.id}>{instance.name} · {instance.version}</option>{/each}{#snippet leading(value:string)}{#if instances.some(instance=>instance.id===value)}<InstanceIcon id={value}/>{/if}{/snippet}{#snippet optionContent(value:string,label:string)}{#if instances.find(instance=>instance.id===value)}<InstanceName instance={instances.find(instance=>instance.id===value)!}/>{label.slice(instances.find(instance=>instance.id===value)!.name.length)}{:else}{label}{/if}{/snippet}</Select></label>
-    {#if destination && selected.version && selected.version!==destination.version}<p class="inline-error">{$t('Different Minecraft version. The copy may need conversion or fail to load.')}</p>{/if}
-    {#if source && destination && source.loader!==destination.loader}<p class="inline-error">{$t('Different mod loader.')}</p>{/if}
+    {#if destination && selected.version && selected.version!==destination.version}<Message tone="warning" text={$t('Different Minecraft version. The copy may need conversion or fail to load.')}/>{/if}
+    {#if source && destination && source.loader!==destination.loader}<Message tone="warning" text={$t('Different mod loader.')}/>{/if}
     <p class="hint">{$t('Mod compatibility is unknown. The original world is preserved.')}</p>
-    {#if error}<div class="inline-error" role="alert">{error}<CopyButton text={error}/></div>{/if}
+    {#if error}<Message tone="error" text={error}/>{/if}
     <div class="form-actions"><Button disabled={pending} onclick={close}>{$t('Cancel')}</Button><Button tone="accent" disabled={pending || loading || !destination || isBusy(selected.instance_id) || isBusy(target)} onclick={copy}>{$t(pending?'Copying…':'Copy')}</Button></div>
   </dialog>
 {/if}

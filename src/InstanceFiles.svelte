@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import Icon from './Icon.svelte';
   import CardGrid from './CardGrid.svelte';
   import Pagination from './Pagination.svelte';
@@ -56,8 +57,8 @@
   async function run(work:()=>Promise<unknown>){if(pending)return;pending=true;error='';notice='';try{await work();}catch(e){error=String(e);}finally{pending=false;}}
 </script>
 <div bind:this={root}>
-{#if error}<p class="inline-error" role="alert">{error}</p>{/if}
-{#if notice}<p class="inline-notice" role="status">{notice}</p>{/if}
+{#if error}<Message tone="error" text={error}/>{/if}
+{#if notice}<Message tone="success" text={notice}/>{/if}
 {#if tab==='Worlds'}
   <Toolbar trailing={worldView}/>
   <WorldList layout={worldLayout} highlight={resourceLink?.tab==='Worlds'?resourceLink.item:''} {worlds} {instances} {isBusy} {onrefresh}/>
@@ -70,7 +71,7 @@
         <Button disabled={!native || busy || pending || !installed} onclick={()=>run(()=>api.launchResource(id,'server',server.ip))}>{$t('Join')}</Button>
         <Button onclick={()=>run(async()=>{await navigator.clipboard.writeText(server.ip);notice=$t('Copied');})}>{$t('Copy')}</Button>
         <Button class="secondary-action" disabled={!native || busy || pending} onclick={()=>renaming=server}>{$t('Rename')}</Button>
-        <Button class="icon-button card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.server===server} onclick={event=>openMenu(event,server)}><Icon name="more" size={24}/></Button>
+        <Button class="icon-button card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.server===server} onclick={event=>openMenu(event,server)}><Icon name="dots-horizontal" size={24}/></Button>
       {/snippet}
     </Card>
   {/each}</CardGrid>
@@ -80,10 +81,10 @@
 {/if}
 {#if renaming}<RenameResource name={renaming.name} onrename={async name=>{await api.renameResource(id,'server',renaming!.ip,name);await onrefresh();}} onclose={()=>renaming=null}/>{/if}
 {#if menu}<ContextMenu title={menu.server.name} icon={menu.server.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
-  <MenuItem icon="play" disabled={!native || busy || pending || !installed} onclick={()=>action(server=>run(()=>api.launchResource(id,'server',server.ip)))}>{$t('Join')}</MenuItem>
+  <MenuItem icon="triangle" rotation={90} disabled={!native || busy || pending || !installed} onclick={()=>action(server=>run(()=>api.launchResource(id,'server',server.ip)))}>{$t('Join')}</MenuItem>
   <div role="separator"></div>
-  <MenuItem icon="gear" disabled={!native || busy || pending} onclick={()=>action(server=>{renaming=server;})}>{$t('Rename')}</MenuItem>
-  <MenuItem icon="copy" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.ip);notice=$t('Copied');}))}>{$t('Copy')}</MenuItem>
+  <MenuItem icon="wrench" disabled={!native || busy || pending} onclick={()=>action(server=>{renaming=server;})}>{$t('Rename')}</MenuItem>
+  <MenuItem icon="squares-overlapping" onclick={()=>action(server=>run(async()=>{await navigator.clipboard.writeText(server.ip);notice=$t('Copied');}))}>{$t('Copy')}</MenuItem>
   <div role="separator"></div>
   <MenuItem icon="plus" disabled={pending || bookmarks.some(bookmark=>serverAddressKey(bookmark.address)===serverAddressKey(menu!.server.ip))} onclick={()=>action(server=>run(async()=>{onconfig?.(await api.saveServerBookmark({id:'',name:server.name,address:server.ip,instance_id:id,expected_version:'',expected_loader:null}));notice=$t('Server bookmarked.');}))}>{$t(bookmarks.some(bookmark=>serverAddressKey(bookmark.address)===serverAddressKey(menu!.server.ip))?'Already added':'Bookmark')}</MenuItem>
 </ContextMenu>{/if}

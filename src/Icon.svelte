@@ -1,25 +1,27 @@
 <script lang="ts">
-  import {pixelIcon,iconResolution} from './pixel-icons';
-  import {symbolBody,symbolAccent} from './symbols';
-  let {name,size=20}:{name:string;size?:number}=$props();
-  let rendered=$state<{name:string;path:string;accent:string;color:string}|null>(null);
-  $effect(()=>{
-    const selected=name;
-    if(selected==='chest')return;
-    let alive=true;
-    const accent=symbolAccent(selected);
-    void Promise.all([pixelIcon(selected),accent?pixelIcon(selected,true):Promise.resolve('')]).then(([path,accentPath])=>{if(alive)rendered={name:selected,path,accent:accentPath,color:accent?.color??'currentColor'};}).catch(()=>{/* Keep the source vector if rasterization is unavailable. */});
-    return()=>{alive=false;};
-  });
+  import {symbolBody,symbolViewBox} from './symbols';
+  let {name,size=20,rotation=0}:{name:string;size?:number;rotation?:number}=$props();
+  const viewBox=$derived(symbolViewBox(name));
+  const dimensions=$derived(viewBox.split(' ').map(Number));
+  const nativeWidth=$derived(dimensions[2] || 9),nativeHeight=$derived(dimensions[3] || 9);
+  let inButton=$state(false);
+  const density=typeof window==='undefined'?1:window.devicePixelRatio || 1;
+  function buttonContext(node:SVGSVGElement){
+    const button=node.closest<HTMLElement>('.ui-button');
+    inButton=!!button && button.dataset.shape!=='card';
+  }
+  // Button glyphs are smaller; snap their pixels to whole physical screen pixels.
+  const scale=$derived(inButton
+    ?Math.max(1,Math.round(size*.85*density/Math.max(nativeWidth,nativeHeight)))/density
+    :Math.max(1,Math.round(size/Math.max(nativeWidth,nativeHeight))));
+  const renderedWidth=$derived(nativeWidth*scale),renderedHeight=$derived(nativeHeight*scale);
 </script>
 {#if name==='chest'}
   <img src="/chest.svg" width={size} height={size} style:--icon-size={`${size/14}rem`} alt="" aria-hidden="true" draggable="false"/>
 {:else}
-  <svg width={size} height={size} style:--icon-size={`${size/14}rem`} viewBox={`0 0 ${iconResolution} ${iconResolution}`} aria-hidden="true" focusable="false" data-symbol={name}>
-    {#if rendered?.name===name}<path d={rendered.path} fill="currentColor" shape-rendering="crispEdges"/>
-      {#if rendered.accent}<path d={rendered.accent} fill={rendered.color} shape-rendering="crispEdges"/>{/if}
-    {:else}{@html symbolBody(name)}{/if}
+  <svg use:buttonContext width={renderedWidth} height={renderedHeight} style:--icon-width={`${renderedWidth}px`} style:--icon-height={`${renderedHeight}px`} style:rotate={`${rotation}deg`} viewBox={viewBox} shape-rendering="crispEdges" aria-hidden="true" focusable="false" data-symbol={name}>
+    {@html symbolBody(name)}
   </svg>
 {/if}
 
-<style>svg{color:var(--icon-ink)}svg,img{width:var(--icon-size);height:var(--icon-size);flex-shrink:0}</style>
+<style>svg{color:var(--icon-ink);width:var(--icon-width);height:var(--icon-height);flex-shrink:0}:global(:root[dir="rtl"]) svg[data-symbol="arrow-bend-right"]{scale:-1 1}img{width:var(--icon-size);height:var(--icon-size);flex-shrink:0}</style>

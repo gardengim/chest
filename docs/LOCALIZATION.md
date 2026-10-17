@@ -1,7 +1,8 @@
 # Interface copy and localization
 
-Chest supports English, Korean, Japanese, Spanish, Simplified Chinese (`zh-Hans`)
-and Traditional Chinese (`zh-Hant`). Chinese is exposed as 简体中文 / 繁體中文;
+Chest supports English, Korean, Japanese, Spanish, Simplified Chinese (`zh-Hans`),
+Traditional Chinese (`zh-Hant`), and Arabic (`ar`). Arabic uses right-to-left layout;
+artwork and directional code/log text keep their intended orientation. Chinese is exposed as 简体中文 / 繁體中文;
 each has a separate dictionary with its own terminology, rather than sharing a
 character-converted translation.
 

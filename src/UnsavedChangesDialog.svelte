@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import Button from './Button.svelte';
   import {showDialog} from './dialog';
   import {t} from './i18n';
@@ -11,7 +12,7 @@
 <dialog class="modal" aria-labelledby={id} use:showDialog oncancel={event=>{event.preventDefault();if(!lockCancel || !pending)oncancel();}}>
   <h2 {id}>{$t(title)}</h2>
   {#if description}<p>{$t(description)}</p>{/if}
-  {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
+  {#if error}<Message tone="error" text={$t(error)}/>{/if}
   <div class="form-actions">
     <Button disabled={lockCancel && pending} onclick={oncancel}>{$t('Cancel')}</Button>
     <Button tone="danger" disabled={pending} onclick={ondiscard}>{$t('Discard')}</Button>

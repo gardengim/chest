@@ -71,7 +71,7 @@ test('worlds scan on demand, search, back up, and copy with compatibility guidan
   await expect(dialog).toContainText('The original world is preserved.');
   await page.screenshot({path:testInfo.outputPath('copy-world.png'),fullPage:true});
   const audit=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(audit.violations).toEqual([]);
-  await dialog.getByRole('button',{name:'Copy',exact:true}).click();
+  await dialog.locator('.form-actions').getByRole('button',{name:'Copy',exact:true}).click();
   await expect(dialog).toHaveCount(0);await expect(page.locator('.world-list .launcher-card')).toHaveCount(2);
   expect(await page.evaluate(()=>(window as any).__calls.find((call:any)=>call.name==='copy_world').args)).toEqual({id:'source',name:'Survival',target:'target'});
   await page.getByLabel('Search worlds',{exact:true}).fill('');await expect(page.locator('.world-list .launcher-card')).toHaveCount(3);

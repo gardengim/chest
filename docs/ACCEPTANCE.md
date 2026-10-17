@@ -8,7 +8,10 @@ are evidence for their tested scenarios; they do not close the full device matri
 - The owner confirmed unlocked Mac startup, Home → World → Play, Home → Server → Join,
   repeated launch after a Minecraft crash, keyboard/draft dialogs, automatic resource
   refresh, and selected VoiceOver flows. Microsoft sign-in with Chest's client ID worked.
-  These are owner-reported results on one Mac, not acceptance on every target.
+  The owner also verified installation-progress announcements, instance/main-region
+  names, dialogs including News, the skip link, warning contrast, and non-disruptive
+  error announcements in the October 16 release review. These are owner-reported
+  results on one Mac, not acceptance on every target.
 - Finish authentication cancellation, entitlement, refresh after restart, account switching,
   sign-out and credential-store lifecycle on each supported platform.
 - Complete installer/reopen, native menus/shortcuts/file pickers, keyboard/screen-reader

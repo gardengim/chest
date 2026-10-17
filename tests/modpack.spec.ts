@@ -67,7 +67,7 @@ test('modpacks queue immediately, allow navigation, and report background progre
   await page.evaluate(()=>(window as any).__emit({id:'new-pack',status:'failed',progress:null,phase:'Pack verification failed'}));
   await expect(page.locator('.mini-progress.failed')).toHaveCount(1);
   await page.getByRole('button',{name:'My pack: Pack verification failed'}).click();
-  await expect(page.locator('.crash-notice')).toContainText('Pack verification failed');
+  await expect(page.locator('.notification.error')).toContainText('Pack verification failed');
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   await expect(page.getByRole('button',{name:'Duplicate',exact:true})).toBeDisabled();
   await expect(page.getByRole('button',{name:'Export',exact:true})).toBeDisabled();

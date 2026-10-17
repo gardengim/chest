@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import {onFocusRefresh} from './focus-refresh';
   import Toolbar from './Toolbar.svelte';
   import SettingsGroup from './SettingsGroup.svelte';
@@ -7,7 +8,7 @@
   import {activityText} from './activity-text';
   import InstanceFilesView from './InstanceFiles.svelte';
   import CopyButton from './CopyButton.svelte';
-  import ContentCollection from './ContentCollection.svelte';
+  import ContentCollection, {type ContentEntry} from './ContentCollection.svelte';
   import {createLaunchDraft,type LaunchDraft} from './ui-state';
   import type {ResourceLink} from './resource-navigation';
   import LaunchSettings from './LaunchSettings.svelte';
@@ -26,13 +27,23 @@
   import { loaderLabel, tabs, type Activity, type Account, type Config, type Content, type Instance, type InstanceFiles, type Tab, type Version } from './types';
 
   let { resourceLink=null,current, editor=$bindable(), launchDraft=$bindable(createLaunchDraft()), active, tab, accounts=[], source, versions, content=[], output=[],
-    onchoose, onselectTab, onbrowse, onsave, onacknowledge, ontoggle, onrefreshContent, instances=[], isBusy=()=>false, onconfig, bookmarks=[], onrestore, dirty=false }: {
+    onchoose, onselectTab, onbrowse, onsave, ontoggle, onrefreshContent, instances=[], isBusy=()=>false, onconfig, bookmarks=[], onrestore, dirty=false }: {
     resourceLink?:ResourceLink|null;onconfig?:(config:Config)=>void;bookmarks?:import('./types').ServerBookmark[];instances?:Instance[];isBusy?:(id:string)=>boolean;current: Instance; editor: Instance; launchDraft?:LaunchDraft; active?: Activity; tab: Tab; accounts?:Account[];
     source?: string; versions: Version[]; content?: Content[]; output?: string[];
     onchoose: (choice:InstanceChoice)=>void; onselectTab: (tab:Tab)=>void;
-    onbrowse: (kind:string)=>void; onsave: ()=>void; onacknowledge: ()=>void;
+    onbrowse: (kind:string)=>void; onsave: ()=>void;
     ontoggle: (file:Content)=>void; onrefreshContent: ()=>Promise<unknown>; onrestore: ()=>void;dirty?:boolean;
   } = $props();
+  let contentPending=$state(false);
+  async function contentAction(entry:ContentEntry,action:'open'|'remove'){
+    if(contentPending)return;
+    contentPending=true;fileError='';
+    try{
+      await api.contentAction(current.id,entry.kind,entry.name,action);
+      if(action==='remove')await onrefreshContent();
+    }catch(error){fileError=String(error);}
+    finally{contentPending=false;}
+  }
   let logSearch=$state('');
   const logQuery=$derived(logSearch.trim().toLocaleLowerCase());
   const filteredOutput=$derived(logQuery?output.filter(line=>line.toLocaleLowerCase().includes(logQuery)):output);
@@ -91,17 +102,17 @@
     <ArtworkImage source={source}/>
   </div>
   <div>
-    <h1><bdi>{current.name}</bdi></h1>
+    <h1 id="instance-title" dir="auto" aria-label={current.name}>{current.name}</h1>
     <InstanceBrief instance={current}/>
     <p class="instance-summary">{activityText(instanceStatus(current,active),$t)}</p>
   </div>
 </section>
 <div class="instance-toolbar">
-  <Button tone="accent" class="install-button" disabled={currentUI.transitional} onclick={()=>onchoose('action')}>
-    <span class="button-label">
-      <Icon name={currentUI.icon} size={18}/>{$t(currentUI.label,currentUI.labelValues)}</span>
-    <span class="button-hover">
-      <Icon name={currentUI.actionIcon} size={18}/>{$t(currentUI.actionLabel)}</span>
+  <Button tone="accent" class="install-button" disabled={currentUI.transitional} aria-label={$t(currentUI.actionLabel,currentUI.labelValues)+(currentUI.showProgress && active?.progress!=null?` · ${Math.floor(active.progress*100)}%`:'')} onclick={()=>onchoose('action')}>
+    <span class="button-label" aria-hidden="true">
+      <Icon name={currentUI.icon} rotation={currentUI.iconRotation} size={18}/>{$t(currentUI.label,currentUI.labelValues)}</span>
+    <span class="button-hover" aria-hidden="true">
+      <Icon name={currentUI.actionIcon} rotation={currentUI.actionIconRotation} size={18}/>{$t(currentUI.actionLabel)}</span>
     {#if currentUI.showProgress}
       <span class="button-progress" style:width={`${(active?.progress || 0)*100}%`}>
       </span>
@@ -110,24 +121,11 @@
   <Tabs labels={{Content:'Contents'}} options={instanceTabs} value={tab} prefix="instance" label={$t("Instance pages")} onchange={onselectTab}/>
 </div>
 <div class="instance-content" id={`instance-panel-${tab}`} role="tabpanel" aria-labelledby={`instance-tab-${tab}`}>
-  {#if active && ['crashed','failed','launch_failed'].includes(active.status)}
-    <div class="crash-notice">
-      <div>
-        <strong>{$t(active.status==='crashed'?'Minecraft stopped unexpectedly.':active.status==='launch_failed'?'Minecraft could not start.':'Installation failed. Try again.')}</strong>
-        <p>{active.phase}</p>
-      </div>
-      <CopyButton text={`${$t(active.status==='crashed'?'Minecraft stopped unexpectedly.':active.status==='launch_failed'?'Minecraft could not start.':'Installation failed. Try again.')}\n${active.phase}`}/>
-      <Button onclick={()=>onselectTab('Log')}>{$t("Log")}</Button>
-      <Button class="icon-button" aria-label={$t("Acknowledge error")} onclick={onacknowledge}>
-        <Icon name="close" size={16}/>
-      </Button>
-    </div>
-  {/if}
   {#if tab==='Overview'}
     <div class="overview-layout">
       <section class="panel">
         <h2>{$t("Instance")}</h2>
-        {#if fileError}<p class="inline-error" role="alert">{fileError}</p>{/if}
+        {#if fileError}<Message instanceId={current.id} title={current.name} tone="error" text={fileError}/>{/if}
         <dl class="details">
           <div>
             <dt>Minecraft</dt>
@@ -159,10 +157,11 @@
       </div>
     </div>
   {:else if ['Worlds','Servers','Screenshots'].includes(tab)}
-    {#if fileError}<p class="inline-error" role="alert">{fileError}</p>{/if}
+    {#if fileError}<Message instanceId={current.id} title={current.name} tone="error" text={fileError}/>{/if}
     <InstanceFilesView {refreshPending} onrefresh={refreshFiles} {resourceLink} id={current.id} {tab} {files} {busy} {instances} {isBusy} {onconfig} {bookmarks}/>
   {:else if tab==='Content'}
-    <ContentCollection onrefresh={onrefreshContent} onadd={onbrowse} addDisabled={current.version==='pending'} prefix="instance-content" entries={content.map(file=>({id:`${file.kind}:${file.name}`,name:file.name,kind:file.kind,enabled:file.enabled,toggleable:file.kind==='mods'}))} {busy} ontoggle={entry=>{const file=content.find(file=>`${file.kind}:${file.name}`===entry.id);if(file)ontoggle(file);}}/>
+    {#if fileError}<Message instanceId={current.id} title={current.name} tone="error" text={fileError}/>{/if}
+    <ContentCollection onrefresh={onrefreshContent} onadd={onbrowse} addDisabled={current.version==='pending'} prefix="instance-content" entries={content.map(file=>({id:`${file.kind}:${file.name}`,name:file.name,kind:file.kind,enabled:file.enabled,toggleable:true,removable:true}))} busy={busy || contentPending || !native} onopenfolder={entry=>void contentAction(entry,'open')} onremove={entry=>void contentAction(entry,'remove')} ontoggle={entry=>{const file=content.find(file=>`${file.kind}:${file.name}`===entry.id);if(file)ontoggle(file);}}/>
   {:else if tab==='Versions'}
     {#if current.version==='pending'}
       <section class="panel">
@@ -175,12 +174,13 @@
         <p class="muted">{$t("Version changes require reinstalling. Worlds are preserved.")}</p>
         <p class="hint">{$t("Back up worlds before downgrading.")}</p>
         <label>{$t("Release")}<Select bind:value={editor.version} disabled={busy}>
+            {#if editor.version && !versions.some(version=>version.id===editor.version)}<option value={editor.version}>{editor.version}</option>{/if}
             {#each versions as v}
               <option value={v.id}>{v.id}</option>
             {/each}
           </Select>
         </label>
-        <LoaderPicker gameVersion={editor.version} bind:loader={editor.loader} bind:loaderVersion={editor.loader_version} bind:ready={editLoaderReady} disabled={!!busy}/>
+        <LoaderPicker preserveSelection gameVersion={editor.version} bind:loader={editor.loader} bind:loaderVersion={editor.loader_version} bind:ready={editLoaderReady} disabled={!!busy}/>
         <div class="form-actions">
           <Button tone="accent" disabled={busy || !editLoaderReady} onclick={onsave}>{$t("Save")}</Button>
           <Button disabled={busy} onclick={()=>onchoose('repair')}>{$t("Reinstall")}</Button>
@@ -208,7 +208,7 @@
         </div>
         <div class="form-actions settings-file-actions">
           <Button type="button" disabled={!native} onclick={()=>onchoose('shortcut')}>{$t('Create shortcut')}</Button>
-          <Button type="button" disabled={!currentUI.canCopy} onclick={()=>onchoose('duplicate')}><Icon name="copy" size={16}/>{$t('Duplicate')}</Button>
+          <Button type="button" disabled={!currentUI.canCopy} onclick={()=>onchoose('duplicate')}><Icon name="squares-overlapping" size={16}/>{$t('Duplicate')}</Button>
           <Button type="button" disabled={!currentUI.canCopy || !native} onclick={()=>onchoose('export')}>{$t('Export')}</Button>
         </div>
       </section>

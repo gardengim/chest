@@ -13,7 +13,7 @@ test('gallery requests complete rows at every width and pagination neither skips
       if(name==='get_catalog_sources')return {modrinth:true,curseforge:true};
       if(name==='search_catalog'){
         const q=args.query;w.__query=q;
-        return {projects:Array.from({length:Math.min(q.limit,103-q.offset)},(_,index)=>({id:String(q.offset+index),title:'Project '+(q.offset+index),author:'Author',description:'',downloads:1,icon:null,url:'https://modrinth.com/mod/project'})),total:103};
+        return {projects:Array.from({length:Math.min(q.limit,103-q.offset)},(_,index)=>({id:String(q.offset+index),title:'Project '+(q.offset+index),author:'Author',description:'',downloads:1,icon:'/chest.svg',background:'/minecraft.png',url:'https://modrinth.com/mod/project'})),total:103};
       }
       return [];
     }};
@@ -25,7 +25,7 @@ test('gallery requests complete rows at every width and pagination neither skips
     w.__resizeObserver=new MutationObserver(()=>{if(!document.querySelector('.catalog-card'))w.__resizeLoading.push('results removed');});
     w.__resizeObserver.observe(document.querySelector('.catalog-results'),{childList:true,subtree:true});
   });
-  for(const width of [1150,1450,900]){
+  for(const width of [1150,1450,900,1150,900,1450]){
     await page.setViewportSize({width,height:900});
     await expect.poll(()=>page.locator('.catalog-card').count()).toBeGreaterThanOrEqual(20);
     await expect.poll(()=>page.evaluate(()=>{
@@ -34,6 +34,10 @@ test('gallery requests complete rows at every width and pagination neither skips
       const columns=grid?getComputedStyle(grid).gridTemplateColumns.split(' ').length:0;
       return count>0 && count===(window as any).__query.limit && count%columns===0;
     })).toBe(true);
+    await expect.poll(()=>page.locator('.catalog-card').evaluateAll(cards=>cards.every(card=>{
+      const bounds=card.getBoundingClientRect(),caption=card.querySelector('.shared-card-body')!.getBoundingClientRect();
+      return caption.bottom<=bounds.bottom+1;
+    }))).toBe(true);
   }
   expect(await page.evaluate(()=>(window as any).__resizeLoading)).toEqual([]);
   expect(await page.evaluate(()=>(window as any).__firstCard===document.querySelector('.catalog-card'))).toBe(true);

@@ -10,6 +10,30 @@
   Current regression budgets: readiness under five seconds, filter under two seconds.
   These are shared-runner smoke budgets, not a claim about native startup latency.
 
+## Local release review — October 16, 2026
+
+Optimized Chest 0.1.0, macOS 27.0.1 / arm64, launched through macOS
+LaunchServices with disposable profiles. Three launches per synthetic library:
+
+| Instances | Median launch-to-library readiness | Mean main-process RSS |
+| --- | --- | --- |
+| 0 | 0.45 s | 112–113 MiB |
+| 1,000 | 0.76 s | 113–114 MiB |
+
+Idle CPU was 0–0.1% of one core in ten-second windows after five seconds of
+settling. RSS/CPU cover only the owned main process, excluding WebView, GPU,
+network helpers and Minecraft. The launch samples are not a controlled cold-cache
+comparison or a one-hour stability run. Browser load/filter checks also passed at
+100, 500 and 1,000 instances.
+
+Executable SHA-256: `dec809db015950f08d856ca496c2b38d0a2b6a180c315aafaf337db041e611c6`.
+This was a working-tree verification build, not a frozen cross-platform CI candidate.
+Logs and disposable workloads stayed outside the source checkout.
+
+Direct-process launches that stopped at window-built were rejected; normal
+LaunchServices launches produced the library-rendered signal. Do not treat a
+missing readiness signal as either a successful startup or zero resource use.
+
 ## October 11, 2026 local findings
 
 macOS Apple Silicon, debug Rust build, concurrent release compilation (noisy measurements):
@@ -94,5 +118,5 @@ Native and live frontend log strings each have their own conservative 16 MiB glo
 retention budget in addition to per-instance line limits.
 
 See the [remediation results](https://github.com/gardengim/chest/blob/d03df505cad0463362f093d8d06fb59c0f352a76/docs/audits/2026-10-14-remediation.md) and
-[raw measurement record](measurements/2026-10-14-remediation.json) for candidate
+[raw measurement record](https://github.com/gardengim/chest/blob/d03df505cad0463362f093d8d06fb59c0f352a76/docs/measurements/2026-10-14-remediation.json) for candidate
 measurements and remaining human verification gates.

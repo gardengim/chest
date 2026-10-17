@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import Button from './Button.svelte';
   import Toolbar from './Toolbar.svelte';
   import licenseTexts from './license-texts.json';
@@ -21,10 +22,10 @@
   <nav class="form-actions" aria-label={$t('Project links')}>
     {#each [{key:'github',name:'GitHub',path:''},{key:'issues',name:'Issues',path:'/issues'},{key:'releases',name:'Releases',path:'/releases'}] as item}<Button onclick={()=>link(item.key)}>{$t(item.name)}</Button>{/each}
   </nav>
-  {#if linkError}<p class="inline-error" role="alert">{linkError}</p>{/if}
+  {#if linkError}<Message tone="error" text={linkError}/>{/if}
   <p class="hint">{$t('Minecraft artwork © Mojang AB / Microsoft. Chest is an independent launcher.')}</p>
   <h2>{$t('License')}</h2>
-  {#if licenses}<pre class="license-text">{licenses.chest}</pre>{:else if error}<p class="inline-error" role="alert">{error}</p>{/if}
+  {#if licenses}<pre class="license-text">{licenses.chest}</pre>{:else if error}<Message tone="error" text={error}/>{/if}
 </section>
 <section class="panel">
   <h2>{$t('Third-party licenses')}</h2>

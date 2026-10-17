@@ -5,7 +5,6 @@
   import {collectionPageSize as pageSize} from './collection-page';
   import Toolbar from './Toolbar.svelte';
   import AddButton from './AddButton.svelte';
-  import DirectionIcon from './DirectionIcon.svelte';
   import {onDestroy} from 'svelte';
   import HomeShelf from './HomeShelf.svelte';
   import {t} from './i18n';
@@ -13,7 +12,6 @@
   import LayoutSwitch from './LayoutSwitch.svelte';
   import Card from './Card.svelte';
   import InstanceBrief from './InstanceBrief.svelte';
-  import Icon from './Icon.svelte';
   import type { Instance } from './types';
   import type { LibraryView } from './ui-state';
 
@@ -49,11 +47,8 @@
   {/snippet}
   {#if instances.length===0}
     <div class="empty library-empty">
-      <Icon name="cube" size={32}/>
       <h3>{$t("No instances")}</h3>
 
-      <Button shape="plain" onclick={oncreate}>{$t("Create")} <DirectionIcon direction="right"/>
-      </Button>
     </div>
   {:else if visible.length===0}
     <div class="empty">
@@ -65,9 +60,6 @@
       {#each shown as instance (instance.id)}
         <Card class="instance-card" title={instance.name} icon={icons[instance.id]} fallbackIcon={minecraftArtwork} instanceId={instance.id} layout={view.layout} aria-haspopup="menu" aria-expanded={menuId===instance.id} oncontextmenu={event=>{cancelSelection();onmenu(event,instance);}} onkeydown={event=>onmenukeys(event,instance)} onclick={event=>clickInstance(event,instance)} ondblclick={()=>doubleClickInstance(instance)}>
             <InstanceBrief {instance}/>
-            <div class="card-status">
-              <span>{statusText(instance)}</span>
-            </div>
         </Card>
       {/each}
     </CardGrid>

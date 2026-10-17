@@ -42,13 +42,15 @@ test('native events keep selection, halo, and progress separate; keyboard expose
     }
   });
   expect(await page.evaluate(()=>(window as any).__fileScans)).toBe(scans);
-  const action=page.locator('.install-button');await action.focus();await expect(action).toContainText('Pause');await action.press('Enter');
+  await expect(page.locator('main')).toHaveAccessibleName('Installing world');
+  await expect(page.getByRole('heading',{level:1})).toHaveAccessibleName('Installing world');
+  const action=page.locator('.install-button');await action.focus();await expect(action).toHaveAccessibleName('Pause · 50%');await expect(action).toContainText('Pause');await action.press('Enter');
   await expect(page.locator('.mini-progress')).toHaveClass(/paused/);await expect(action).toContainText('Resume');
   await expect.poll(()=>page.evaluate(()=>(window as any).__fileScans)).toBe(scans+1);
   await page.evaluate(()=>{(window as any).__testEmit('activity',{id:'running',status:'crashed',progress:null,phase:'Unexpected exit'});});
   await expect(page.locator('.rail-item.crashed')).toHaveCount(1);await expect(page.locator('.rail-item.running')).toHaveCount(0);
   await page.getByRole('button',{name:'Running world: Unexpected exit',exact:true}).click();
-  const crash=page.locator('.crash-notice');
+  const crash=page.locator('.notification.error');
   await expectMessageButtons(page,crash);
   await crash.evaluate(node=>(node as HTMLElement).style.setProperty('--message-fill','#244466'));
   await expectMessageButtons(page,crash);
@@ -60,9 +62,9 @@ test('native events keep selection, halo, and progress separate; keyboard expose
     return [...node.querySelectorAll('button')].every(button=>{const box=button.getBoundingClientRect();return box.left>=frame.left && box.right<=frame.right;});
   });
   expect(contained).toBe(true);await page.setViewportSize(viewport);
-  await page.locator('.crash-notice').getByRole('button',{name:'Copy',exact:true}).click();
-  expect(await page.evaluate(()=>(window as any).__copied)).toBe('Minecraft stopped unexpectedly.\nUnexpected exit');
-  await expect(page.locator('.crash-notice').getByRole('button',{name:'Copied',exact:true})).toBeVisible();
+  await page.locator('.notification.error').getByRole('button',{name:'Copy',exact:true}).click();
+  expect(await page.evaluate(()=>(window as any).__copied)).toBe('Running world · Minecraft stopped unexpectedly.\nUnexpected exit');
+  await expect(page.locator('.notification.error').getByRole('button',{name:'Copied',exact:true})).toBeVisible();
   await crash.getByRole('button',{name:'Log',exact:true}).click();
   await page.evaluate(()=>{for(let i=0;i<3000;i++)(window as any).__testEmit('log',{id:'running',line:`line-${i}`});});
   await expect(page.locator('.console')).toContainText('line-2999');

@@ -39,7 +39,7 @@
 {#snippet contents()}
   <ScreenshotBackdrop id={instanceId} sources={background?[background]:backgroundFromIcon && image?[image]:instanceId?undefined:[]} fallback={image || undefined} variant="card"/>
   <div class="shared-card-foreground">
-    {#if media==='none'}<span class="card-visibility" use:observe></span>{:else}<div class="shared-card-art" use:observe>
+    {#if media==='none' || (layout==='list' && !image && !art)}<span class="card-visibility" use:observe></span>{:else}<div class="shared-card-art" use:observe>
       {#if art}{@render art()}{:else}<ArtworkImage source={image} onfailure={()=>failedIcon=image || ''} fallback="none" lazy/>{/if}
       {#if badge}<span class="catalog-kind">{badge}</span>{/if}
     </div>{/if}
@@ -66,7 +66,7 @@
 .shared-card-art :global(img),.shared-card-art :global(svg){width:28%;max-width:var(--card-icon-size);height:auto;aspect-ratio:1;object-fit:contain;color:inherit;filter:drop-shadow(0 .85714286rem .71428571rem #0003)}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(img){width:100%;max-width:none;height:100%;position:absolute;inset:0;aspect-ratio:auto;object-fit:var(--card-image-fit,cover);object-position:center;image-rendering:auto;filter:none}
 :global(.launcher-card[data-media='image']) .shared-card-art :global(span:not(.catalog-kind)){padding:var(--card-padding);font-size:.85714286rem;color:var(--muted)}
-.shared-card-foreground{display:flex;flex-direction:column;flex:1;min-width:0;min-height:min-content;grid-area:1 / 1}
+.shared-card-foreground{display:flex;flex-direction:column;flex:1;min-width:0;min-height:min-content}
 .shared-card-body{display:flex;flex-direction:column;flex:0 0 auto;min-width:0;min-height:var(--card-body-min,0);row-gap:.57142857rem;width:100%;padding:var(--card-padding);text-shadow:none}
 .shared-card-details{display:flex;flex-direction:column;gap:.35714286rem;min-width:0}
 .shared-card-details:empty{display:none}
@@ -78,11 +78,11 @@
 :global(.launcher-card) :global(.card-backdrop img.visible){opacity:var(--card-background-opacity,.8)}
 :global(.launcher-card) :global(.card-backdrop:not(:has(img))::after){display:none}
 :global(.launcher-card) :global(.card-backdrop::after){background:linear-gradient(180deg,#0002,#0006 48%,#0009 100%)}
-:global(.launcher-card[data-layout='gallery']){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
-/* Keep the ratio guide and content together; captions set the minimum row size. */
-:global(.launcher-card[data-layout='gallery']) .shared-card-foreground{display:grid;grid-template-rows:minmax(6rem,1fr) auto}
-:global(.launcher-card[data-layout='gallery']) .shared-card-art{min-height:0}
-:global(.launcher-card[data-layout='gallery'])::before{content:'';grid-area:1 / 1;width:calc(100% + 2 * var(--stroke));margin:calc(-1 * var(--stroke));aspect-ratio:var(--card-aspect-ratio,3 / 4);max-height:var(--card-height,none);align-self:start;visibility:hidden;pointer-events:none}
+:global(.launcher-card[data-layout='gallery']){display:block;min-height:var(--card-min-height,min-content)}
+:global(.launcher-card[data-layout='gallery']) .shared-card-foreground{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(6rem,1fr) max-content;height:100%}
+:global(.launcher-card[data-layout='gallery']) .shared-card-foreground::before{content:'';grid-area:1 / 1 / 3 / 2;width:100%;aspect-ratio:var(--card-aspect-ratio,3 / 4);pointer-events:none}
+:global(.launcher-card[data-layout='gallery']) .shared-card-body{grid-area:2 / 1;align-self:end;min-height:min-content}
+:global(.launcher-card[data-layout='gallery']) .shared-card-art{grid-area:1 / 1;aspect-ratio:var(--card-media-ratio,auto);min-height:0}
 :global(.launcher-card[data-layout='gallery'][data-media='image']) .shared-card-art{aspect-ratio:auto;flex:1;min-height:4rem}
 :global(.launcher-card[data-layout='gallery'][data-media='image']) .shared-card-body{flex:0 0 auto;min-height:var(--card-body-min,0)}
 :global(.launcher-card[data-layout='list']){flex-direction:row;align-items:stretch}

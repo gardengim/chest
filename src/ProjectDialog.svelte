@@ -1,7 +1,7 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import ProjectDescription from './ProjectDescription.svelte';
   import DirectionIcon from './DirectionIcon.svelte';
-  import CopyButton from './CopyButton.svelte';
   import { locale } from './preferences';
   import { t } from './i18n';
   import Select from './Select.svelte';
@@ -74,7 +74,7 @@
       </div>
       <div class="project-header-actions">
         <Button disabled={!native || installing} onclick={openProject}>{$t('Website')} <DirectionIcon direction="right"/></Button>
-        <Button class="dialog-close" aria-label={$t('Close project')} disabled={installing} onclick={onclose}><Icon name="close" size={18}/></Button>
+        <Button class="dialog-close" aria-label={$t('Close project')} disabled={installing} onclick={onclose}><Icon name="cross" size={18}/></Button>
       </div>
     </div>
     {#if project.description}<p class="project-summary">{project.description}</p>{/if}
@@ -107,13 +107,13 @@
         {/if}
       </div>
       <Button tone="accent" disabled={primaryDisabled} onclick={()=>kind==='modpack'?installPack():add()}>
-        {#if kind==='modpack'}<Icon name="download" size={16}/>{/if}{$t(primaryLabel)}
+        {#if kind==='modpack'}<Icon name="arrow-down-tray" size={16}/>{/if}{$t(primaryLabel)}
       </Button>
     </div>
     {#if kind!=='modpack' && !instance && !instances.length}<p class="hint">{$t('Create an instance first.')}</p>{/if}
-    {#if detailError}<div class="inline-error" role="alert">{detailError} <CopyButton text={detailError}/>{#if !installing}<Button onclick={()=>releaseRetry++}>{$t('Retry')}</Button>{/if}</div>{/if}
-    {#if included}<p class="catalog-success" role="status">{$t(included.enabled?'Already added.':'Added but disabled.')}</p>{/if}
-    {#if notice}<p class="catalog-success" role="status">{notice}</p>{/if}
+    {#if detailError}<Message tone="error" text={detailError} actions={!installing?[{label:$t('Retry'),onclick:()=>releaseRetry++}]:[]}/>{/if}
+    {#if included}<span class="catalog-state">{$t(included.enabled?'Already added.':'Added but disabled.')}</span>{/if}
+    {#if notice}<Message tone="success" text={notice}/>{/if}
     {#if installing}<p class="hint" role="status">{$t('Keep Chest open until finished.')}</p>{/if}
   </footer>
 </dialog>

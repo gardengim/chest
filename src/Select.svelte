@@ -116,10 +116,10 @@
     <Button shape="plain" role="option" id={uid+'-option-'+i} aria-selected={value===option.value}
       class={['dropdown-option',active===i && 'highlighted']} tabindex={-1} disabled={option.disabled}
       onpointermove={()=>active=i} onmousedown={event=>event.preventDefault()} onclick={()=>choose(i)}>
-      <span>{#if optionContent}{@render optionContent(option.value,option.label)}{:else}{option.label}{/if}</span><span aria-hidden="true">{#if value===option.value}<Icon name="check" size={16}/>{/if}</span>
+      <span>{#if optionContent}{@render optionContent(option.value,option.label)}{:else}{option.label}{/if}</span><span aria-hidden="true">{#if value===option.value}<Icon name="checkmark" size={16}/>{/if}</span>
     </Button>
   {/each}
 </div>
 
 </div>
-<style>.select-shell{display:block;position:relative;min-width:0;flex:1;margin:0}.with-leading{container-type:inline-size}.select-shell select{width:100%;margin:0}:global(label)>.select-shell{margin-top:.57142857rem}.with-leading select{padding-inline-start:clamp(1.75rem,25cqi,2.85714286rem)}.select-leading{position:absolute;z-index:1;inset-inline-start:clamp(.25rem,5cqi,.85714286rem);top:50%;translate:0 -50%;display:flex;pointer-events:none}.select-shell::after{color:var(--control-icon);content:'';position:absolute;top:50%;inset-inline-end:clamp(.25rem,5cqi,.85714286rem);translate:0 -50%;width:.85714286rem;height:.85714286rem;background:currentColor;mask:var(--direction-mask) center/contain no-repeat;rotate:180deg;pointer-events:none}.select-shell:has(select:disabled)::after{opacity:.5}</style>
+<style>.select-shell{display:block;position:relative;min-width:0;flex:1;margin:0}.with-leading{container-type:inline-size}.select-shell select{width:100%;margin:0}:global(label)>.select-shell{margin-top:.57142857rem}.with-leading select{padding-inline-start:clamp(1.75rem,25cqi,2.85714286rem)}.select-leading{position:absolute;z-index:1;inset-inline-start:clamp(.25rem,5cqi,.85714286rem);top:50%;translate:0 -50%;display:flex;pointer-events:none}.select-shell::after{color:var(--control-icon);content:'';position:absolute;top:50%;inset-inline-end:clamp(.25rem,5cqi,.85714286rem);translate:0 -50%;width:var(--direction-width);height:var(--direction-height);background:currentColor;mask:var(--direction-mask) center/contain no-repeat;rotate:180deg;pointer-events:none}.select-shell:has(select:disabled)::after{opacity:.5}</style>

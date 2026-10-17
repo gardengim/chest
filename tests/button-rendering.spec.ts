@@ -9,18 +9,24 @@ test.beforeEach(async({page})=>{
   await page.goto('/');
 });
 
+async function pixelSize(icon:Locator){
+  await expect(icon).toHaveAttribute('viewBox','0 0 9 9');
+  const size=await icon.evaluate(node=>({width:node.getBoundingClientRect().width,height:node.getBoundingClientRect().height,density:window.devicePixelRatio}));
+  expect(size.width).toBeGreaterThanOrEqual(18);expect(size.width).toBeLessThan(24);
+  expect(size.height).toBe(size.width);expect(Number.isInteger(size.width*size.density/9)).toBe(true);
+}
+
 test('layout glyphs keep their intended size on Home and inside content tabs',async({page})=>{
   for(const name of ['Library layout','Project layout']){
     const control=page.getByRole('radiogroup',{name,exact:true});
     for(const icon of await control.locator('svg').all()){
-      await expect(icon).toHaveCSS('width','24px');
-      await expect(icon).toHaveCSS('height','24px');
+      await pixelSize(icon);
     }
   }
   await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();
   await page.getByRole('tab',{name:'Contents',exact:true}).click();
   const control=page.getByRole('radiogroup',{name:'Content view',exact:true});
-  await expect(control.locator('svg').first()).toHaveCSS('width','24px');
+  await pixelSize(control.locator('svg').first());
   await expect(page.locator('.content-tabs')).toHaveCSS('filter','none');
 });
 
@@ -62,7 +68,7 @@ test('button, radio and checkbox feedback never moves icons through fractional p
 
 test('hover and press preserve glyph pixels and the content panel shadow',async({page},info)=>{
   const ink=async(icon:Locator)=>{
-    await expect(icon.locator('path').first()).toHaveAttribute('shape-rendering','crispEdges');
+    await expect(icon).toHaveAttribute('shape-rendering','crispEdges');
     const png=await icon.screenshot();
     return page.evaluate(async data=>{
       const image=new Image();image.src=`data:image/png;base64,${data}`;await image.decode();

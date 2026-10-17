@@ -1,29 +1,31 @@
-# Color schemes
+# Themes
 
 Appearance has two independent controls:
 
-- **Light / Dark / System** radio buttons select the appearance mode and save immediately.
-  System follows live device appearance changes. Changing a scheme never changes this preference.
-- **Color scheme** is a dropdown. Built-in **Chest** contains both light and dark palettes
-  in one scheme. Applied imports remain available in the dropdown (up to 32 custom schemes;
-  applying another import with the same name replaces that saved entry).
+- **Light / Dark / System** selects the appearance mode. System follows live device
+  appearance changes; choosing a theme does not change this preference.
+- **Theme** selects a paired light/dark palette. **Chest Default** is built in.
+  Saved imports remain in the dropdown (up to 32 custom themes); another import
+  with the same name replaces that entry when saved.
 
-Settings → Settings → Appearance imports, previews, applies, exports and resets color
-schemes. Desktop import/export use native Open/Save dialogs; browser preview uses file
-upload/download. A scheme preview affects the whole application immediately but is not
-saved until Apply scheme. Cancel preview, Escape, or leaving Appearance restores the
-saved scheme, while retaining the independent mode choice. Restore default scheme
-returns to Chest without changing mode or deleting imported schemes. Export writes one
-JSON file containing **both** fully resolved palettes, with no appearance preference.
+Open **Settings → Settings → General → Appearance** to select, import, preview,
+export, or paste a theme. Desktop import/export uses native Open/Save dialogs;
+browser preview uses file upload/download. Language, mode, and theme changes preview
+immediately. The Settings footer's **Save** commits them, **Discard** restores the
+saved values, and leaving with changes offers **Save / Discard / Cancel**.
+**Restore defaults** stages Chest Default in dark
+mode alongside the other launcher defaults; Save is still required.
 
-The selected scheme uses `chest-color-scheme-v1`; custom dropdown entries use
-`chest-color-schemes-v1`; mode uses `chest-appearance-mode-v1`. These local UI settings
-are separate from launcher/account/instance configuration and home customization.
-Schemes apply before the app mounts. Invalid stored entries fall back safely.
-Older stored schemes migrate their embedded mode once when no separate preference is
-present; old Chest/Chest Light built-ins converge to the paired Chest scheme, preserving
-appearance. Old version 2 `mode` fields remain accepted on import but are ignored and
-removed on export. Background customization is not part of this feature.
+Export produces one JSON file with both fully resolved palettes and no appearance
+preference. Pixel geometry and artwork are independent of imported palette colors.
+
+The existing storage keys remain `chest-color-scheme-v1` (selection),
+`chest-color-schemes-v1` (imported library), and `chest-appearance-mode-v1` (mode).
+They are separate from accounts, instance configuration, and Home customization.
+Themes apply before the app mounts. Invalid stored entries fall back safely.
+Older themes migrate an embedded mode once if no separate preference exists;
+legacy Chest / Chest Light built-ins converge to Chest Default. Legacy version 2
+`mode` fields are accepted on import but ignored and removed on export.
 
 ## Paired JSON format (version 2)
 
@@ -52,10 +54,9 @@ One file contains both light and dark palettes:
 
 All three top-level fields (`version`, `name`, `palettes`) are required. Both palette
 objects are required. Appearance mode is a user preference outside this file. Each accepts the
-same roles in the table below; missing light roles inherit Chest Light, while missing
-dark roles inherit Chest. Unknown fields and protected settings are rejected at every
+same roles in the table below; missing roles inherit the corresponding Chest Default palette. Unknown fields and protected settings are rejected at every
 level. Export preserves **both** fully resolved palettes, rather than flattening to
-whichever palette is currently visible. Export Chest to
+whichever palette is currently visible. Export Chest Default to
 start from a complete template. Home layout preferences are stored independently and
 are unaffected by scheme import, switching, reset or export.
 
@@ -130,7 +131,7 @@ functions. File/input content is limited to 64 KiB and color values to 160 chara
 
 Imported palettes cannot change:
 
-- Pixel size, 24×24 symbolic icon geometry, border widths, corner steps, responsive
+- Pixel size, 9×9 symbolic icon geometry and the 5×3 triangle, border widths, corner steps, responsive
   dimensions, spacing, motion, layouts or interaction behavior.
 - Neutral white highlights, black shadows, structural black frames and their opacity.
 - Background images, skin faces, logos, icons, screenshot bytes or their source colors.

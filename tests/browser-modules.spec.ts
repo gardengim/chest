@@ -2,17 +2,15 @@ import {test,expect} from '@playwright/test';
 // Browser-only source-module contracts; end-to-end flows use the production server.
 test.use({baseURL:'http://127.0.0.1:1422'});
 
-test('symbol renderer caches conversions, preserves SVG sources and branded artwork',async({page})=>{
+test('symbol renderer uses native pixel SVGs and preserves branded artwork',async({page})=>{
   await page.goto('/');
-  await expect.poll(()=>page.locator('svg[data-symbol="user"] path').getAttribute('shape-rendering')).toBe('crispEdges');
+  await expect(page.locator('svg[data-symbol="person"]').first()).toHaveAttribute('shape-rendering','crispEdges');
   const result=await page.evaluate(async()=>{
-    const {pixelIcon,iconResolution}=await import('/src/pixel-icons.ts');
-    const {symbols}=await import('/src/symbols.ts');
-    const first=pixelIcon('worlds'),second=pixelIcon('worlds');
-    const path=await first;
-    return {cached:first===second,resolution:iconResolution,source:symbols.worlds,path,more:await pixelIcon('more'),empty:(await Promise.all(Object.keys(symbols).map(async name=>({name,path:await pixelIcon(name)})))).filter(icon=>!icon.path).map(icon=>icon.name)};
+    const {symbols,symbolBody}=await import('/src/symbols.ts');
+    return {empty:Object.keys(symbols).filter(name=>!/<(?:path|rect)\b/.test(symbolBody(name))),fallback:symbolBody('unknown')==='',goto:symbolBody('arrow-bend-right'),sources:Object.values(symbols)};
   });
-  expect(result.cached).toBe(true);expect(result.resolution).toBe(24);expect(result.source).toMatch(/[aA]10 10/);expect(result.empty).toEqual([]);expect(result.path).toMatch(/^M\d+ \d+h\d+v1h-\d+z/);expect(result.more).not.toBe('');
+  expect(result.empty).toEqual([]);expect(result.fallback).toBe(true);expect(result.goto).toContain('currentColor');
+  for(const source of result.sources){expect(source).toContain('crispEdges');expect(source).not.toContain('stroke=');}
   await expect(page.locator('.chest img')).toHaveAttribute('src','/chest.svg');
 });
 

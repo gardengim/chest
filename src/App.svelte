@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import {onFocusRefresh} from './focus-refresh';
   import UnsavedChangesDialog from './UnsavedChangesDialog.svelte';
   import {NavigationDecisions,type ExitAction} from './navigation-decisions.svelte';
@@ -6,7 +7,8 @@
   import {createLogBatch} from './log-batch';
   import {layoutOffset,moveToIndex,movedEnough} from './reorder';
   import DirectionIcon from './DirectionIcon.svelte';
-  import CopyButton from './CopyButton.svelte';
+  import NotificationStack from './NotificationStack.svelte';
+  import {updateMessage} from './messages.svelte';
   import AppUpdater from './AppUpdater.svelte';
   import {appUpdate,initializeUpdater,checkForUpdates} from './app-updater';
   import {subscribeDesktopMenu,translateDesktopMenu,type DesktopMenuAction} from './desktop-menu';
@@ -19,7 +21,7 @@
   import {activityText} from './activity-text';
   import Button from './Button.svelte';
   import { flip } from 'svelte/animate';
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, untrack } from 'svelte';
   import HomePage from './HomePage.svelte';
   import {afterFirstPaint} from './startup';
   let createPage:Promise<typeof import('./CreatePage.svelte')>|undefined;
@@ -112,7 +114,7 @@
   const menuInstance=$derived(instanceMenu?instancesById.get(instanceMenu.id):undefined);
   const current=$derived(instancesById.get(destination));
   const tab=$derived(selectedTabs[destination] || 'Overview');
-  const instanceValues=(instance:Instance)=>JSON.stringify([instance.name,instance.version,instance.loader,instance.loader_version,instance.memory_mb,instance.java_path]);
+  const instanceValues=(instance:Instance)=>JSON.stringify([instance.name,instance.version,instance.loader,instance.loader==='vanilla'?'':instance.loader_version,instance.memory_mb,instance.java_path]);
   const instanceDirty=$derived(!!current && (!!editors[current.id] && instanceValues(editors[current.id])!==instanceValues(current) || launchDraftDirty(launchDrafts[current.id])));
   function restoreInstance(){
     if(!current || busy || launchDrafts[current.id]?.pending)return;
@@ -132,6 +134,35 @@
   let debugLaunch=$state<DebugLaunch>({available:false,enabled:false});
   const account=$derived(debugLaunch.enabled ? {...debugLaunch.account!,name:'ChestDebug (offline debug)'} : config.accounts.find(a=>a.id===config.active_account));
   async function toggleOfflineDebug(){await perform(async()=>{debugLaunch=await api.debugOffline(!debugLaunch.enabled);});}
+  // One notification per active instance failure, independent of the current page.
+  const failureMessages=new Map<string,{signature:string;message:symbol}>();
+  $effect(()=>{
+    const failed=new Set<string>();
+    for(const [id,activity] of Object.entries(activities)){
+      if(!['crashed','failed','launch_failed'].includes(activity.status))continue;
+      failed.add(id);
+      const instance=instancesById.get(id);
+      const signature=JSON.stringify([activity.status,activity.phase]);
+      const previous=failureMessages.get(id);
+      const fresh=previous?.signature!==signature;
+      const message=fresh?Symbol():previous!.message;
+      failureMessages.set(id,{signature,message});
+      const heading=$t(activity.status==='crashed'?'Minecraft stopped unexpectedly.':activity.status==='launch_failed'?'Minecraft could not start.':'Installation failed. Try again.');
+      const input={
+        instanceId:id,title:`${instance?.name || id} · ${heading}`,text:activity.phase || heading,tone:'error' as const,
+        actions:[{label:$t('Log'),persistent:true,dismiss:false,onclick:()=>{select(id);if(destination===id)void selectTab('Log');}}],
+        ondismiss:async()=>{
+          if(activities[id]!==activity)return;
+          delete activities[id];
+          try{await api.acknowledge(id);}
+          catch(error){if(!activities[id])activities[id]=activity;throw error;}
+        },
+      };
+      const actual=untrack(()=>updateMessage(message,input,fresh));
+      failureMessages.set(id,{signature,message:actual});
+    }
+    for(const id of failureMessages.keys())if(!failed.has(id))failureMessages.delete(id);
+  });
   const active=$derived(current ? activities[current.id] : undefined);
   const currentUI=$derived(current ? instanceUI(current, active) : undefined);
   const busy=$derived(currentUI?.busy || false);
@@ -144,10 +175,18 @@
     return issue && running?'mixed':issue?'issue':running?'running':undefined;
   }
   function statusText(instance:Instance) {return activityText(instanceStatus(instance,activities[instance.id]),$t);}
-  async function perform(task:()=>Promise<unknown>,clearFeedback=true) {
+  async function perform(task:()=>Promise<unknown>,clearFeedback=true,source?:Instance) {
+    const context=source?.name;
     if(clearFeedback){error='';notice='';}
     try{return await task();}
-    catch(e){if(clearFeedback || !error)error=String(e instanceof Error?e.message:e);return undefined;}
+    catch(e){
+      const text=String(e instanceof Error?e.message:e);
+      if(source){
+        // Native failure activity already supplies the instance notification.
+        if(!['crashed','failed','launch_failed'].includes(activities[source.id]?.status || ''))updateMessage(Symbol(),{instanceId:source.id,title:context,text,tone:'error'},true);
+      }else if(clearFeedback || !error)error=text;
+      return undefined;
+    }
   }
   async function reload() {
     const pending=new Set(config.instances.filter(i=>i.version==='pending').map(i=>i.id));
@@ -347,7 +386,7 @@
       await api.reorder(config.instances.map(i=>i.id));
     })().catch(e=>{restore();error=String(e);}).finally(()=>reorderPending=false);
   }
-  const creationChanged=$derived(creation.name!=='' || creation.method!=='Custom' ||
+  const creationChanged=$derived(creation.name!=='' ||
     creation.version!==(versions[0]?.id || '') || creation.loader!=='vanilla' || creation.loaderVersion!=='' ||
     creation.parent!=='' || !!creation.pack || !!creation.archive || creation.files.length>0 || creation.catalog.length>0);
   let resourceLink=$state<ResourceLink|null>(null);
@@ -390,20 +429,19 @@
       if(choice==='repair')await api.install(instance.id);
       if(choice==='duplicate'){const copy=await api.duplicate(instance.id);await reload();select(copy.id);}
       if(choice==='export' && await api.export(instance.id))notice='Instance exported.';
-    });
+    },true,instance);
   }
   async function browseContent(id:string,kind:string) {
     exploreKind=kind==='resourcepacks'?'resourcepack':kind==='shaderpacks'?'shader':'mod';
     exploreTarget=id;select('explore');
   }
-  async function refreshContent(id:string){await perform(async()=>{contents[id]=await api.content(id);});}
-  async function refreshLogs(id:string){await perform(async()=>{logs[id]=await api.logs(id);});}
+  async function refreshContent(id:string){await perform(async()=>{contents[id]=await api.content(id);},true,instancesById.get(id));}
+  async function refreshLogs(id:string){await perform(async()=>{logs[id]=await api.logs(id);},true,instancesById.get(id));}
   async function toggleContent(instance:Instance,file:Content){
     if(ui(instance).busy)return;
     const id=instance.id;
-    await perform(async()=>{await api.toggle(id,file.kind,file.name);contents[id]=await api.content(id);});
+    await perform(async()=>{await api.toggle(id,file.kind,file.name);contents[id]=await api.content(id);},true,instance);
   }
-  async function acknowledge(id:string){await perform(async()=>{await api.acknowledge(id);delete activities[id];});}
   async function selectTab(next:Tab,completed=false) {
     if(!decisions.allow({instanceTab:next},completed))return;
     const id=destination;
@@ -425,7 +463,7 @@
       case 'install': await api.install(instance.id);break;
       case 'launch': {const options=await api.launchSettings(instance.id);await api.launch(instance.id);if(options.open_log){select(instance.id);if(destination===instance.id)await selectTab('Log');}break;}
     }
-  });}
+  },true,instance);}
   async function doubleClick(instance:Instance){if(get(doubleClickLaunch) && !ui(instance).busy)await action(instance);}
   async function saveInstance(){
     if(!current || busy || currentUI?.pending)return false;
@@ -581,10 +619,11 @@
     <Button shape="rail" class="rail-button profile" selected={destination==='profile'} aria-label={$t("Settings")} title={$t("Settings")} onclick={()=>select('profile')}><SkinFace {account} size={32}/></Button>
   </aside>
 
-  <main id="main-content" tabindex="-1">
-    {#if $appUpdate.info?.version}<div class="notification"><span>{$t($appUpdate.phase==='ready'?'Restart Chest to finish updating.':'Chest update available')}: {$appUpdate.info.version}</span><Button onclick={()=>appUpdateDialog=true}>{$t($appUpdate.phase==='ready'?'Restart':'Update')}</Button></div>{/if}
-    {#if error}<div class="notification error" role="alert"><span>{$t(error)}</span><CopyButton text={$t(error)}/><Button class="icon-button" aria-label={$t("Dismiss error")} onclick={()=>error=''}><Icon name="close" size={16}/></Button></div>{/if}
-    {#if notice}<div class="notification" role="status">{$t(notice)}<Button class="icon-button" aria-label={$t("Dismiss notification")} onclick={()=>notice=''}><Icon name="close" size={16}/></Button></div>{/if}
+  <main id="main-content" tabindex="-1" aria-labelledby={current?'instance-title':undefined}>
+    <NotificationStack/>
+    {#if $appUpdate.info?.version}<Message tone="success" text={`${$t($appUpdate.phase==='ready'?'Restart Chest to finish updating.':'Chest update available')}: ${$appUpdate.info.version}`} actions={[{label:$t($appUpdate.phase==='ready'?'Restart':'Update'),onclick:()=>appUpdateDialog=true,persistent:true}]}/>{/if}
+    {#if error}<Message tone="error" text={$t(error)}/>{/if}
+    {#if notice}<Message tone="success" text={$t(notice)}/>{/if}
     <div class="page">
     {#if loading}<div class="empty"><Icon name="chest" size={42}/><h2>{$t("Opening Chest…")}</h2></div>
     {:else if destination==='home' || isHomeSection(destination)}
@@ -595,22 +634,22 @@
       {#await loadCreatePage()}<p role="status">{$t("Loading…")}</p>{:then {default:CreatePage}}
       <CreatePage bind:draft={creation} instances={config.instances} {versions} {versionError}
         onretry={loadVersions} oncreated={instanceCreated} {isBusy} {perform}/>
-      {:catch}<p class="inline-error" role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
+      {:catch}<Message tone="error" text={$t("Could not load page")} actions={[{label:$t('Retry'),onclick:()=>window.location.reload()}]}/>{/await}
     {:else if current}
       {#await loadInstancePage()}<p role="status">{$t("Loading…")}</p>{:then {default:InstancePage}}
       <InstancePage resourceLink={resourceLink?.id===current.id?resourceLink:null} bookmarks={config.server_bookmarks} onconfig={value=>config=value} instances={config.instances} {isBusy} bind:launchDraft={launchDrafts[current.id]} accounts={config.accounts} {current} bind:editor={editors[current.id]} {active} {tab} dirty={instanceDirty} onrestore={restoreInstance}
         source={instanceIcons[current.id]} {versions} content={contents[current.id]} output={logs[current.id]}
         onchoose={choice=>instanceAction(current!,choice)} onselectTab={selectTab}
         onbrowse={kind=>browseContent(current!.id,kind)} onsave={saveInstance}
-        onacknowledge={()=>acknowledge(current!.id)} ontoggle={file=>toggleContent(current!,file)}
+        ontoggle={file=>toggleContent(current!,file)}
         onrefreshContent={()=>refreshContent(current!.id)}/>
-      {:catch}<p class="inline-error" role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
+      {:catch}<Message tone="error" text={$t("Could not load page")} actions={[{label:$t('Retry'),onclick:()=>window.location.reload()}]}/>{/await}
     {:else if destination==='profile'}
       {#await loadSettingsPage()}<p role="status">{$t("Loading…")}</p>{:then {default:SettingsPage}}
       <SettingsPage {debugLaunch} ontoggleOffline={toggleOfflineDebug} {config} bind:draft={settingsDraft} tab={settingsTab} onselectTab={chooseSettingsTab}
         dirty={settingsDirty} onsave={saveSettings} ondiscard={discardSettings} onrestore={restoreSettings} {signingIn} onsignin={signIn}
         onconfig={next=>config=next} onnotice={message=>notice=message} {perform}/>
-      {:catch}<p class="inline-error" role="alert">{$t("Could not load page")} <Button onclick={()=>window.location.reload()}>{$t("Retry")}</Button></p>{/await}
+      {:catch}<Message tone="error" text={$t("Could not load page")} actions={[{label:$t('Retry'),onclick:()=>window.location.reload()}]}/>{/await}
     {/if}
     </div>
   </main>
@@ -627,7 +666,7 @@
       <label>{$t("Group name")}<input bind:value={groupName} list="instance-groups" maxlength={80} placeholder={$t("Leave empty to ungroup")} disabled={groupPending}/></label>
       <datalist id="instance-groups">{#each groups as group}<option value={group.name}></option>{/each}</datalist>
       <p class="hint">{$t("Empty removes the instance from its group.")}</p>
-      {#if groupError}<p class="inline-error" role="alert">{groupError}</p>{/if}
+      {#if groupError}<Message tone="error" text={groupError}/>{/if}
       <div class="form-actions"><Button disabled={groupPending} onclick={()=>grouping=null}>{$t("Cancel")}</Button><Button type="submit" tone="accent" disabled={groupPending}>{$t(groupPending?'Saving…':'Save')}</Button></div>
     </form>
   </dialog>
@@ -637,7 +676,7 @@
 {/if}
 {#if signingIn || confirm}
   <dialog class="modal" aria-labelledby="modal-title" use:showDialog oncancel={cancelDialog}>
-    {#if signingIn}<Icon name="user" size={34}/><h2 id="modal-title">{$t("Sign in using your browser.")}</h2><Button onclick={()=>perform(()=>api.cancelSignIn())}>{$t("Cancel")}</Button>
+    {#if signingIn}<Icon name="person" size={34}/><h2 id="modal-title">{$t("Sign in using your browser.")}</h2><Button onclick={()=>perform(()=>api.cancelSignIn())}>{$t("Cancel")}</Button>
     {:else if confirm}<h2 id="modal-title"><InstanceIcon id={confirm.id} size={24}/> {$t(confirm.kind==='delete'?'Delete {name}?':'Stop {name}?',{name:confirm.name})}</h2><p>{$t(confirm.kind==='delete'?'Deletes this instance and all its local files, including worlds.':'Unsaved game progress may be lost.')}</p><div class="form-actions"><Button onclick={()=>confirm=null}>{$t("Cancel")}</Button><Button tone="danger" onclick={confirmAction}>{$t(confirm.kind==='delete'?'Delete':'Stop')}</Button></div>{/if}
   </dialog>
 {/if}
@@ -661,7 +700,7 @@
 
 {#if appUpdateDialog}
   <dialog class="modal" aria-label={$t('Chest updates')} use:showDialog oncancel={event=>{event.preventDefault();appUpdateDialog=false;}}>
-    <div class="section-heading"><h2>{$t('Chest updates')}</h2><Button class="dialog-close" aria-label={$t('Close updater')} onclick={()=>appUpdateDialog=false}><Icon name="close" size={18}/></Button></div>
+    <div class="section-heading"><h2>{$t('Chest updates')}</h2><Button class="dialog-close" aria-label={$t('Close updater')} onclick={()=>appUpdateDialog=false}><Icon name="cross" size={18}/></Button></div>
     <AppUpdater heading={false}/>
   </dialog>
 {/if}

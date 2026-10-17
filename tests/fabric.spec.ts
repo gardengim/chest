@@ -63,7 +63,7 @@ test('loader lookup retries failures and ignores responses for a previous game v
   await page.goto('/');await page.getByRole('button',{name:'Create instance',exact:true}).click();
   await page.getByLabel('Instance name').fill('Retry world');
   await page.getByRole('combobox',{name:'Mod loader',exact:true}).selectOption('fabric');
-  await expect(page.locator('.inline-error')).toContainText('Fabric service unavailable');
+  await expect(page.locator('.notification.error')).toContainText('Fabric service unavailable');
   const create=page.getByRole('button',{name:'Create',exact:true}).last();
   await expect(create).toBeDisabled();
   await page.getByRole('button',{name:'Retry'}).click();

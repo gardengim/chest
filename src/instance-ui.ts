@@ -25,11 +25,13 @@ export function instanceUI(instance: Instance, activity?: Activity) {
     ? activity?.progress == null ? 'Installing…' : 'Installing · {percent}%'
     : labels[status] || (instance.installed ? 'Launch' : 'Install');
   const actionLabel = ({ pause: 'Pause', resume: 'Resume', stop: 'Stop' } as Record<string, string>)[command || ''] || label;
-  const icon = status === 'working' ? 'folder' : status === 'running' ? 'running' : command === 'stop' || status === 'stopping' ? 'stop'
-    : command === 'launch' || command === 'resume' || status === 'starting' ? 'play' : 'download';
+  const icon = status === 'working' ? 'folder' : status === 'running' ? 'triangle' : command === 'stop' || status === 'stopping' ? 'square'
+    : command === 'launch' || command === 'resume' || status === 'starting' ? 'triangle' : 'arrow-down-tray';
   return {
+    iconRotation:icon==='triangle'?90:0,
+    actionIconRotation:command==='stop' || command==='pause'?0:icon==='triangle'?90:0,
     busy, pending, transitional, command, label, labelValues:{percent:Math.floor((activity?.progress || 0)*100)}, actionLabel, icon,
-    actionIcon: command === 'stop' ? 'stop' : command === 'pause' ? 'pause' : icon,
+    actionIcon: command === 'stop' ? 'square' : command === 'pause' ? 'bars-vertical' : icon,
     showProgress: ['installing', 'pausing', 'paused'].includes(status),
     canCopy: !busy && !pending,
   };

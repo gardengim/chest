@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import DirectionIcon from './DirectionIcon.svelte';
   import InstanceName from './InstanceName.svelte';
   import ContentCollection, {type ContentEntry} from './ContentCollection.svelte';
@@ -67,7 +68,7 @@
           {#each versions as version}<option value={version.id}>{version.id}</option>{/each}
         </Select></label>
         <LoaderPicker gameVersion={draft.version} bind:loader={draft.loader} bind:loaderVersion={draft.loaderVersion} bind:ready={loaderReady}/>
-        {#if versionError}<div class="inline-error">{versionError}<Button onclick={onretry}>{$t("Retry")}</Button></div>{/if}
+        {#if versionError}<Message tone="error" text={versionError} actions={[{label:$t('Retry'),onclick:onretry}]}/>{/if}
       </div>
     </div>
     {#if draft.method==='Modpacks'}
@@ -105,13 +106,13 @@
 
 {#if changePack}
   <dialog class="modal creation-picker" aria-label={$t("Choose a modpack")} use:showDialog oncancel={event=>{event.preventDefault();changePack=false;}}>
-    <div class="section-heading"><h2>{$t("Modpacks")}</h2><Button class="dialog-close" aria-label={$t("Close modpack browser")} onclick={()=>changePack=false}><Icon name="close" size={18}/></Button></div>
+    <div class="section-heading"><h2>{$t("Modpacks")}</h2><Button class="dialog-close" aria-label={$t("Close modpack browser")} onclick={()=>changePack=false}><Icon name="cross" size={18}/></Button></div>
     <Explore compact mode="modpacks" {instances} {versions} {isBusy} onadded={()=>{}} onpackselected={pack=>{draft.pack=pack;changePack=false;}}/>
   </dialog>
 {/if}
 {#if browseContent}
   <dialog class="modal creation-picker" aria-label={$t("Add content")} use:showDialog oncancel={event=>{event.preventDefault();browseContent=false;}}>
-    <div class="section-heading"><h2>{$t("Contents")}</h2><Button class="dialog-close" aria-label={$t("Close content browser")} onclick={()=>browseContent=false}><Icon name="close" size={18}/></Button></div>
+    <div class="section-heading"><h2>{$t("Contents")}</h2><Button class="dialog-close" aria-label={$t("Close content browser")} onclick={()=>browseContent=false}><Icon name="cross" size={18}/></Button></div>
     <div class="creation-file-controls"><label>{$t("File type")}<Select bind:value={contentKind}><option value="mods">{$t("Mods")}</option><option value="resourcepacks">{$t("Resource packs")}</option><option value="shaderpacks">{$t("Shaders")}</option></Select></label><Button disabled={!native || choosing} onclick={()=>choose(async()=>{await addFiles();browseContent=false;})}><Icon name="folder" size={17}/>{$t("Choose file")}</Button></div>
     {#if draft.method==='Modpacks'}<p class="hint">{$t("Match your modpack’s version and loader.")}</p><div class="creation-fields"><label>{$t("Content game version")}<Select bind:value={draft.version}>{#each versions as version}<option value={version.id}>{version.id}</option>{/each}</Select></label><LoaderPicker gameVersion={draft.version} bind:loader={draft.loader} bind:loaderVersion={draft.loaderVersion}/></div>{/if}
     <Explore compact showTabs={false} kind={contentKind==='mods'?'mod':contentKind==='resourcepacks'?'resourcepack':'shader'} included={draft.catalog} allowModpacks={false} instances={[contentInstance]} {versions} target="creation" isBusy={()=>false} onadded={()=>{}} oncontentselected={content=>{const index=draft.catalog.findIndex(item=>item.source===content.source && item.project===content.project);if(index<0)draft.catalog.push(content);else draft.catalog[index]=content;browseContent=false;}}/>

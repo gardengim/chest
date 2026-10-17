@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import CardGrid from './CardGrid.svelte';
   import Toolbar from './Toolbar.svelte';
   import InstanceName from './InstanceName.svelte';
@@ -76,12 +77,12 @@
 <div class="section-heading catalog-heading"><div><h2>{$t(label)} <span class="count">{loading && !projects.length?'…':number(total,$locale)}</span></h2></div><LayoutSwitch label={$t("Project layout")} bind:value={layout}/></div>
 <div class="catalog-results" use:measureResults><span class="catalog-layout-probe" aria-hidden="true"></span>
 {#if incompatibleMods}<div class="empty"><h3>{$t("Vanilla does not load mods.")}</h3><p>{$t("Choose a compatible mod loader to add mods.")}</p></div>
-{:else if loading && !projects.length}<div class="empty" role="status"><Icon name="search" size={32}/><h3>{$t("Loading…")}</h3></div>
-{:else if error}<div class="empty inline-error" role="alert"><h3>{$t(source==='curseforge' && !sources.curseforge?'Connect CurseForge to browse its catalog.':'The catalog couldn’t load.')}</h3><p>{error}</p>{#if source==='curseforge' && !sources.curseforge}<Button tone="accent" onclick={()=>{source='modrinth';changeFilters();}}>{$t("Use Modrinth")}</Button>{:else}<Button onclick={()=>retry++}>{$t("Retry")}</Button>{/if}</div>
-{:else if !projects.length}<div class="empty"><Icon name="search" size={32}/><h3>{$t("No results")}</h3><Button onclick={()=>{query='';if(!instance){game='';loader='';}changeFilters();}}>{$t("Clear")}</Button></div>
+{:else if loading && !projects.length}<div class="empty" role="status"><Icon name="magnifier" size={32}/><h3>{$t("Loading…")}</h3></div>
+{:else if error}<Message tone="error" title={$t(source==='curseforge' && !sources.curseforge?'Connect CurseForge to browse its catalog.':'The catalog couldn’t load.')} text={error} actions={source==='curseforge' && !sources.curseforge?[{label:$t('Use Modrinth'),onclick:()=>{source='modrinth';changeFilters();}}]:[{label:$t('Retry'),onclick:()=>retry++}]}/>
+{:else if !projects.length}<div class="empty"><Icon name="magnifier" size={32}/><h3>{$t("No results")}</h3><Button onclick={()=>{query='';if(!instance){game='';loader='';}changeFilters();}}>{$t("Clear")}</Button></div>
 {:else}
   <CardGrid class={['catalog-grid',layout==='list' && 'catalog-list']} {layout}>{#each projects as project (project.id)}<Card class="catalog-card" title={project.title} icon={project.icon} background={project.background} badge={$t(label)} {layout} onclick={()=>selected=project}>
-    {#if includedProject(project.id)}<span class="catalog-success">{$t(includedProject(project.id)?.enabled?'Already added':'Added · disabled')}</span>{/if}<span class="catalog-author">{$t('by {author}',{author:project.author})}</span><div class="catalog-meta"><span><Icon name="download" size={14}/>{number(project.downloads,$locale)}</span></div>
+    {#if includedProject(project.id)}<span class="catalog-state">{$t(includedProject(project.id)?.enabled?'Already added':'Added · disabled')}</span>{/if}<span class="catalog-author">{$t('by {author}',{author:project.author})}</span><div class="catalog-meta"><span><span aria-hidden="true">⤓</span>{number(project.downloads,$locale)}</span></div>
   </Card>{/each}</CardGrid>
 
 {/if}

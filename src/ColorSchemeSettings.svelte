@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import {onDestroy} from 'svelte';
   import Button from './Button.svelte';
   import Select from './Select.svelte';
@@ -59,7 +60,7 @@
     <label>{$t('Theme contents')}<textarea rows={6} maxlength={schemeSizeLimit} bind:value={source} spellcheck="false"></textarea></label>
     <Button disabled={!source.trim() || reading || saving} onclick={()=>inspect(source)}>{$t('Preview theme')}</Button>
   </details>
-  {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
+  {#if error}<Message tone="error" text={$t(error)}/>{/if}
   {#if $previewScheme}
     <div class="scheme-preview">
       <p role="status">{$t('Previewing {name}.',{name:$previewScheme.name})}</p>

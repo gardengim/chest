@@ -4,7 +4,7 @@
   let {value=$bindable(''),label,placeholder,maxlength,oninput}:{value?:string;label:string;placeholder?:string;maxlength?:number;oninput?:(event:Event)=>void}=$props();
 </script>
 <label class="search-field">
-  <Icon name="search" size={16}/>
+  <Icon name="magnifier" size={16}/>
   <input type="search" aria-label={label} placeholder={placeholder ?? $t('Search…')} {maxlength} bind:value {oninput}/>
 </label>
 <style>

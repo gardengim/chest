@@ -14,7 +14,7 @@
   const source=$derived(image?.id===account?.id && image?.source!==failed?image?.source:null);
 </script>
 <span class="skin-face" use:observe style:--face-size={`${size/14}rem`} aria-hidden="true" data-account={account?.id}>
-  {#if source}<img class="base" src={source} alt="" draggable="false" onerror={()=>failed=source}/><img class="hat" src={source} alt="" draggable="false"/>{:else}<Icon name="user" {size}/>{/if}
+  {#if source}<img class="base" src={source} alt="" draggable="false" onerror={()=>failed=source}/><img class="hat" src={source} alt="" draggable="false"/>{:else}<Icon name="person" {size}/>{/if}
 </span>
 <style>
   .skin-face{position:relative;display:inline-block;flex:none;width:var(--face-size);height:var(--face-size);overflow:hidden;vertical-align:middle}

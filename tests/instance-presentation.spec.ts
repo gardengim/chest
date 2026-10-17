@@ -106,7 +106,7 @@ test('activity colors follow tabs and groups; console selects text and settings 
   await page.mouse.up();
   await page.mouse.move(600,150);
   await expect(page.locator('.button-label')).toContainText('Running');
-  await expect(page.locator('.button-label svg')).toHaveAttribute('viewBox','0 0 24 24');
+  await expect(page.locator('.button-label svg')).toHaveAttribute('viewBox','0 0 5 3');
   await expect(page.locator('.button-hover')).toContainText('Stop');
   await expect(page.getByText('MINECRAFT JAVA EDITION',{exact:true})).toHaveCount(0);
   await expect(page.locator('.instance-hero button')).toHaveCount(0);

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
+  import { untrack,onDestroy } from 'svelte';
   import {instanceBackgrounds,backgroundImage,backgroundKey} from './instance-backgrounds';
   import type {InstanceBackground} from './types';
   import {presentation,observeVisibility} from './visibility';
@@ -15,9 +15,24 @@
   let ready=$state<{image:InstanceBackground;source:string}[]>([]);
   let failedFallback=$state('');
   let index=$state(0);
+  let shown=$state(''),outgoing=$state('');
+  let fadeFrame=0,fadeTimer:ReturnType<typeof setTimeout>;
+  onDestroy(()=>{cancelAnimationFrame(fadeFrame);clearTimeout(fadeTimer);});
+  function reveal(image:InstanceBackground){
+    const key=backgroundKey(image);
+    if(!images[index] || backgroundKey(images[index])!==key || shown===key)return;
+    cancelAnimationFrame(fadeFrame);
+    // Paint the incoming image at zero opacity before changing either layer.
+    fadeFrame=requestAnimationFrame(()=>{fadeFrame=requestAnimationFrame(()=>{
+      if(images[index] && backgroundKey(images[index])===key){
+        outgoing=shown;shown=key;clearTimeout(fadeTimer);
+        fadeTimer=setTimeout(()=>outgoing='',1500);
+      }
+    });});
+  }
   let loadedId='';
   let loaded=false;
-  const rendered=$derived(images.filter((_,i)=>i===index || i===(index+images.length-1)%images.length));
+  const rendered=$derived(images.filter((image,i)=>i===index || backgroundKey(image)===shown || backgroundKey(image)===outgoing));
   // Compare actual inputs, rather than the identity of a refreshed instance/array.
   const input=$derived(JSON.stringify(sources===undefined?{id:id || ''}:{sources}));
   function update(next:InstanceBackground[]){
@@ -34,7 +49,10 @@
     // Resolve only the current/previous frames, never an entire screenshot folder.
     void Promise.all(visible.map(async image=>({image,source:await backgroundImage(instanceId,image,variant==='card'?512:1024)}))).then(frames=>{
       if(!alive)return;
-      ready=frames.filter((frame):frame is {image:InstanceBackground;source:string}=>!!frame.source);
+      const next=frames.filter((frame):frame is {image:InstanceBackground;source:string}=>!!frame.source);
+      const current=untrack(()=>ready.find(frame=>backgroundKey(frame.image)===shown));
+      if(current && !next.some(frame=>backgroundKey(frame.image)===backgroundKey(current.image)))next.unshift(current);
+      ready=next;
       for(const frame of frames)if(!frame.source)remove(frame.image);
     });
     return()=>{alive=false;};
@@ -46,7 +64,7 @@
     if(variant==='card' && !inView)return;
     // Ignore old artwork when the instance itself changes, but keep nodes on focus/visibility refresh.
     const instanceId=source.id;
-    untrack(()=>{if(loadedId!==instanceId){images=[];index=0;loadedId=instanceId;loaded=false;}});
+    untrack(()=>{if(loadedId!==instanceId){images=[];ready=[];shown='';outgoing='';index=0;loadedId=instanceId;loaded=false;}});
     let alive=true;
     let request=0;
     async function refresh() {
@@ -62,7 +80,7 @@
   });
   $effect(()=>{
     if(images.length<2 || !$presentation.visible || !$presentation.motion || !inView)return;
-    const timer=setInterval(()=>{index=(index+1)%images.length;},8000);
+    const timer=setInterval(()=>{if(images[index] && backgroundKey(images[index])===shown)index=(index+1)%images.length;},8000);
     return ()=>clearInterval(timer);
   });
 </script>
@@ -72,7 +90,7 @@
     <img class="visible icon-backdrop" src={fallback} alt="" loading="lazy" onerror={()=>failedFallback=fallback || ''}/>
   {/if}
   {#each ready as frame (backgroundKey(frame.image))}
-    <img src={frame.source} alt="" loading={variant==='card'?'lazy':'eager'} class:visible={!!images[index] && backgroundKey(images[index])===backgroundKey(frame.image)} onerror={()=>remove(frame.image)}/>
+    <img src={frame.source} alt="" loading={variant==='card'?'lazy':'eager'} class:visible={shown===backgroundKey(frame.image)} onload={()=>reveal(frame.image)} onerror={()=>remove(frame.image)}/>
   {/each}
 </div>
 

@@ -1,6 +1,6 @@
 # Chest product baseline
 
-Updated October 15, 2026. This is the behavior baseline for the initial public release.
+Updated October 16, 2026. This is the behavior baseline for the initial public release.
 Changes to scope or interaction rules should update this document and their relevant
 regression coverage together. It describes intended and implemented behavior; release
 readiness is tracked separately in [release acceptance](ACCEPTANCE.md).
@@ -42,8 +42,8 @@ API support. Record the accepted Linux distribution/runtime versions before rele
 - Packs: supported Modrinth `.mrpack` and CurseForge manifest packs with supported game/loaders.
 - Archives: Chest `.chest.zip`, settings and game folder including worlds, with a new identity on import.
 - Language/appearance: English, Korean, Spanish, Japanese, Simplified/Traditional Chinese
-  and Arabic (RTL). Light/Dark/System is independent of the color scheme; one imported
-  scheme can contain both palettes. Pixel bevels, frames and artwork remain independent
+  and Arabic (RTL). Light/Dark/System is independent of the theme; one imported
+  theme can contain both palettes. The built-in theme is Chest Default. Pixel bevels, frames and artwork remain independent
   of palette colors. Reduced motion follows the system preference plus a user control.
 
 ## Interaction contract
@@ -54,11 +54,13 @@ API support. Record the accepted Linux distribution/runtime versions before rele
 | Creation | One page, source/content/details order. Blank names use source defaults. Untouched forms and edits reverted to defaults leave freely; changed drafts prompt Cancel/Discard. Pending creation cannot be discarded. Drafts are in-session, not restored after restart. | `tests/creation-page.spec.ts`, `tests/presentation.spec.ts` |
 | Pack selection | Explore selects a pack and opens creation. Create is the explicit commit that adds a queued instance. The queue runs in the background and permits navigation. | `tests/creation-page.spec.ts`, `tests/modpack.spec.ts` |
 | Content selection | A dialog offers mods/resource packs/shaders and local files, without a second modpack selector. Creation compatibility follows its game/loader; already staged content is identified. Add closes selection; staged content is committed with Create. | `tests/creation-page.spec.ts`, `tests/explore.spec.ts` |
+| Content management | Installed mods, resource packs, and shader packs expose enable/disable, open-folder, and confirmed removal actions. Active pack selection remains inside Minecraft. Missing icons do not reserve empty list space. | `tests/launcher-features.spec.ts`, `tests/card-artwork.spec.ts`, Core content tests |
 | Instance tabs | Overview presents metadata, status, updates, and news. Contents, Versions, Settings, and Log own their respective controls; Overview has no duplicate Actions section. Folder location is a read-only field in Settings. Worlds, Servers and Screenshots appear for available local files; settings include per-instance accounts, window, arguments, environment, hooks and log behavior. | `tests/overview.spec.ts`, `tests/navigation.spec.ts` |
 | Cards and menus | Single click opens. Enabled double-click starts installation/launch when idle. Sidebar tabs and cards share the instance action menu with keyboard access, focus restoration, and dismissal. Browser context menus are suppressed except in text fields. | `tests/instance-menu.spec.ts`, `tests/launcher-settings.spec.ts` |
 | Groups and activity | Groups are flat, never nested or merged. Expansion preserves page/background components. Expanded members retain separation; collapsed groups summarize activity across the whole tab. Reduced motion disables pulses. | `tests/sidebar-groups.spec.ts`, `tests/instance-presentation.spec.ts`, `tests/presentation.spec.ts` |
 | Accounts | Microsoft identity is separate from session-only offline development testing. Sign-out requires confirmation. Release builds require authenticated ownership and reject offline debugging. | `tests/offline-debug.spec.ts`, `tests/launcher-settings.spec.ts`; native auth acceptance pending |
-| Settings | Memory/Java defaults apply to new instances. UI preferences preview immediately and persist only after Save; Discard restores the saved values. Leaving changed settings offers Save/Discard/Cancel. Instance settings use one atomic Save and staged Restore defaults. Default instance folder applies to future creations; explicit creation paths override it. Existing folders are not moved. | `tests/launcher-settings.spec.ts`, `tests/navigation.spec.ts` |
+| Settings | Memory/Java defaults apply to new instances. UI preferences preview immediately and persist only after Save; Discard restores the saved values. Leaving changed settings offers Save/Discard/Cancel. Visiting Versions or the Modpacks creation tab alone does not dirty a form. Develop settings is opt-in and controls both the Develop menu and tab. Instance settings use one atomic Save and staged Restore defaults. Default instance folder applies to future creations; explicit creation paths override it. Existing folders are not moved. | `tests/launcher-settings.spec.ts`, `tests/navigation.spec.ts` |
+| Notifications | Messages persist globally in a fixed stack. Instance errors include their source and icon. Dismissal clears the acknowledged failure without recreating it on navigation. Alerts announce without moving focus; blocking decisions use dialogs. | `tests/activity.spec.ts`, `tests/app-updater.spec.ts`, owner VoiceOver verification |
 | Updates | Startup checking is configurable; installation is explicit and signature-verified. Active games/installations prevent replacement/restart. Progress, retry, and restart remain available across navigation. | `tests/app-updater.spec.ts`; real signed update acceptance pending |
 | Destructive actions | Stop warns about unsaved game progress. Delete confirms removal of local instance files/worlds. Busy operations disable conflicting mutations. | `tests/navigation.spec.ts`, `tests/instance-menu.spec.ts`, Rust lifecycle tests |
 

@@ -43,7 +43,7 @@ test('shelf, news, catalog and screenshot navigation use the same arrows and but
     for(const [index,direction] of ['left','right'].entries()){
       const button=nav.getByRole('button').nth(index);
       await expect(button.locator('.direction-icon')).toHaveAttribute('data-direction',direction);
-      await expect(button.locator('svg')).toHaveAttribute('data-symbol','chevron');
+      await expect(button.locator('svg')).toHaveAttribute('data-symbol','triangle');
       expect(await button.evaluate(node=>({width:node.getBoundingClientRect().width,height:node.getBoundingClientRect().height,border:getComputedStyle(node).borderWidth}))).toEqual(dimensions);
     }
   }

@@ -81,7 +81,7 @@ test('tab and page navigation protect drafts; failed and invalid saves stay edit
   await page.evaluate(()=>(window as any).__fail=true);
   await page.getByRole('tab',{name:'Overview',exact:true}).click();
   await dialog(page).getByRole('button',{name:'Save',exact:true}).click();
-  await expect(dialog(page).getByRole('alert')).toHaveText('Test save failure');
+  await expect(dialog(page).getByRole('alert').filter({hasText:'Test save failure'})).toContainText('Test save failure');
   await page.evaluate(()=>(window as any).__fail=false);
   await dialog(page).getByRole('button',{name:'Save',exact:true}).click();
   await expect(dialog(page)).toHaveCount(0);await expect(page.getByRole('heading',{name:'Draft',exact:true})).toBeVisible();

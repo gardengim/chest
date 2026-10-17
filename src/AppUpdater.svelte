@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import type {Snippet} from 'svelte';
   import {version} from '../package.json';
   import {onMount} from 'svelte';
@@ -24,7 +25,7 @@
       <p role="status">{$t($appUpdate.phase==='installing'?'Installing…':'Downloading…')}{percent===null?'':` ${percent}%`}</p>
       <progress max="100" value={percent ?? undefined} aria-label={$t('Update progress')}></progress>
     {/if}
-    {#if $appUpdate.error}<p class="inline-error" role="alert">{$t($appUpdate.error)}</p>{/if}
+    {#if $appUpdate.error}<Message tone="error" text={$t($appUpdate.error)}/>{/if}
       <div class="form-actions">
         <Button disabled={busy || $appUpdate.phase==='ready'} onclick={checkForUpdates}>{$t('Check')}</Button>
         {@render startupChecks?.()}

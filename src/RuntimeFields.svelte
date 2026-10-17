@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import Button from './Button.svelte';
   import {api,native} from './api';
   import { t } from './i18n';
@@ -24,4 +25,4 @@
   <Button disabled={disabled || !native || !javaPath.trim() || checking || picking} onclick={check}>{$t(checking?'Checking…':'Check')}</Button>
 </div>
 {#if report}<pre class="java-report" role="status">{report}</pre>{/if}
-{#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
+{#if error}<Message tone="error" text={$t(error)}/>{/if}

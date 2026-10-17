@@ -25,7 +25,7 @@
       <stop offset="1" stop-color="#AFB7B3"/>
     </linearGradient>
     <filter id="halo" x="-100%" y="-70%" width="300%" height="240%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="0" stdDeviation="1.8" flood-color="#E0E8D9" flood-opacity=".22"/>
+      <feGaussianBlur stdDeviation="1.8"/>
     </filter>
   </defs>
   <path fill="url(#wood)" d="M64 12 109.033321 38 109.033321 90 64 116 18.966679 90 18.966679 38Z"/>
@@ -35,7 +35,8 @@
     <path d="M64 12 109.033321 38 109.033321 90 64 116 18.966679 90 18.966679 38Z"/>
     <path d="M18.966679 38 64 64 109.033321 38M64 64V116M18.966679 58 64 84 109.033321 58"/>
   </g>
-  <g filter="url(#halo)">
+  <path fill="#E0E8D9" opacity=".22" filter="url(#halo)" d="M82.619546 69.25 90.413775 64.75 94.310889 67 94.310889 85 86.51666 89.5 82.619546 87.25Z"/>
+  <g>
     <path fill="#77817D" d="M82.619546 69.25 86.51666 71.5 86.51666 89.5 82.619546 87.25Z"/>
     <path fill="url(#silver)" d="M86.51666 71.5 94.310889 67 94.310889 85 86.51666 89.5Z"/>
     <path fill="#DFE3DD" d="M82.619546 69.25 90.413775 64.75 94.310889 67 86.51666 71.5Z"/>

@@ -62,7 +62,7 @@ test('desktop settings browse and check Java, open storage, and confirm sign-out
   await page.getByLabel('Java executable',{exact:true}).fill('/bad/java');
   await expect(page.locator('.java-report')).toHaveCount(0);
   await runtime.getByRole('button',{name:'Check',exact:true}).click();
-  await expect(runtime.getByRole('alert')).toContainText('Invalid Java executable');
+  await expect(page.getByRole('alert').filter({hasText:'Invalid Java executable'})).toContainText('Invalid Java executable');
   await page.getByRole('button',{name:'Browse',exact:true}).click();
   await page.getByLabel('Memory (MB)',{exact:true}).fill('8192');
   await page.locator('.settings-actions').getByRole('button',{name:'Save',exact:true}).click();

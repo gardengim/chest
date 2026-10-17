@@ -107,7 +107,7 @@ for(const source of ['modrinth','curseforge'])test(`${source} descriptions share
 
 test('description failure and late replies do not block releases or leak into reopened projects',async({page})=>{
   await fixture(page,markdown,'markdown');await page.goto('/');await page.evaluate(()=>(window as any).__fail=true);await open(page);
-  await expect(page.getByRole('region',{name:'Description'})).toContainText('Could not load description.');
+  await expect(page.locator('.notification.error')).toContainText('Could not load description.');
   await expect(page.getByRole('button',{name:'Select',exact:true})).toBeEnabled();
   await page.evaluate(()=>(window as any).__fail=false);await page.getByRole('button',{name:'Retry',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Features',exact:true})).toBeVisible();

@@ -60,7 +60,7 @@
   --scroll-track: var(--theme-scroll-track);
   --scroll-thumb: var(--theme-scroll-thumb);
   --scroll-thumb-hover: color-mix(in srgb,var(--scroll-thumb) 82%,white);
-  --scroll-thumb-active: color-mix(in srgb,var(--scroll-thumb) 70%,white);
+  --scroll-thumb-active: color-mix(in srgb,var(--scroll-thumb) 70%,black);
   --scroll-highlight: var(--bevel-highlight);
   --scroll-shadow: var(--bevel-shadow);
 
@@ -658,7 +658,7 @@ input[type=number] {
   border-color: var(--frame);
 }
 
-.notification button {
+.notification .icon-button {
   padding: 0.35714286rem;
   flex: none;
 }
@@ -891,8 +891,8 @@ input::placeholder {
   border-bottom-color: var(--frame);
 }
 
-.instance-content button[data-shape="plain"] {
-  color: var(--link);
+.instance-content button[data-shape="plain"]:not([role="menuitem"]):not([data-tone="danger"]) {
+  --button-text: var(--link);
 }
 
 .instance-content .danger-zone {
@@ -1503,7 +1503,8 @@ h1,h2,h3{overflow-wrap:anywhere;min-width:0}
 .instance-content,.catalog-tab-panel{padding:var(--panel-padding);min-width:0}
 
 .catalog-controls.panel{padding:0}
-.catalog-results{position:relative}
+.catalog-results{position:relative;display:flex;flex-direction:column;gap:var(--card-gap);height:auto;min-height:0}
+.catalog-tab-panel{height:auto;min-height:0;align-self:start}
 .catalog-layout-probe{position:absolute;width:var(--card-min);max-width:100%;height:0;margin-inline-end:var(--card-gap);visibility:hidden;pointer-events:none}
 .modal>.section-heading{align-items:flex-start}
 @container(max-width:28rem){
@@ -1540,11 +1541,11 @@ input[type='radio']::after{mask:none;width:45%;height:45%}
 
 .setting-toggle{min-width:0;overflow-wrap:anywhere}
 
-:root{--direction-mask:url('./icons/chevron.svg');--navigation-text:var(--muted)}
+:root{--direction-mask:url('./icons/triangle.svg');--direction-width:10px;--direction-height:6px;--navigation-text:var(--muted)}
 .instance-content,.catalog-tab-panel{--navigation-text:var(--muted)}
 summary{list-style:none;cursor:pointer}
 summary::-webkit-details-marker{display:none}
-summary::before{color:var(--icon-ink);content:'';display:inline-block;width:.85714286rem;height:.85714286rem;margin-inline-end:.5em;vertical-align:-.125em;background:currentColor;mask:var(--direction-mask) center/contain no-repeat;rotate:90deg;transition:rotate var(--motion-fast)}
+summary::before{color:var(--icon-ink);content:'';display:inline-block;width:var(--direction-width);height:var(--direction-height);margin-inline-end:.5em;vertical-align:-.125em;background:currentColor;mask:var(--direction-mask) center/contain no-repeat;rotate:90deg;transition:rotate var(--motion-fast)}
 details[open]>summary::before{rotate:180deg}
 
 /* Shared instance settings structure: content-sized sections and fluid field rows. */
@@ -1621,3 +1622,20 @@ input::placeholder,textarea::placeholder{color:var(--theme-input-muted)}
 .inline-notice,.catalog-success{--message-fill:var(--theme-success);--message-text:var(--theme-success-text)}
 .instance-menu-title{display:flex;align-items:center;gap:.57142857rem}
 .instance-menu-title>.artwork{width:1.42857143rem;height:1.42857143rem;flex:none}
+
+/* Destructive actions keep their semantic colors in every containing surface. */
+.ui-button[data-tone='danger']{
+  --button-fill:var(--theme-danger);
+  --button-hover:color-mix(in srgb,var(--theme-danger) 88%,white);
+  --button-text:var(--theme-danger-text);
+  --icon-ink:var(--icon-on-danger);
+  color:var(--button-text);
+}
+.ui-button[data-shape='plain'][data-tone='danger']{
+  --button-fill:transparent;
+  --button-hover:color-mix(in srgb,var(--theme-danger) 16%,transparent);
+  --button-text:var(--negative-text);
+  --icon-ink:var(--button-text);
+}
+
+.catalog-state{color:var(--positive-text);font-size:inherit}

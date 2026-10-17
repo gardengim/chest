@@ -32,12 +32,12 @@ test('signed updater UI retries checks, streams progress, persists across naviga
   await page.getByRole('button',{name:'Settings',exact:true}).click();
   await page.getByRole('tab',{name:'Settings',exact:true}).click();
   const panel=page.locator('.app-updater');
-  await expect(panel.getByRole('alert')).toContainText('Cannot reach release server');
+  await expect(page.getByRole('alert').filter({hasText:'release server'})).toContainText('Cannot reach release server');
   await panel.getByRole('button',{name:'Check',exact:true}).click();
   await expect(panel).toContainText('0.2.0');
   await expect(panel).toContainText('New release');
   await panel.getByRole('button',{name:'Update',exact:true}).click();
-  await expect(panel.getByRole('alert')).toContainText('Stop running instances');
+  await expect(page.getByRole('alert').filter({hasText:'Stop running instances'})).toContainText('Stop running instances');
   await panel.getByRole('button',{name:'Update',exact:true}).click();
   await expect(panel.getByRole('progressbar')).toHaveAttribute('value','25');
   await expect(panel.getByRole('button',{name:'Update',exact:true})).toBeDisabled();

@@ -15,13 +15,25 @@
   import Button from './Button.svelte';
   import Icon from './Icon.svelte';
   import Select from './Select.svelte';
-  let {entries,busy=false,onremove=()=>{},ontoggle=()=>{},prefix='content',onadd,addDisabled=false,onrefresh}:{entries:ContentEntry[];busy?:boolean;onremove?:(entry:ContentEntry)=>void;ontoggle?:(entry:ContentEntry)=>void;prefix?:string;onadd?:(kind:string)=>void;addDisabled?:boolean;onrefresh?:()=>Promise<unknown>}=$props();
+  import ContextMenu from './ContextMenu.svelte';
+  import MenuItem from './MenuItem.svelte';
+  import {showDialog} from './dialog';
+  let {entries,busy=false,onremove=()=>{},ontoggle=()=>{},prefix='content',onadd,addDisabled=false,onrefresh,onopenfolder}:{entries:ContentEntry[];busy?:boolean;onremove?:(entry:ContentEntry)=>void;ontoggle?:(entry:ContentEntry)=>void;prefix?:string;onadd?:(kind:string)=>void;addDisabled?:boolean;onrefresh?:()=>Promise<unknown>;onopenfolder?:(entry:ContentEntry)=>void}=$props();
+  let menu=$state<{entry:ContentEntry;trigger:HTMLButtonElement;x:number;y:number}|null>(null);
+  let removing=$state<ContentEntry|null>(null);
+  function openMenu(event:MouseEvent,entry:ContentEntry){
+    const trigger=event.currentTarget as HTMLButtonElement,box=trigger.getBoundingClientRect();
+    menu={entry,trigger,x:box.left,y:box.bottom};
+  }
+  function action(work:(entry:ContentEntry)=>void){
+    if(!menu)return;const {entry,trigger}=menu;menu=null;trigger.focus({preventScroll:true});work(entry);
+  }
   let kind=$state('Mods'),layout=$state<'gallery'|'list'>('list');
   const kinds:Record<string,string>={'Mods':'mods','Resource packs':'resourcepacks','Shaders':'shaderpacks'};
   let search=$state(''),status=$state('all'),refreshing=$state(false);
   const category=$derived(entries.filter(entry=>entry.kind===kinds[kind]));
   const query=$derived(search.trim().toLocaleLowerCase());
-  const visible=$derived(category.filter(entry=>(status==='all' || kind!=='Mods' || (entry.enabled!==false)===(status==='enabled')) && (!query || `${entry.name} ${entry.subtitle || ''}`.toLocaleLowerCase().includes(query))));
+  const visible=$derived(category.filter(entry=>(status==='all' || (entry.enabled!==false)===(status==='enabled')) && (!query || `${entry.name} ${entry.subtitle || ''}`.toLocaleLowerCase().includes(query))));
   let page=$state(0);
   const pages=$derived(Math.max(1,Math.ceil(visible.length/pageSize)));
   const shown=$derived(visible.slice(page*pageSize,(page+1)*pageSize));
@@ -36,7 +48,7 @@
   <div id={`${prefix}-panel-${encodeURIComponent(kind)}`} role="tabpanel" aria-labelledby={`${prefix}-tab-${encodeURIComponent(kind)}`} class="collection-panel">
     <Toolbar trailing={layoutButton} searchLabel={$t('Search content')} bind:value={search} items={[
       ...(onadd?[{id:'add',label:$t('Add'),priority:100,content:addButton}]:[]),
-      ...(kind==='Mods'?[{id:'status',label:$t('Status'),priority:10,content:statusFilter}]:[])
+      {id:'status',label:$t('Status'),priority:10,content:statusFilter}
     ]}/>
     <p class="hint" role="status">{$t('{shown} of {total}',{shown:visible.length,total:category.length})}</p>
     <CardGrid class="content-collection" {layout}>
@@ -46,7 +58,7 @@
           {#if entry.enabled===false}<span class="catalog-author">{$t('Disabled')}</span>{/if}
           {#snippet actions()}
             {#if entry.toggleable}<Button disabled={busy} onclick={()=>ontoggle(entry)}>{$t(entry.enabled?'Disable':'Enable')}</Button>{/if}
-            {#if entry.removable}<Button disabled={busy} aria-label={$t('Remove {name}',{name:entry.name})} onclick={()=>onremove(entry)}><Icon name="close" size={16}/>{$t('Remove')}</Button>{/if}
+            {#if entry.removable || onopenfolder}<Button disabled={busy} class="icon-button card-action-more" aria-label={$t('More actions')} aria-haspopup="menu" aria-expanded={menu?.entry.id===entry.id} onclick={event=>openMenu(event,entry)}><Icon name="dots-horizontal" size={16}/></Button>{/if}
           {/snippet}
         </Card>
       {:else}<p class="muted">{$t(category.length?'No results':'No content')}</p>{/each}
@@ -63,3 +75,12 @@
 {#snippet addButton()}<AddButton disabled={busy || addDisabled} onclick={()=>onadd?.(kinds[kind])}/>{/snippet}
 {#snippet layoutButton()}<LayoutSwitch bind:value={layout} label={$t('Content view')}/>{/snippet}
 {#snippet statusFilter()}<Select aria-label={$t('Status')} bind:value={status}><option value="all">{$t('All')}</option><option value="enabled">{$t('Enabled')}</option><option value="disabled">{$t('Disabled')}</option></Select>{/snippet}
+
+{#if menu}<ContextMenu title={menu.entry.name} icon={menu.entry.icon} trigger={menu.trigger} x={menu.x} y={menu.y} onclose={()=>menu=null}>
+  {#if onopenfolder}<MenuItem icon="folder" disabled={busy} onclick={()=>action(entry=>onopenfolder?.(entry))}>{$t('Open folder')}</MenuItem>{/if}
+  {#if menu.entry.removable}<MenuItem icon="cross" tone="danger" disabled={busy} onclick={()=>action(entry=>removing=entry)}>{$t('Remove')}</MenuItem>{/if}
+</ContextMenu>{/if}
+{#if removing}<dialog class="modal" aria-labelledby={`${prefix}-remove-title`} use:showDialog oncancel={event=>{event.preventDefault();removing=null;}}>
+  <h2 id={`${prefix}-remove-title`}>{$t('Delete {name}?',{name:removing.name})}</h2>
+  <div class="form-actions"><Button onclick={()=>removing=null}>{$t('Cancel')}</Button><Button tone="danger" disabled={busy} onclick={()=>{const entry=removing;removing=null;if(entry)onremove(entry);}}>{$t('Remove')}</Button></div>
+</dialog>{/if}

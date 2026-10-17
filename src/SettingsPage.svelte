@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   const about=()=>import('./About.svelte');
   import {onMount} from 'svelte';
   import {showDialog} from './dialog';
@@ -72,7 +73,7 @@
       </div>
     {/each}
     <Button tone="accent" disabled={signingIn || !native || !config.client_id} onclick={onsignin}>
-      <Icon name="user" size={17}/>{$t("Sign in")}</Button>
+      <Icon name="person" size={17}/>{$t("Sign in")}</Button>
     {#if !config.client_id}
       <p class="hint">{$t('Microsoft sign-in is not configured.')}{#if development} <Button shape="plain" onclick={()=>onselectTab('Develop')}>{$t('Microsoft application setup')}</Button>{/if}</p>
     {/if}
@@ -93,7 +94,7 @@
     <Button type="submit" tone="accent" disabled={applicationPending || draft.clientId===config.client_id}>{$t(applicationPending?'Saving…':'Save')}</Button>
   </form>
   {:else if tab==='About'}
-  {#await about()}<p role="status">{$t('Loading…')}</p>{:then module}<module.default info={launcherInfo}/>{:catch error}<p class="inline-error" role="alert">{String(error)}</p>{/await}
+  {#await about()}<p role="status">{$t('Loading…')}</p>{:then module}<module.default info={launcherInfo}/>{:catch error}<Message tone="error" text={String(error)}/>{/await}
   {:else}
   <form class="settings-form" onsubmit={event=>{event.preventDefault();void onsave();}}>
     <fieldset disabled={draft.pending}>
@@ -115,7 +116,7 @@
         <div class="settings-field-row"><label>{$t('Default instance folder')}<input bind:value={$defaultInstanceLocation} placeholder={$t('Automatic')}/></label><Button disabled={!native} aria-label={$t('Choose instance folder')} onclick={()=>perform(async()=>{const path=await api.chooseLocation();if(path)$defaultInstanceLocation=path;})}>{$t('Browse')}</Button><Button disabled={!$defaultInstanceLocation} onclick={()=>$defaultInstanceLocation=''}>{$t('Reset')}</Button></div>
         <div class="settings-field-row"><label>{$t('Chest data folder')}<input readonly value={launcherInfo?.data_path || ''}/></label><Button disabled={!native} onclick={()=>perform(()=>api.dataFolder())}>{$t('Open folder')}</Button></div>
         <StorageUsage/>
-        {#if infoError}<p class="inline-error" role="alert">{infoError}</p><Button onclick={loadInfo}>{$t('Retry')}</Button>{/if}
+        {#if infoError}<Message tone="error" text={infoError} actions={[{label:$t('Retry'),onclick:loadInfo}]}/>{/if}
       </section>
       <AppUpdater headingLabel="Updates">
         {#snippet startupChecks()}<label class="setting-toggle"><input type="checkbox" bind:checked={$autoUpdateChecks}/>{$t('Check for updates on startup')}</label>{/snippet}

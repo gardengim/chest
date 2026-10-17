@@ -461,19 +461,43 @@ impl Core {
         content.sort_by(|a, b| a.name.cmp(&b.name));
         Ok(content)
     }
+    pub fn content_action(&self, id: &str, kind: &str, name: &str, action: &str) -> Result<()> {
+        let _operation = self.operation_lock.lock().unwrap();
+        if !["mods", "resourcepacks", "shaderpacks"].contains(&kind) {
+            bail!("Invalid content kind");
+        }
+        let game = self.instance_folder(id)?;
+        let root = instance_files::inside(&game, &game.join(kind))?;
+        match action {
+            "open" => { open::that(root)?; }
+            "remove" => {
+                if self.busy(id) { bail!("Close Minecraft before changing content"); }
+                if name.is_empty() || name.contains(['/', '\\']) || name == "." || name == ".." {
+                    bail!("Invalid file name");
+                }
+                let path = instance_files::inside(&root, &root.join(name))?;
+                if !path.is_file() { bail!("Expected a content file"); }
+                std::fs::remove_file(path)?;
+            }
+            _ => bail!("Invalid content action"),
+        }
+        Ok(())
+    }
     pub fn toggle_content(&self, id: &str, kind: &str, name: &str) -> Result<()> {
         let _operation = self.operation_lock.lock().unwrap();
         if self.busy(id) {
             bail!("Close Minecraft before changing content");
         }
-        if kind != "mods" {
-            bail!("Enable resource packs inside Minecraft");
+        if !["mods", "resourcepacks", "shaderpacks"].contains(&kind) {
+            bail!("Invalid content kind");
         }
-        if name.contains('/') || name.contains('\\') {
+        if name.is_empty() || name.contains(['/', '\\']) || name == "." || name == ".." {
             bail!("Invalid file name");
         }
-        let root = self.store.dir(id)?.join("game/mods");
-        let source = store::safe_join(&root, name)?;
+        let game = self.instance_folder(id)?;
+        let root = instance_files::inside(&game, &game.join(kind))?;
+        let source = instance_files::inside(&root, &root.join(name))?;
+        if !source.is_file() { bail!("Expected a content file"); }
         let next = if let Some(s) = name.strip_suffix(".disabled") {
             s.into()
         } else {

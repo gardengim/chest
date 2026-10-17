@@ -36,10 +36,10 @@ test('active account face includes hat layer, uses crisp scaling, shares request
   expect(await profile.locator('img.hat').evaluate(node=>getComputedStyle(node).left)).toBe('-160px');
   await profile.click();const rows=page.locator('.account-row');
   await expect(rows.first().locator('img.base')).toBeVisible();
-  await expect(rows.last().locator('svg[data-symbol="user"]')).toBeVisible();
+  await expect(rows.last().locator('svg[data-symbol="person"]')).toBeVisible();
   expect(await page.evaluate((id)=>(window as any).__calls.filter((call:any)=>call.name==='get_account_skin' && call.args.id===id).length,first)).toBe(1);
   await rows.last().getByRole('button',{name:'Use',exact:true}).click();await expect(profile.locator('.skin-face')).toHaveAttribute('data-account',second);
-  await expect(profile.locator('img.base')).toHaveCount(0);await expect(profile.locator('svg[data-symbol="user"]')).toBeVisible();
+  await expect(profile.locator('img.base')).toHaveCount(0);await expect(profile.locator('svg[data-symbol="person"]')).toBeVisible();
 });
 
 test('Overview omits account association; launch account picker options retain skin faces',async({page})=>{

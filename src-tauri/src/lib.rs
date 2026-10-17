@@ -429,6 +429,12 @@ async fn get_content(core: App<'_>, id: String) -> Result<Vec<Content>, String> 
     }).await
 }
 #[tauri::command]
+async fn content_action(core: App<'_>, id: String, kind: String, name: String, action: String) -> Result<(), String> {
+    blocking(core.inner().clone(), move |core| {
+        core.content_action(&id, &kind, &name, &action).map_err(err)
+    }).await
+}
+#[tauri::command]
 async fn toggle_content(core: App<'_>, id: String, kind: String, name: String) -> Result<(), String> {
     blocking(core.inner().clone(), move |core| {
         core.toggle_content(&id, &kind, &name).map_err(err)
@@ -727,6 +733,7 @@ pub fn run() {
             get_logs,
             get_content,
             toggle_content,
+            content_action,
             open_instance_folder,
             get_instance_folder,
             duplicate_instance,

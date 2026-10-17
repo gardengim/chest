@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import {api,native} from './api';
   import {t} from './i18n';
   import {locale} from './preferences';
@@ -28,12 +29,12 @@
     <div><dt>{$t('Image cache')}</dt><dd>{size(usage.cache_bytes)}</dd></div>
     <div><dt>{$t('Other files')}</dt><dd>{size(usage.other_bytes)}</dd></div>
   </dl>{#if !usage.complete}<p role="status">{$t('Storage scan is incomplete.')}</p>{/if}{/if}
-  {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
+  {#if error}<Message tone="error" text={$t(error)}/>{/if}
 </div>
 {#if confirm}<dialog class="modal" aria-labelledby="clear-cache-title" use:showDialog oncancel={event=>{event.preventDefault();if(!pending)confirm=false;}}>
   <h2 id="clear-cache-title">{$t('Clear image cache?')}</h2>
   <p>{size(usage?.clearable_bytes || 0)}</p>
-  {#if error}<p class="inline-error" role="alert">{$t(error)}</p>{/if}
+  {#if error}<Message tone="error" text={$t(error)}/>{/if}
   <div class="form-actions"><Button disabled={pending} onclick={()=>confirm=false}>{$t('Cancel')}</Button><Button disabled={pending} onclick={clear}>{$t('Clear')}</Button></div>
 </dialog>{/if}
 <style>

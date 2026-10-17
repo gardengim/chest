@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import {api,native} from './api';
   import {t} from './i18n';
   import Button from './Button.svelte';
@@ -37,10 +38,10 @@
   <!-- svelte-ignore a11y_no_noninteractive_tabindex (The scrollable region needs keyboard access.) -->
   <div class="description-scroll" bind:this={scroller} id={uid} role="region" aria-label={$t('Description')} aria-busy={loading} tabindex="0">
     {#if loading}<p role="status">{$t('Loading description…')}</p>
-    {:else if error}<p class="inline-error" role="alert">{error}</p><Button onclick={()=>retry++}>{$t('Retry')}</Button>
+    {:else if error}<Message tone="error" text={error} actions={[{label:$t('Retry'),onclick:()=>retry++}]}/>
     {:else if content}<div dir="auto" class="rich-description" use:handleContent>{@html content}</div>
     {:else}<p class="hint">{$t('No description available.')}</p>{/if}
-    {#if linkError}<p class="inline-error" role="alert">{$t('Could not open link.')}</p>{/if}
+    {#if linkError}<Message tone="error" text={$t('Could not open link.')}/>{/if}
   </div>
   <Scrollbar {scroller} placement="container" label={$t('Scroll description')}/>
 </div>

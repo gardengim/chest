@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import DirectionIcon from './DirectionIcon.svelte';
   import {onMount,tick} from 'svelte';
   import {t} from './i18n';
@@ -98,7 +99,7 @@
   {:else}<div class="empty"><img class="empty-chest" src="/chest.svg" alt="" aria-hidden="true"/><h2>{$t('Your home is empty')}</h2></div>{/each}
 </div>
 <HomeDock sections={$homeShelves} active={page || active} onchoose={choose} onchange={order=>homeShelves.set(order)}/>
-{#snippet failed()}<p class="inline-error" role="alert">{$t('Could not load page')} <Button onclick={()=>window.location.reload()}>{$t('Retry')}</Button></p>{/snippet}
+{#snippet failed()}<Message tone="error" text={$t('Could not load page')} actions={[{label:$t('Retry'),onclick:()=>window.location.reload()}]}/>{/snippet}
 <style>
   .empty-chest{display:block;width:8rem;height:8rem;margin:0 auto 1.71428571rem;filter:grayscale(1);opacity:.5}
   .home-page{padding-bottom:calc(var(--control-height) + 4rem)}

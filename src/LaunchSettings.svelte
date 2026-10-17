@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Message from './Message.svelte';
   import {untrack} from 'svelte';
   import { t } from './i18n';
   import {api} from './api';
@@ -51,7 +52,7 @@
     </details>
   </fieldset>
   {#if draft.loading}<p role="status">{$t('Loading…')}</p>{/if}
-  {#if draft.error}<p role="alert" class="inline-error">{draft.error}</p>{#if !draft.loaded}<Button onclick={()=>load(id,draft)}>{$t('Retry')}</Button>{/if}{/if}
+  {#if draft.error}<Message tone="error" text={draft.error} actions={!draft.loaded?[{label:$t('Retry'),onclick:()=>load(id,draft)}]:[]}/>{/if}
 </section>
 <style>
 .account-select{display:flex;align-items:center;gap:.57142857rem}.account-select :global(select){flex:1;min-width:0}

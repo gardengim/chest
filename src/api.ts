@@ -134,6 +134,7 @@ export const api = {
   launch:(id:string)=>call<void>('launch_instance',{id}),stop:(id:string)=>call<void>('stop_instance',{id}),
   folderPath:(id:string)=>call<string|null>('get_instance_folder',{id}),
   folder:(id:string)=>call<void>('open_instance_folder',{id}), acknowledge:(id:string)=>call<void>('acknowledge',{id}),
+  contentAction:(id:string,kind:string,name:string,action:'open'|'remove')=>call<void>('content_action',{id,kind,name,action}),
   content:(id:string)=>call<Content[]>('get_content',{id}), toggle:(id:string,kind:string,name:string)=>call<void>('toggle_content',{id,kind,name}),
   logs:(id:string)=>call<string[]>('get_logs',{id}),
   signIn:()=>call<Account>('sign_in'),cancelSignIn:()=>call<void>('cancel_sign_in'),signOut:(id:string)=>call<void>('sign_out',{id}),

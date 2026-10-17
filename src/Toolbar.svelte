@@ -62,7 +62,7 @@
     {#if filters}<div class="toolbar-filters">{@render filters()}</div>{/if}
     {#each visible.filter(item=>item.priority!==100) as item (item.id)}<div class="toolbar-item" data-tool={item.id}>{@render item.content()}</div>{/each}
     {#if status}<span class="toolbar-status" role="status">{@render status()}</span>{/if}
-    {#if overflow.length}<span class="toolbar-more" bind:this={more}><Button aria-label={$t('More actions')} aria-expanded={open} aria-haspopup="dialog" onclick={toggle}><Icon name="more" size={18}/></Button></span>{/if}
+    {#if overflow.length}<span class="toolbar-more" bind:this={more}><Button aria-label={$t('More actions')} aria-expanded={open} aria-haspopup="dialog" onclick={toggle}><Icon name="dots-horizontal" size={18}/></Button></span>{/if}
     {#if navigation}<div class="toolbar-navigation">{@render navigation()}</div>{/if}
     {#if trailing}<div class="toolbar-trailing">{@render trailing()}</div>{/if}
   </div>

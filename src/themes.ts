@@ -13,7 +13,7 @@ export const defaultColors={
   'overlay-text':'#ececed','overlay-muted':'#c9cdd0',
   selected:'#626c5b','selected-text':'#eff5e6',focus:'#b5e681',
   success:'#365f3d','success-text':'#b8e5b0',
-  warning:'#736c5b','warning-text':'#f1dbab',
+  warning:'#625c4d','warning-text':'#f1dbab',
   danger:'#773f35','danger-text':'#ffe0d8',
   console:'#10170c','console-text':'#c0d4b7',
   'scroll-track':'transparent','scroll-thumb':'#626b76',

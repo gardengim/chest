@@ -11,7 +11,7 @@ test('chest outline is a centered regular hexagon and exported SVG matches the g
     assert.ok(Math.abs(x+vertices[(i+3)%6][0]-128)<1e-10);
     assert.ok(Math.abs(y+vertices[(i+3)%6][1]-128)<1e-10);
   }
-  assert.equal(readFileSync(new URL('../public/chest.svg',import.meta.url),'utf8'),chestMark());
+  assert.equal(readFileSync(new URL('../public/chest.svg',import.meta.url),'utf8').replace(/\r\n/g,'\n'),chestMark());
 });
 
 test('latch faces share edges on the cube isometric axes without a distorting transform',()=>{

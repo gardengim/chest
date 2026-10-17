@@ -2,6 +2,7 @@ import {test,expect} from '@playwright/test';
 
 test('radio segments share button feedback and keep the checked option recessed',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/');
+  await expect(page.locator('.catalog-card').first()).toBeVisible();
   const control=page.getByRole('radiogroup',{name:'Project layout',exact:true});await control.scrollIntoViewIfNeeded();
   const gallery=control.getByRole('radio',{name:'Gallery',exact:true}),list=control.getByRole('radio',{name:'List',exact:true});
   const galleryLabel=gallery.locator('..'),listLabel=list.locator('..');
@@ -37,9 +38,9 @@ test('layout radio groups use pixel icons and native keyboard selection independ
   for(const control of [library,project]){
     await control.scrollIntoViewIfNeeded();
     const gallery=control.getByRole('radio',{name:'Gallery',exact:true}),list=control.getByRole('radio',{name:'List',exact:true});
-    await expect(gallery.locator('..').locator('svg')).toHaveAttribute('data-symbol','layout-gallery');
-    await expect(list.locator('..').locator('svg')).toHaveAttribute('data-symbol','layout-list');
-    await expect(gallery.locator('..').locator('path')).toHaveAttribute('shape-rendering','crispEdges');
+    await expect(gallery.locator('..').locator('svg')).toHaveAttribute('data-symbol','grid');
+    await expect(list.locator('..').locator('svg')).toHaveAttribute('data-symbol','rows');
+    await expect(gallery.locator('..').locator('svg')).toHaveAttribute('shape-rendering','crispEdges');
     const [left,right]=await Promise.all([gallery.locator('..').boundingBox(),list.locator('..').boundingBox()]);
     expect(Math.abs(left!.x+left!.width-right!.x)).toBeLessThan(1);
     await gallery.focus();await page.keyboard.press('ArrowRight');

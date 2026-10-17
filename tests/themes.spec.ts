@@ -110,7 +110,7 @@ test('paired schemes reject missing palettes, invalid legacy modes and protected
     {...paired,colors:{}},
   ]){
     await importScheme(page,bad);
-    await expect(page.locator('.color-scheme-settings [role=alert]')).toBeVisible();
+    await expect(page.locator('.notification.error').last()).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
   }
 });
@@ -186,7 +186,7 @@ test('invalid or protected imports cannot modify styling, storage or active prev
   ];
   for(const scheme of bad){
     await importScheme(page,scheme,typeof scheme==='string' && !scheme.startsWith('{')?'bad.css':'bad.json');
-    await expect(page.locator('.color-scheme-settings [role=alert]')).toBeVisible();
+    await expect(page.locator('.notification.error').last()).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Chest Default');
     expect(await effects(page)).toEqual(before);
   }
@@ -262,9 +262,9 @@ test('media, icons, resource tabs and dialogs retain their protected styling und
   await expect(card.locator('.shared-card-art img')).toHaveAttribute('src','/chest.svg');
   await expect(card.locator('.card-backdrop img.visible')).toHaveAttribute('src','/minecraft.png');
   const addIcon=page.getByRole('button',{name:'Create instance',exact:true}).locator('svg');
-  await expect(addIcon.locator('path')).toHaveAttribute('shape-rendering','crispEdges');
-  const geometry=await addIcon.evaluate(node=>({box:node.getAttribute('viewBox'),path:node.querySelector('path')!.getAttribute('d')}));
-  expect(geometry.box).toBe('0 0 24 24');
+  await expect(addIcon).toHaveAttribute('shape-rendering','crispEdges');
+  const geometry=await addIcon.evaluate(node=>({box:node.getAttribute('viewBox'),rects:node.querySelectorAll('rect').length}));
+  expect(geometry.box).toBe('0 0 9 9');
   expect(await addIcon.evaluate(node=>getComputedStyle(node).color)).not.toBe('rgb(22, 78, 170)');
   await page.getByRole('button',{name:'Theme world: Ready to play',exact:true}).click();
   for(const tab of ['Overview','Contents','Worlds','Servers','Screenshots','Settings','Log']){
@@ -290,7 +290,7 @@ test('media, icons, resource tabs and dialogs retain their protected styling und
     }
   }
   await settings(page);await importScheme(page,{version:1,name:'Pink text',mode:'light',colors:{...light.colors,'page-text':'#ff00ff'}});
-  expect(await addIcon.evaluate(node=>({box:node.getAttribute('viewBox'),path:node.querySelector('path')!.getAttribute('d')}))).toEqual(geometry);
+  expect(await addIcon.evaluate(node=>({box:node.getAttribute('viewBox'),rects:node.querySelectorAll('rect').length}))).toEqual(geometry);
   expect(await addIcon.evaluate(node=>getComputedStyle(node).color)).not.toBe('rgb(255, 0, 255)');
   await page.locator('.settings-actions').getByRole('button',{name:'Discard',exact:true}).click();await expect(page.locator('html')).toHaveAttribute('data-color-scheme','Paper');
 });

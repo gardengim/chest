@@ -69,7 +69,7 @@ test('local files expose conditional tabs and content types remain separate in l
   });
   await page.goto('/');await page.getByRole('button',{name:'World: Ready to play',exact:true}).click();
   await page.getByRole('tab',{name:'Worlds',exact:true}).click();await expect(page.getByRole('tabpanel',{name:'Worlds',exact:true})).toContainText('Survival');
-  await page.locator('.world-list .launcher-card').first().click({button:'right'});await page.getByRole('menuitem',{name:'Add data packs',exact:true}).click();await expect(page.getByRole('status').last()).toContainText('Added 1 data pack.');
+  await page.locator('.world-list .launcher-card').first().click({button:'right'});await page.getByRole('menuitem',{name:'Add data packs',exact:true}).click();await expect(page.locator('.notification').filter({hasText:'Added 1 data pack.'})).toContainText('Added 1 data pack.');
   await page.getByRole('tab',{name:'Servers',exact:true}).click();await expect(page.getByRole('tabpanel',{name:'Servers',exact:true})).toContainText('localhost:25565');
   await page.getByRole('tab',{name:'Screenshots',exact:true}).click();
   const screenshot=page.getByRole('button',{name:'2026-10-11.png · World',exact:true});

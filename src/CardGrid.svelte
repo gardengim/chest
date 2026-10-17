@@ -6,7 +6,7 @@
 </script>
 <div {...attributes} class={['card-grid',layout==='gallery'?'gallery':'list',className]} data-layout={layout} style={gridStyle}>{@render children()}</div>
 <style>
-.card-grid{display:grid;grid-template-columns:repeat(var(--card-grid-repeat,auto-fill),minmax(min(var(--card-min),100%),1fr));gap:var(--card-gap);min-width:0;align-items:stretch}
+.card-grid{display:grid;grid-template-columns:repeat(var(--card-grid-repeat,auto-fill),minmax(min(var(--card-min),100%),1fr));gap:var(--card-gap);min-width:0;grid-auto-rows:max-content;align-items:start;align-content:start}
 .card-grid[data-layout='list']{grid-template-columns:minmax(0,1fr)}
 :global(.shelf-body.horizontal) .card-grid[data-layout='gallery']{grid-auto-flow:column;grid-auto-columns:min(100cqi,var(--card-column-width,clamp(14rem,28cqi,var(--card-min))));grid-template-columns:none}
 .card-grid :global(.launcher-card),.card-grid :global(.screenshot-tile){min-width:0}

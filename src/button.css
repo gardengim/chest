@@ -33,7 +33,7 @@
     --button-edge:var(--bevel-highlight);
     font-weight:600;
   }
-  :where(.ui-button[data-tone='danger']) {
+  .ui-button[data-tone='danger'] {
     --button-fill:var(--theme-danger);
     --icon-ink:var(--icon-on-danger);
     --button-hover:color-mix(in srgb,var(--button-fill) 88%,white);
@@ -76,7 +76,7 @@
     border:0;
     padding:0.57142857rem 0.42857143rem;
   }
-  :where(.ui-button[data-shape='plain'][data-tone='danger']) { --button-text:var(--negative-text); }
+  .ui-button[data-shape='plain'][data-tone='danger'] { --button-text:var(--negative-text);--icon-ink:var(--negative-text); }
   :where(.ui-button[data-shape='card']) {
     --button-fill:var(--card-fill,var(--theme-surface));
     --button-hover:color-mix(in srgb,var(--button-fill) 88%,white);
